@@ -6,7 +6,7 @@ SimpleModManager is an homebrew app for the Nintendo Switch CFW : Atmosphere. It
 
 ## Usage
 - Place the .nro file in the `/switch/` folder of your SDcard.
-- At the ROOT of your SDcard, create a `/mods/` folder.
+- At the root of your SDcard, create a `/mods/` folder.
 - Tree structure : `/mods/<NameOfTheGame>/<NameOfTheMod>/<ModTreeStructureFromAtmosphereFolder>`
 
 Example : `/mods/The Legend of Zelda - Breath of the Wild/First Person View/titles/01007EF00011E000/romfs/Actor/Pack/GameRomCamera.sbactorpack`
