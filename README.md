@@ -29,6 +29,11 @@ mkdir build && cd build
 cmake ../ -DCMAKE_TOOLCHAIN_FILE=../devkita64-libnx.cmake
 make
 ```
+
+## Showcase (YouTube)
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/uJiIzLvsW2Y/0.jpg)](https://www.youtube.com/watch?v=uJiIzLvsW2Y)
+
 ## Screenshots
 <p align="center"><img src="https://github.com/nadrino/SimpleModManager/blob/master/screenshots/1.jpg"></p>
 <p align="center"><img src="https://github.com/nadrino/SimpleModManager/blob/master/screenshots/2.jpg"></p>
