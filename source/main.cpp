@@ -58,6 +58,9 @@ int main(int argc, char **argv)
         );
       }
     } else if(kDown & KEY_B){
+      if(br.get_current_depth() == 0){
+        break;
+      }
       if(br.go_back()){
         // ok
       } else {
@@ -103,21 +106,22 @@ int main(int argc, char **argv)
 
 void print_menu(browser& br){
   consoleClear();
+  toolbox::print_right("SimpleModManager v"+toolbox::get_app_version());
   br.print_ls();
   std::cout << "Page (" << br.get_browser_selector().get_current_page()+1 << "/" << br.get_browser_selector().get_nb_pages() << ")" << std::endl;
   std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
   if(br.get_current_depth() == br.get_max_depth()){
-    std::cout << "A : Apply mod" << std::endl;
-    std::cout << "X : Disable mod" << std::endl;
-    std::cout << "Y : Mod status" << std::endl;
-    std::cout << "- : Disable all mods" << std::endl;
+    std::cout << " A : Apply mod" << std::endl;
+    std::cout << " X : Disable mod" << std::endl;
+    std::cout << " Y : Mod status" << std::endl;
+    std::cout << " - : Disable all mods" << std::endl;
   } else{
-    std::cout << "A : Select folder" << std::endl;
+    std::cout << " A : Select folder" << std::endl;
   }
-  std::cout << "B : Go back" << std::endl;
-  std::cout << "+ : HB menu" << std::endl;
-  std::cout << "Home : Force quit" << std::endl;
-  std::cout << "L : Previous Page // R : Next Page" << std::endl;
+  std::cout << " B : Go back" << std::endl;
+  std::cout << " H : Force quit" << std::endl;
+  std::cout << " L : Previous Page " << std::endl;
+  std::cout << " R : Next Page" << std::endl;
   consoleUpdate(nullptr);
 }
 void check_mod_status(browser &br, mod_manager &mm) {

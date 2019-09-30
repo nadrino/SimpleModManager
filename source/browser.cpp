@@ -81,6 +81,7 @@ bool browser::change_directory(std::string new_directory_){
   std::sort(selection_list.begin(), selection_list.end());
   _browser_selector_.set_selection_list(selection_list);
   _browser_selector_.reset_cursor_position();
+  _browser_selector_.reset_page();
   return true;
 
 }

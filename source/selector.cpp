@@ -95,6 +95,9 @@ void selector::print_selector() {
 void selector::reset_cursor_position(){
   _cursor_position_ = _default_cursor_position_;
 }
+void selector::reset_page(){
+  _current_page_ = 0;
+}
 void selector::reset_tags_list(){
   _tags_list_.resize(0);
   _tags_list_.resize(_selection_list_.size());

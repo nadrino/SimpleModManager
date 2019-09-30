@@ -1,0 +1,26 @@
+#ifndef VERSION_CONFIG_H
+#define VERSION_CONFIG_H
+
+// define your version_libinterface
+#define VERSION_APP @APP_VERSION@
+#define VERSION_MAJOR_APP @VERSION_MAJOR@
+#define VERSION_MINOR_APP @VERSION_MINOR@
+#define VERSION_MICRO_APP @VERSION_MICRO@
+
+// alternatively you could add your global method getLibInterfaceVersion here
+unsigned int get_version_major()
+{
+  return @VERSION_MAJOR@;
+}
+
+unsigned int get_version_minor()
+{
+  return @VERSION_MINOR@;
+}
+
+unsigned int get_version_micro()
+{
+  return @VERSION_MICRO@;
+}
+
+#endif // VERSION_CONFIG_H

@@ -18,10 +18,19 @@
 #include <switch.h>
 #include <ctime>
 
+#include <version_config.h>
+
 namespace toolbox{
+
+  std::string get_app_version(){
+    std::stringstream ss;
+    ss << get_version_major() << "." << get_version_minor() << "." << get_version_micro();
+    return ss.str();
+  }
 
   static std::time_t last_timestamp;
   static double last_displayed_value = -1;
+
   void reset_last_displayed_value(){
     last_displayed_value = -1;
   }
@@ -47,6 +56,14 @@ namespace toolbox{
 
 
 
+  }
+  void print_right(std::string input_, std::string color_){
+    std::cout << color_ << repeat_string(" ", get_terminal_width() - input_.size()) << input_ << reset_color;
+    if(get_terminal_width() < int(input_.size())) std::cout << std::endl;
+  }
+  void print_left(std::string input_, std::string color_){
+    std::cout << color_ << input_ << repeat_string(" ", get_terminal_width() - input_.size()) << reset_color;
+    if(get_terminal_width() < int(input_.size())) std::cout << std::endl;
   }
 
   int get_terminal_width(){

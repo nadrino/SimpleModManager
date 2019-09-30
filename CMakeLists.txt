@@ -23,10 +23,15 @@ include_directories("${LIBNX}/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 set(VERSION_MAJOR 1)
-set(VERSION_MINOR 0)
+set(VERSION_MINOR 1)
 set(VERSION_MICRO 0)
 set(APP_VERSION
     "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}")
+
+add_definitions( -DVERSION_APP=${APP_VERSION} )
+add_definitions( -DVERSION_MAJOR_APP=${VERSION_MAJOR} )
+add_definitions( -DVERSION_MINOR_APP=${VERSION_MINOR} )
+add_definitions( -DVERSION_MICRO_APP=${VERSION_MICRO} )
 
 # Replace this with the name of your application
 set(APP_NAME "SimpleModManager")
@@ -55,6 +60,9 @@ endif ()
 include(nx-utils)
 
 cmake_info("Building ${APP_TITLE} version ${APP_VERSION}.")
+
+configure_file(version_config.h.in ${CMAKE_BINARY_DIR}/generated/version_config.h)
+include_directories( ${CMAKE_BINARY_DIR}/generated/ )
 
 #include(include/CMakeLists.txt)
 include(source/CMakeLists.txt)

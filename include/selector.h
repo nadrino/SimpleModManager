@@ -33,6 +33,7 @@ public:
 
   void print_selector();
   void reset_cursor_position();
+  void reset_page();
   void reset_tags_list();
   void increment_cursor_position();
   void decrement_cursor_position();
