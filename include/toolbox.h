@@ -17,6 +17,8 @@ namespace toolbox{
 
   std::string get_app_version();
 
+  std::string get_cfw_config();
+
   void reset_last_displayed_value();
   void set_last_timestamp();
   void display_loading(int current_index_ = 100, int end_index_ = 100, std::string title_ = "", std::string prefix_ = "", bool force_display_ = false);

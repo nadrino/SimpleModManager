@@ -31,6 +31,19 @@ namespace toolbox{
   static std::time_t last_timestamp;
   static double last_displayed_value = -1;
 
+  std::string get_cfw_config()  {
+    //std::ifstream configFile("ModCFW.ini", std::ios::binary | std::ios::ate);
+    std::ifstream configFile;
+    configFile.open("ModCFW.ini");
+    if (configFile.is_open()) {
+      std::string cfw;
+      std::getline(configFile, cfw);
+      configFile.close();
+
+      return cfw;
+    }
+  }
+
   void reset_last_displayed_value(){
     last_displayed_value = -1;
   }
