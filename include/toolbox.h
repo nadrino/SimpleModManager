@@ -25,6 +25,8 @@ namespace toolbox{
 
   int get_terminal_width();
   int get_terminal_height();
+  int bsdChecksumFromFilepath(std::string path_);
+  int bsdChecksumFromFile(FILE *fp);
 
   bool do_string_contains_substring(std::string string_, std::string substring_);
   bool do_string_starts_with_substring(std::string string_, std::string substring_);

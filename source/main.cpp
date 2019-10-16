@@ -46,12 +46,8 @@ int main(int argc, char **argv)
       } else if(br.get_current_depth() == br.get_max_depth()) {
         // make mod action (ACTIVATE OR DEACTIVATE)
         mm.apply_mod(br.get_current_directory() + "/" + br.get_browser_selector().get_selected_string());
-        std::stringstream ss;
-        ss << "Checking installed mod...";
-        std::cout << toolbox::red_bg << ss.str();
-        std::cout << toolbox::repeat_string(" ", toolbox::get_terminal_width() - int(ss.str().size()));
-        std::cout << toolbox::reset_color;
 
+        toolbox::print_left("Checking installed mod...", toolbox::red_bg);
         br.get_browser_selector().set_tag(
             br.get_browser_selector().get_selected_entry(),
             mm.get_mod_status(br.get_current_directory() + "/" + br.get_browser_selector().get_selected_string())

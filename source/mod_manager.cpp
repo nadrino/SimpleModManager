@@ -68,10 +68,7 @@ std::string mod_manager::get_mod_status(std::string mod_folder_path_){
 }
 void mod_manager::apply_mod(std::string mod_folder_path_) {
 
-  std::stringstream title_ss;
-  title_ss << "Applying : " << toolbox::get_filename_from_file_path(mod_folder_path_) << "...";
-  title_ss << toolbox::repeat_string(" ", toolbox::get_terminal_width() - int(title_ss.str().size()));
-  std::cout << toolbox::red_bg << title_ss.str() << toolbox::reset_color; // should be end of line
+  toolbox::print_left("Applying : " + toolbox::get_filename_from_file_path(mod_folder_path_) + "...", toolbox::red_bg);
   std::vector<std::string> file_path_list;
   if(_files_list_cache_[mod_folder_path_].empty()){
     file_path_list = toolbox::get_list_files_in_subfolders(mod_folder_path_);
@@ -82,6 +79,7 @@ void mod_manager::apply_mod(std::string mod_folder_path_) {
   std::string replace_option;
   bool is_conflict;
   std::stringstream ss_files_list;
+  toolbox::reset_last_displayed_value();
   for(int i_file = 0 ; i_file < int(file_path_list.size()) ; i_file++){
 
     toolbox::display_loading(

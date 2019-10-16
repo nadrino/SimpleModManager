@@ -72,6 +72,26 @@ namespace toolbox{
   int get_terminal_height(){
     return consoleGetDefault()->consoleHeight;
   }
+  int bsdChecksumFromFilepath(std::string path_){
+    if(do_path_is_file(path_)){
+      FILE* f = std::fopen(path_.c_str(), "r");
+      int checksum = bsdChecksumFromFile(f);
+      std::fclose(f);
+      return checksum;
+    } else{
+      return -1;
+    }
+  }
+  int bsdChecksumFromFile(FILE *fp) {
+    int checksum = 0;             /* The checksum mod 2^16. */
+
+    for (int ch = getc(fp); ch != EOF; ch = getc(fp)) {
+      checksum = (checksum >> 1) + ((checksum & 1) << 15);
+      checksum += ch;
+      checksum &= 0xffff;       /* Keep it within bounds. */
+    }
+    return checksum;
+  }
 
   bool do_string_contains_substring(std::string string_, std::string substring_){
     if(string_.find(substring_) != std::string::npos) return true;
@@ -97,14 +117,8 @@ namespace toolbox{
     if(not do_path_is_file(file1_path_)) return false;
     if(not do_path_is_file(file2_path_)) return false;
 
-    auto file1_size = toolbox::get_file_size(file1_path_);
-    auto file2_size = toolbox::get_file_size(file2_path_);
-    if(file1_size != file2_size) return false;
-
-//    auto file1_hash = get_hash_file(file1_path_);
-//    auto file2_hash = get_hash_file(file2_path_);
-//
-//    return file1_hash == file2_hash;
+    if(toolbox::get_file_size(file1_path_) != toolbox::get_file_size(file2_path_)) return false;
+//    if(bsdChecksumFromFilepath(file1_path_) != bsdChecksumFromFilepath(file2_path_)) return false;
 
     return true;
 
@@ -178,10 +192,31 @@ namespace toolbox{
     source.close();
     dest.close();
 
-    if(not toolbox::do_files_are_the_same(source_, dest_)){
-      return false;
-    }
+//    FILE *in, *out;
+//    int c;
+//    if ((in = fopen(source_.c_str(),"rb")) == NULL)
+//    {
+//      printf("Could not open source file: %s\n",source_.c_str());
+//      return 1;
+//    }
+//
+//    if ((out = fopen(dest_.c_str(),"wb")) == NULL)
+//    {
+//      printf("Could not open destination file: %s\n",dest_.c_str());
+//      return 1;
+//    }
+//
+//    while ((c = fgetc(in)) != EOF)
+//      fputc(c,out);
+//
+//    fclose(in);
+//    fclose(out);
+
+//    if(not toolbox::do_files_are_the_same(source_, dest_)){
+//      return false;
+//    }
     return true;
+
   }
 
   std::string get_folder_path_from_file_path(std::string file_path_){
