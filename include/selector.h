@@ -23,6 +23,7 @@ public:
   void set_cursor_position(int cursor_position_);
   void set_selection_list(std::vector<std::string> selection_list_);
   void set_cursor_marker(std::string cursor_marker_);
+  void set_max_items_per_page(int max_items_per_page_);
 
   void set_tag(int entry_, std::string tag_);
 

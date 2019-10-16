@@ -21,6 +21,7 @@ public:
 
   void set_base_folder(std::string base_folder_);
   void set_max_depth(int max_depth_);
+  void set_only_show_folders(bool only_show_folders_);
 
   int get_current_depth();
   int get_max_depth();
@@ -37,12 +38,16 @@ public:
 
 private:
 
+  bool _only_show_folders_;
+
   int _nb_files_;
   int _max_depth_;
   int _current_depth_;
+
   std::string _current_directory_;
   std::string _selected_entry_name_;
   std::string _base_folder_;
+
   std::vector<std::string> _folder_ls_;
 
   selector _browser_selector_;

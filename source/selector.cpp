@@ -25,7 +25,7 @@ void selector::reset(){
   set_cursor_marker(">");
   set_default_cursor_position(0);
   reset_cursor_position();
-  _max_items_per_page_ = 25;
+  _max_items_per_page_ = 27;
   _current_page_ = 0;
 
 }
@@ -43,6 +43,9 @@ void selector::set_selection_list(std::vector<std::string> selection_list_) {
 void selector::set_cursor_marker(std::string cursor_marker_) {
   _cursor_marker_ = cursor_marker_;
 }
+void selector::set_max_items_per_page(int max_items_per_page_){
+  _max_items_per_page_ = max_items_per_page_;
+}
 
 void selector::set_tag(int entry_, std::string tag_){
   if(entry_ < 0 or entry_ >= int(_tags_list_.size())) return;
@@ -50,7 +53,7 @@ void selector::set_tag(int entry_, std::string tag_){
 }
 
 int selector::get_nb_pages(){
-  return 1 + int(_selection_list_.size())/_max_items_per_page_;
+  return 1 + int(_selection_list_.size()-1)/_max_items_per_page_;
 }
 int selector::get_current_page(){
   return _current_page_;
@@ -134,10 +137,12 @@ void selector::decrement_cursor_position(){
 void selector::next_page(){
   _current_page_++;
   if(_current_page_ >= get_nb_pages()) _current_page_ = 0;
+  _cursor_position_ = 0;
 }
 void selector::previous_page(){
   _current_page_--;
   if(_current_page_ < 0) _current_page_ = get_nb_pages() - 1;
+  _cursor_position_ = 0;
 }
 std::string selector::get_selected_string(){
   if(_selection_list_.empty()) return ""; // sanity check : emptiness
@@ -145,4 +150,3 @@ std::string selector::get_selected_string(){
     return ""; // sanity check : cursor out of bounds
   return _selection_list_[get_selected_entry()];
 }
-

@@ -5,6 +5,8 @@
 #ifndef MODAPPLIER_MOD_MANAGER_H
 #define MODAPPLIER_MOD_MANAGER_H
 
+#include <parameters_handler.h>
+
 #include <vector>
 #include <string>
 #include <map>
@@ -20,6 +22,9 @@ public:
 
   void set_log_file_path(std::string log_file_path_);
 
+  std::string get_install_mods_base_folder();
+  parameters_handler& get_parameters_handler_();
+
   std::string get_mod_status(std::string mod_folder_path_);
   void apply_mod(std::string mod_folder_path_);
   void remove_mod(std::string mod_folder_path_);
@@ -31,9 +36,11 @@ protected:
 
 private:
 
-  std::string _custom_firmware_path_;
+  std::string _install_mods_base_folder_;
   std::string _log_file_path_;
   std::map<std::string, std::vector<std::string>> _files_list_cache_;
+
+  parameters_handler _parameters_handler_;
 
 
 

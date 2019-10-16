@@ -19,30 +19,12 @@
 #include <ctime>
 
 #include <version_config.h>
+#include <selector.h>
 
 namespace toolbox{
 
-  std::string get_app_version(){
-    std::stringstream ss;
-    ss << get_version_major() << "." << get_version_minor() << "." << get_version_micro();
-    return ss.str();
-  }
-
   static std::time_t last_timestamp;
   static double last_displayed_value = -1;
-
-  std::string get_cfw_config()  {
-    //std::ifstream configFile("ModCFW.ini", std::ios::binary | std::ios::ate);
-    std::ifstream configFile;
-    configFile.open("ModCFW.ini");
-    if (configFile.is_open()) {
-      std::string cfw;
-      std::getline(configFile, cfw);
-      configFile.close();
-
-      return cfw;
-    }
-  }
 
   void reset_last_displayed_value(){
     last_displayed_value = -1;
@@ -56,7 +38,12 @@ namespace toolbox{
     if(last_displayed_value == -1) {
       set_last_timestamp();
     }
-    if(last_displayed_value == -1 or std::time(nullptr) - last_timestamp >= 1 or force_display_ or current_index_ >= end_index_-1){
+    if(
+        last_displayed_value == -1 or std::time(nullptr) - last_timestamp >= 1 // every second
+        or current_index_ == 0 // first call
+        or force_display_ // display every calls
+        or current_index_ >= end_index_-1 // last entry
+        ){
       set_last_timestamp();
       last_displayed_value = percent;
       std::stringstream ss;
@@ -77,6 +64,13 @@ namespace toolbox{
   void print_left(std::string input_, std::string color_){
     std::cout << color_ << input_ << repeat_string(" ", get_terminal_width() - input_.size()) << reset_color;
     if(get_terminal_width() < int(input_.size())) std::cout << std::endl;
+  }
+  void print_left_right(std::string input_left_, std::string input_right_, std::string color_){
+    std::cout << color_ << input_left_;
+    std::cout << repeat_string(" ", get_terminal_width() - input_left_.size() - input_right_.size());
+    std::cout << input_right_;
+    std::cout << reset_color;
+    if(get_terminal_width() < int(input_left_.size()) + int(input_right_.size())) std::cout << std::endl;
   }
 
   int get_terminal_width(){
@@ -267,6 +261,46 @@ namespace toolbox{
     }
     return out_str;
   }
+  std::string ask_question(std::string question_, std::vector<std::string> answers_){
+
+    consoleClear();
+    std::cout << question_ << std::endl;
+
+    auto sel = selector();
+    sel.set_selection_list(answers_);
+    sel.print_selector();
+
+    while(appletMainLoop()){
+      //Scan all the inputs. This should be done once for each frame
+      hidScanInput();
+
+      //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
+      u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+
+      if(kDown & KEY_DOWN){
+        sel.increment_cursor_position();
+        consoleClear();
+        std::cout << question_ << std::endl;
+        sel.print_selector();
+      } else if(kDown & KEY_UP){
+        sel.decrement_cursor_position();
+        consoleClear();
+        std::cout << question_ << std::endl;
+        sel.print_selector();
+      } else if(kDown & KEY_A){
+        consoleClear();
+        return sel.get_selected_string();
+      }
+      consoleUpdate(nullptr);
+    }
+
+    return "";
+  }
+  std::string get_app_version(){
+    std::stringstream ss;
+    ss << get_version_major() << "." << get_version_minor() << "." << get_version_micro();
+    return ss.str();
+  }
 
   std::vector<std::string> split_string(std::string input_string_, std::string delimiter_){
 
@@ -309,6 +343,25 @@ namespace toolbox{
       struct dirent* entry;
       while ( (entry = readdir(directory)) ) {
         entries_list.emplace_back(entry->d_name);
+      }
+      closedir(directory);
+      return entries_list;
+    }
+  }
+  std::vector<std::string> get_list_of_folders_in_folder(std::string folder_path_) {
+    if(not do_path_is_folder(folder_path_)) return std::vector<std::string>();
+    DIR* directory;
+    directory = opendir(folder_path_.c_str()); //Open current-working-directory.
+    if( directory == nullptr ) {
+      std::cout << "Failed to open directory : " << folder_path_ << std::endl;
+      return std::vector<std::string>();
+    } else {
+      std::vector<std::string> entries_list;
+      struct dirent* entry;
+      while ( (entry = readdir(directory)) ) {
+        if(do_path_is_folder(folder_path_ + "/" + std::string(entry->d_name))){
+          entries_list.emplace_back(entry->d_name);
+        }
       }
       closedir(directory);
       return entries_list;

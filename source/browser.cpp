@@ -34,6 +34,7 @@ void browser::reset(){
   _base_folder_ = "/";
   _current_directory_ = _base_folder_;
   _selected_entry_name_ = "";
+  _only_show_folders_ = false;
 }
 
 void browser::set_base_folder(std::string base_folder_){
@@ -41,6 +42,9 @@ void browser::set_base_folder(std::string base_folder_){
 }
 void browser::set_max_depth(int max_depth_){
   _max_depth_ = max_depth_;
+}
+void browser::set_only_show_folders(bool only_show_folders_){
+  _only_show_folders_ = only_show_folders_;
 }
 
 int browser::get_current_depth(){
@@ -77,7 +81,9 @@ bool browser::change_directory(std::string new_directory_){
 
   _current_directory_ = new_directory_;
   _current_depth_ = new_path_depth;
-  auto selection_list = toolbox::get_list_of_entries_in_folder(_current_directory_);
+  std::vector<std::string> selection_list;
+  if(not _only_show_folders_)selection_list = toolbox::get_list_of_entries_in_folder(_current_directory_);
+  else selection_list = toolbox::get_list_of_folders_in_folder(_current_directory_);
   std::sort(selection_list.begin(), selection_list.end());
   _browser_selector_.set_selection_list(selection_list);
   _browser_selector_.reset_cursor_position();

@@ -11,19 +11,16 @@
 namespace toolbox{
 
   static std::string red_bg = "\033[1;41m";
-  static std::string grey_bg = "\033[1;47m";
+  static std::string grey_bg = "\033[1;100m";
   static std::string blue_bg = "\033[1;44m";
   static std::string reset_color = "\033[0m";
-
-  std::string get_app_version();
-
-  std::string get_cfw_config();
 
   void reset_last_displayed_value();
   void set_last_timestamp();
   void display_loading(int current_index_ = 100, int end_index_ = 100, std::string title_ = "", std::string prefix_ = "", bool force_display_ = false);
   void print_right(std::string input_, std::string color_ = "");
   void print_left(std::string input_, std::string color_ = "");
+  void print_left_right(std::string input_left_, std::string input_right_, std::string color_ = "");
 
   int get_terminal_width();
   int get_terminal_height();
@@ -45,9 +42,12 @@ namespace toolbox{
   std::string get_filename_from_file_path(std::string file_path_);
   std::string join_vector_string(std::vector<std::string> string_list_, std::string delimiter_, int begin_index_, int end_index_);
   std::string repeat_string(std::string str_, int n_times_);
+  std::string ask_question(std::string question_, std::vector<std::string> answers_);
+  std::string get_app_version();
 
   std::vector<std::string> split_string(std::string input_string_, std::string delimiter_);
   std::vector<std::string> get_list_of_entries_in_folder(std::string folder_path_);
+  std::vector<std::string> get_list_of_folders_in_folder(std::string folder_path_);
   std::vector<std::string> get_list_files_in_subfolders(std::string folder_path_);
 
   long int get_file_size(std::string file_path_);
