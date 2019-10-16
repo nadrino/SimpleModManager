@@ -14,7 +14,7 @@
 mod_manager::mod_manager() {
 
   _files_list_cache_.clear();
-  _custom_firmware_path_ = "/atmosphere/";
+  _custom_firmware_path_ = toolbox::get_cfw_config();
 
 }
 mod_manager::~mod_manager() {
