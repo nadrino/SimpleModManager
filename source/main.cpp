@@ -3,6 +3,7 @@
 #include <browser.h>
 #include <toolbox.h>
 #include <mod_manager.h>
+#include <parameters_handler.h>
 
 #include <functional>
 #include <iostream>
@@ -10,6 +11,7 @@
 
 browser __br__;
 mod_manager __mm__;
+parameters_handler __ph__;
 
 void print_menu();
 void check_mod_status(browser &br, mod_manager &mm);
@@ -20,8 +22,13 @@ int main(int argc, char **argv)
 
   int max_depth = 1;
 
+  __ph__.initialize();
+
+  __mm__.initialize();
+  __mm__.set_install_mods_base_folder(__ph__.get_parameter("install-mods-base-folder"));
+
   __br__.set_only_show_folders(true);
-  __br__.set_base_folder("/mods");
+  __br__.set_base_folder(__ph__.get_parameter("stored-mods-base-folder"));
   __br__.set_max_depth(max_depth);
   __br__.initialize();
   print_menu();
@@ -97,6 +104,11 @@ int main(int argc, char **argv)
       if(__br__.get_current_depth() == __br__.get_max_depth()){
         __br__.get_browser_selector().next_page();
       }
+    } else if(kDown & KEY_Y){
+      if(__br__.get_current_depth() == 0){
+        __ph__.increment_selected_preset_id();
+        __mm__.set_install_mods_base_folder(__ph__.get_parameter("install-mods-base-folder"));
+      }
     }
 
     if(kDown != 0){
@@ -114,14 +126,14 @@ void print_menu() {
   __br__.print_ls();
   std::cout << "Page (" << __br__.get_browser_selector().get_current_page()+1 << "/" << __br__.get_browser_selector().get_nb_pages() << ")" << std::endl;
   std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
-  toolbox::print_left("Configuration :");
+  toolbox::print_left("Configuration preset : " + __ph__.get_selected_preset_name());
   toolbox::print_left("install-mods-base-folder = " + __mm__.get_install_mods_base_folder());
   std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
   if(__br__.get_current_depth() == __br__.get_max_depth()){
     toolbox::print_left_right(" A : Apply mod", "X : Disable mod ");
     toolbox::print_left_right(" ZL : Mod status", "ZR : Disable all mods ");
   } else{
-    toolbox::print_left(" A : Select folder");
+    toolbox::print_left_right(" A : Select folder", "Y : Change config preset ");
   }
   toolbox::print_left_right(" B : Go back", "+/- : Quit ");
   if(__br__.get_browser_selector().get_nb_pages() > 1) toolbox::print_left_right(" L : Previous Page", "R : Next Page ");

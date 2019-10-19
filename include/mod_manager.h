@@ -21,9 +21,9 @@ public:
   void initialize();
 
   void set_log_file_path(std::string log_file_path_);
+  void set_install_mods_base_folder(std::string install_mods_base_folder_);
 
   std::string get_install_mods_base_folder();
-  parameters_handler& get_parameters_handler_();
 
   std::string get_mod_status(std::string mod_folder_path_);
   void apply_mod(std::string mod_folder_path_);

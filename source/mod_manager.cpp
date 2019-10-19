@@ -14,8 +14,7 @@
 mod_manager::mod_manager() {
 
   _files_list_cache_.clear();
-  _parameters_handler_.initialize();
-  _install_mods_base_folder_ = _parameters_handler_.get_parameter("install-mods-base-folder");
+  _install_mods_base_folder_ = "/atmosphere/"; // should not be used
 
 }
 mod_manager::~mod_manager() {
@@ -32,12 +31,12 @@ void mod_manager::initialize() {
 void mod_manager::set_log_file_path(std::string log_file_path_) {
   _log_file_path_ = log_file_path_;
 }
+void mod_manager::set_install_mods_base_folder(std::string install_mods_base_folder_){
+  _install_mods_base_folder_ = install_mods_base_folder_;
+}
 
 std::string mod_manager::get_install_mods_base_folder() {
   return _install_mods_base_folder_;
-}
-parameters_handler& mod_manager::get_parameters_handler_(){
-  return _parameters_handler_;
 }
 
 std::string mod_manager::get_mod_status(std::string mod_folder_path_){
