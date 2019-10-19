@@ -9,6 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <switch/services/hid.h>
 
 parameters_handler::parameters_handler() {
 
@@ -75,10 +76,13 @@ void parameters_handler::set_default_parameters() {
   // don't forget to propagate the changes to "fill_current_preset_parameters()"
   // and "recreate_parameters_file()"
   _presets_list_.emplace_back("default");
-  _data_handler_["default-install-mods-base-folder"] = "/atmosphere/";
+  _data_handler_[_presets_list_.back() + "-install-mods-base-folder"] = "/atmosphere/";
 
   _presets_list_.emplace_back("sxos");
-  _data_handler_["sxos-install-mods-base-folder"] = "/sxos/";
+  _data_handler_[_presets_list_.back() + "-install-mods-base-folder"] = "/sxos/";
+
+  _presets_list_.emplace_back("reinx");
+  _data_handler_[_presets_list_.back() + "-install-mods-base-folder"] = "/reinx/";
 
 }
 void parameters_handler::recreate_parameters_file() {
@@ -99,6 +103,7 @@ void parameters_handler::recreate_parameters_file() {
     parameter_file << std::endl;
     parameter_file << "# base folder where mods are installed" << std::endl;
     parameter_file << "install-mods-base-folder = " << _data_handler_[preset + "-install-mods-base-folder"] << std::endl;
+    parameter_file << "########################################" << std::endl;
     parameter_file << std::endl;
     parameter_file << std::endl;
   }
@@ -152,7 +157,7 @@ void parameters_handler::read_parameters() {
 
 void parameters_handler::append_to_preset_list(std::string preset_){
 
-  if (std::binary_search(_presets_list_.begin(), _presets_list_.end(), preset_)){
+  if (toolbox::do_string_in_vector(preset_, _presets_list_)){
     // preset_ found in _presets_list_
     return;
   } else {
@@ -165,5 +170,4 @@ void parameters_handler::fill_current_preset_parameters(){
   _data_handler_["install-mods-base-folder"] = _data_handler_[_presets_list_[_selected_preset_id_] + "-install-mods-base-folder"];
 
 }
-
 

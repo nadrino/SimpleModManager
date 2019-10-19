@@ -21,6 +21,7 @@ namespace toolbox{
   void print_right(std::string input_, std::string color_ = "");
   void print_left(std::string input_, std::string color_ = "");
   void print_left_right(std::string input_left_, std::string input_right_, std::string color_ = "");
+  void make_pause();
 
   int get_terminal_width();
   int get_terminal_height();
@@ -29,6 +30,7 @@ namespace toolbox{
 
   bool do_string_contains_substring(std::string string_, std::string substring_);
   bool do_string_starts_with_substring(std::string string_, std::string substring_);
+  bool do_string_in_vector(std::string str_, std::vector<std::string> vector_);
   bool do_path_is_folder(std::string folder_path_);
   bool do_path_is_file(std::string file_path_);
   bool do_files_are_the_same(std::string file1_path_, std::string file2_path_);

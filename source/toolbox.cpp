@@ -72,6 +72,21 @@ namespace toolbox{
     std::cout << reset_color;
     if(get_terminal_width() < int(input_left_.size()) + int(input_right_.size())) std::cout << std::endl;
   }
+  void make_pause(){
+
+    std::cout << "PRESS A to continue." << std::endl;
+    consoleUpdate(nullptr);
+
+    while(appletMainLoop()){
+      hidScanInput();
+      u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+      if (kDown & KEY_A) {
+        break; // break in order to return to hbmenu
+      }
+    }
+
+
+  }
 
   int get_terminal_width(){
     return consoleGetDefault()->consoleWidth;
@@ -106,6 +121,12 @@ namespace toolbox{
   }
   bool do_string_starts_with_substring(std::string string_, std::string substring_){
     return (not string_.compare(0, substring_.size(), substring_));
+  }
+  bool do_string_in_vector(std::string str_, std::vector<std::string> vector_){
+    for(auto const &element : vector_){
+      if(element == str_) return true;
+    }
+    return false;
   }
   bool do_path_is_folder(std::string folder_path_) {
     DIR* dir;
