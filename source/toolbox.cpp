@@ -122,7 +122,7 @@ namespace toolbox{
   bool do_string_starts_with_substring(std::string string_, std::string substring_){
     return (not string_.compare(0, substring_.size(), substring_));
   }
-  bool do_string_in_vector(std::string str_, std::vector<std::string> vector_){
+  bool do_string_in_vector(std::string str_, std::vector<std::string>& vector_){
     for(auto const &element : vector_){
       if(element == str_) return true;
     }

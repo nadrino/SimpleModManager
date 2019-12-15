@@ -30,7 +30,7 @@ namespace toolbox{
 
   bool do_string_contains_substring(std::string string_, std::string substring_);
   bool do_string_starts_with_substring(std::string string_, std::string substring_);
-  bool do_string_in_vector(std::string str_, std::vector<std::string> vector_);
+  bool do_string_in_vector(std::string str_, std::vector<std::string>& vector_);
   bool do_path_is_folder(std::string folder_path_);
   bool do_path_is_file(std::string file_path_);
   bool do_files_are_the_same(std::string file1_path_, std::string file2_path_);
