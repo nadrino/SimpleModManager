@@ -17,8 +17,8 @@ Example : `/mods/The Legend of Zelda - Breath of the Wild/First Person View/titl
 ## Build From Source
 
 ### Prerequisites (macos)
-cmake + devkitPro + libNX
-- Install XCode
+- Install XCode via the App Store
+- Launch :
 ```bash
 xcode-select --install
 ```
