@@ -9,7 +9,7 @@ SimpleModManager is an homebrew app for the Nintendo Switch CFW : Atmosphere. It
 - At the root of your SDcard, create a `/mods/` folder.
 - Tree structure : `/mods/<NameOfTheGame>/<NameOfTheMod>/<ModTreeStructureFromAtmosphereFolder>`
 
-Example : `/mods/The Legend of Zelda - Breath of the Wild/First Person View/titles/01007EF00011E000/romfs/Actor/Pack/GameRomCamera.sbactorpack`
+Example : `/mods/The Legend of Zelda - Breath of the Wild/First Person View/contents/01007EF00011E000/romfs/Actor/Pack/GameRomCamera.sbactorpack`
 
 ## Prebuilt Binaries
 - To download please refer to this link : [Releases](https://github.com/nadrino/SimpleModManager/releases).
