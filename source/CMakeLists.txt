@@ -12,4 +12,4 @@ endif ()
 add_executable(${HOMEBREW_APP}.elf
 #        ${SOURCE_DIR}/main.cpp
         ${SOURCE_FILES}
-    )
+        )

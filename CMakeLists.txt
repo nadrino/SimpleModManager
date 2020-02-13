@@ -23,8 +23,8 @@ include_directories("${LIBNX}/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 set(VERSION_MAJOR 1)
-set(VERSION_MINOR 3)
-set(VERSION_MICRO 1)
+set(VERSION_MINOR 4)
+set(VERSION_MICRO 0)
 set(APP_VERSION
     "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}")
 

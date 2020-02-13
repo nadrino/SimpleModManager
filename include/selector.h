@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <string>
+#include <switch/types.h>
 
 class selector {
 
@@ -33,6 +34,7 @@ public:
   std::vector<std::string> get_selection_list();
 
   void print_selector();
+  void scan_inputs(u64 kDown, u64 kHeld);
   void reset_cursor_position();
   void reset_page();
   void reset_tags_list();
@@ -51,6 +53,9 @@ private:
   std::string _cursor_marker_;
   std::vector<std::string> _selection_list_;
   std::vector<std::string> _tags_list_;
+
+  u64 _previous_kHeld_;
+  u64 _holding_tiks_;
 
 
 };

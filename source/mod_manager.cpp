@@ -4,7 +4,7 @@
 
 #include "mod_manager.h"
 #include <toolbox.h>
-#include <browser.h>
+#include <mod_browser.h>
 
 #include <iostream>
 #include <sys/stat.h>
@@ -81,7 +81,7 @@ void mod_manager::apply_mod(std::string mod_folder_path_) {
   if(_files_list_cache_[mod_folder_path_].empty()){
     file_path_list = toolbox::get_list_files_in_subfolders(mod_folder_path_);
     _files_list_cache_[mod_folder_path_] = file_path_list;
-  } else{
+  } else {
     file_path_list = _files_list_cache_[mod_folder_path_];
   }
   std::string replace_option;
@@ -89,6 +89,11 @@ void mod_manager::apply_mod(std::string mod_folder_path_) {
   std::stringstream ss_files_list;
   toolbox::reset_last_displayed_value();
   for(int i_file = 0 ; i_file < int(file_path_list.size()) ; i_file++){
+
+    if(file_path_list[i_file][0] == '.'){
+      // ignoring cached files
+      continue;
+    }
 
     toolbox::display_loading(
         i_file, int(file_path_list.size()),
@@ -197,10 +202,11 @@ void mod_manager::display_mod_files_status(std::string mod_folder_path_){
 
   // Main loop
   u64 kDown = 1;
+  u64 kHeld = 1;
   while(appletMainLoop())
   {
 
-    if(kDown != 0){
+    if(kDown != 0 or kHeld != 0){
       consoleClear();
       toolbox::print_left(mod_folder_path_, toolbox::red_bg);
       std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
@@ -208,7 +214,6 @@ void mod_manager::display_mod_files_status(std::string mod_folder_path_){
       std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
       toolbox::print_left("Page (" + std::to_string(sel.get_current_page()+1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
       std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
-//      toolbox::print_left_right(" B : Go back", "+/- : Quit ");
       toolbox::print_left_right(" B : Go back", "");
       if(sel.get_nb_pages() > 1) toolbox::print_left_right(" L : Previous Page", "R : Next Page ");
       consoleUpdate(nullptr);
@@ -219,19 +224,13 @@ void mod_manager::display_mod_files_status(std::string mod_folder_path_){
 
     //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
     kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+    kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
+
     if (kDown & KEY_B) {
       break; // break in order to return to hbmenu
-    } else if(kDown & KEY_DOWN){
-      sel.increment_cursor_position();
-    } else if(kDown & KEY_UP){
-      sel.decrement_cursor_position();
-    } else if(kDown & KEY_PLUS or kDown & KEY_MINUS){
-      //std::exit(NULL); // NOT CLEANING OBJECTS -> ERROR
-    } else if(kDown & KEY_L){
-      sel.previous_page();
-    } else if(kDown & KEY_R){
-      sel.next_page();
     }
+
+    sel.scan_inputs(kDown, kHeld);
 
   }
 

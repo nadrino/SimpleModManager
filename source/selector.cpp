@@ -13,11 +13,11 @@ selector::selector() {
   reset();
 
 }
-selector::~selector() {
-
-}
+selector::~selector() = default;
 
 void selector::initialize(){
+
+  // nothing to initialize
 
 }
 void selector::reset(){
@@ -92,6 +92,29 @@ void selector::print_selector() {
 
     if(i_entry == _cursor_position_) std::cout << toolbox::blue_bg;
     std::cout << prefix_string << selection_element << spaces << _tags_list_[current_entry] << "  " << toolbox::reset_color;
+  }
+
+}
+void selector::scan_inputs(u64 kDown, u64 kHeld){
+
+  // manage persistence
+  if(kHeld == _previous_kHeld_){
+    _holding_tiks_++;
+  } else{
+    _holding_tiks_ = 0;
+  }
+  _previous_kHeld_ = kHeld;
+
+  if(kDown == 0 and kHeld == 0) return;
+
+  if(kDown & KEY_DOWN or (kHeld & KEY_DOWN and _holding_tiks_ > 15 and _holding_tiks_%3 == 0)){
+    increment_cursor_position();
+  } else if(kDown & KEY_UP or (kHeld & KEY_UP and _holding_tiks_ > 15 and _holding_tiks_%3 == 0)){
+    decrement_cursor_position();
+  } else if(kDown & KEY_L){ // previous page
+    previous_page();
+  } else if(kDown & KEY_R){ // next page
+    next_page();
   }
 
 }

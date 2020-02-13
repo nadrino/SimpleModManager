@@ -6,15 +6,17 @@
 #define SWITCHTEMPLATE_BROWSER_H
 
 #include <selector.h>
+#include <mod_manager.h>
+#include <parameters_handler.h>
 
 #include <string>
 
-class browser{
+class mod_browser{
 
 public:
 
-  browser();
-  ~browser();
+  mod_browser();
+  ~mod_browser();
 
   void initialize();
   void reset();
@@ -27,9 +29,12 @@ public:
   int get_max_depth();
   std::string get_current_directory();
   std::string get_selected_entry_name();
-  selector& get_browser_selector();
+  selector& get_selector();
+  mod_manager& get_mod_manager();
 
-  void print_ls();
+  void scan_inputs(u64 kDown, u64 kHeld);
+  void print_menu();
+  void check_mods_status();
   bool change_directory(std::string new_directory_);
   bool go_to_selected_directory();
   bool go_back();
@@ -40,7 +45,6 @@ private:
 
   bool _only_show_folders_;
 
-  int _nb_files_;
   int _max_depth_;
   int _current_depth_;
 
@@ -48,9 +52,9 @@ private:
   std::string _selected_entry_name_;
   std::string _base_folder_;
 
-  std::vector<std::string> _folder_ls_;
-
-  selector _browser_selector_;
+  selector _selector_;
+  mod_manager _mod_manager_;
+  parameters_handler _parameters_handler_;
 
 };
 
