@@ -74,7 +74,7 @@ std::string mod_manager::get_mod_status(std::string mod_folder_path_){
   return "PARTIAL (" + std::to_string(same_files_count) + "/" + std::to_string(total_files_count) + ")";
 
 }
-void mod_manager::apply_mod(std::string mod_folder_path_) {
+void mod_manager::apply_mod(std::string mod_folder_path_, bool force_) {
 
   toolbox::print_left("Applying : " + toolbox::get_filename_from_file_path(mod_folder_path_) + "...", toolbox::red_bg);
   std::vector<std::string> file_path_list;
@@ -85,6 +85,7 @@ void mod_manager::apply_mod(std::string mod_folder_path_) {
     file_path_list = _files_list_cache_[mod_folder_path_];
   }
   std::string replace_option;
+  if(force_) replace_option = "Yes to all";
   bool is_conflict;
   std::stringstream ss_files_list;
   toolbox::reset_last_displayed_value();
@@ -198,7 +199,7 @@ void mod_manager::display_mod_files_status(std::string mod_folder_path_){
     }
   }
 
-  sel.set_max_items_per_page(toolbox::get_terminal_height()-8);
+  sel.set_max_items_per_page(toolbox::get_terminal_height()-9);
 
   // Main loop
   u64 kDown = 1;

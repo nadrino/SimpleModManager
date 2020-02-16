@@ -30,6 +30,7 @@ namespace toolbox{
 
   bool do_string_contains_substring(std::string string_, std::string substring_);
   bool do_string_starts_with_substring(std::string string_, std::string substring_);
+  bool do_string_ends_with_substring(std::string string_, std::string substring_);
   bool do_string_in_vector(std::string str_, std::vector<std::string>& vector_);
   bool do_path_is_folder(std::string folder_path_);
   bool do_path_is_file(std::string file_path_);
@@ -42,7 +43,8 @@ namespace toolbox{
 
   std::string get_folder_path_from_file_path(std::string file_path_);
   std::string get_filename_from_file_path(std::string file_path_);
-  std::string join_vector_string(std::vector<std::string> string_list_, std::string delimiter_, int begin_index_, int end_index_);
+  std::string join_vector_string(std::vector<std::string> string_list_, std::string delimiter_, int begin_index_ = 0, int end_index_ = 0);
+  std::string remove_extra_doubled_characters(std::string input_str_, std::string doubled_char_);
   std::string repeat_string(std::string str_, int n_times_);
   std::string ask_question(std::string question_, std::vector<std::string> answers_);
   std::string get_app_version();

@@ -1,6 +1,7 @@
 #include <switch.h>
 
 #include <mod_browser.h>
+#include <toolbox.h>
 
 mod_browser __mod_browser__;
 
@@ -12,7 +13,7 @@ int main(int argc, char **argv){
   int max_depth = 1; // could be a parameter in the future
 
   __mod_browser__.set_only_show_folders(true);
-  __mod_browser__.set_max_depth(max_depth);
+  __mod_browser__.set_max_relative_depth(max_depth);
   __mod_browser__.initialize();
   __mod_browser__.print_menu();
 
@@ -26,7 +27,7 @@ int main(int argc, char **argv){
     u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
     u64 kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
 
-    if(kDown & KEY_B and __mod_browser__.get_current_depth() == 0){ // back
+    if(kDown & KEY_B and __mod_browser__.get_current_relative_depth() == 0){ // back
       break;
     }
 

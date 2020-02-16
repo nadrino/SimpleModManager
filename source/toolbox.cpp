@@ -58,16 +58,33 @@ namespace toolbox{
 
   }
   void print_right(std::string input_, std::string color_){
-    std::cout << color_ << repeat_string(" ", get_terminal_width() - input_.size()) << input_ << reset_color;
-    if(get_terminal_width() < int(input_.size())) std::cout << std::endl;
+    int nb_space_left = get_terminal_width() - input_.size();
+    if(nb_space_left <= 0){ // cut the string
+      input_ = input_.substr(0, input_.size() + nb_space_left - 1);
+      nb_space_left = get_terminal_width() - input_.size();
+    }
+    std::cout << color_ << repeat_string(" ", nb_space_left) << input_ << reset_color;
+    if(int(input_.size()) > get_terminal_width()) std::cout << std::endl;
   }
   void print_left(std::string input_, std::string color_){
-    std::cout << color_ << input_ << repeat_string(" ", get_terminal_width() - input_.size()) << reset_color;
-    if(get_terminal_width() < int(input_.size())) std::cout << std::endl;
+    int nb_space_left = get_terminal_width() - input_.size();
+    if(nb_space_left <= 0){ // cut the string
+      input_ = input_.substr(0, input_.size() + nb_space_left - 1);
+      nb_space_left = get_terminal_width() - input_.size();
+    }
+    std::cout << color_ << input_ << repeat_string(" ", nb_space_left) << reset_color;
+    if(int(input_.size()) > get_terminal_width()) std::cout << std::endl;
   }
   void print_left_right(std::string input_left_, std::string input_right_, std::string color_){
+
+    int nb_space_left = get_terminal_width() - input_left_.size() - input_right_.size();
+    if(nb_space_left <= 0){
+      input_left_ = input_left_.substr(0, input_left_.size() + nb_space_left - 1);
+      nb_space_left = get_terminal_width() - input_left_.size() - input_right_.size();
+    }
+
     std::cout << color_ << input_left_;
-    std::cout << repeat_string(" ", get_terminal_width() - input_left_.size() - input_right_.size());
+    std::cout << repeat_string(" ", nb_space_left);
     std::cout << input_right_;
     std::cout << reset_color;
     if(get_terminal_width() < int(input_left_.size()) + int(input_right_.size())) std::cout << std::endl;
@@ -116,11 +133,17 @@ namespace toolbox{
   }
 
   bool do_string_contains_substring(std::string string_, std::string substring_){
+    if(substring_.size() > string_.size()) return false;
     if(string_.find(substring_) != std::string::npos) return true;
     else return false;
   }
   bool do_string_starts_with_substring(std::string string_, std::string substring_){
+    if(substring_.size() > string_.size()) return false;
     return (not string_.compare(0, substring_.size(), substring_));
+  }
+  bool do_string_ends_with_substring(std::string string_, std::string substring_){
+    if(substring_.size() > string_.size()) return false;
+    return (not string_.compare(string_.size() - substring_.size(), substring_.size(), substring_));
   }
   bool do_string_in_vector(std::string str_, std::vector<std::string>& vector_){
     for(auto const &element : vector_){
@@ -266,7 +289,10 @@ namespace toolbox{
   std::string join_vector_string(std::vector<std::string> string_list_, std::string delimiter_, int begin_index_, int end_index_) {
 
     std::string joined_string;
-    if(end_index_ <= 0 and int(string_list_.size()) > std::fabs(end_index_)) end_index_ = int(string_list_.size()) + end_index_;
+    if(end_index_ == 0) end_index_ = int(string_list_.size());
+
+    // circular permutation -> python style : tab[-1] = tab[tab.size - 1]
+    if(end_index_ < 0 and int(string_list_.size()) > std::fabs(end_index_)) end_index_ = int(string_list_.size()) + end_index_;
 
     for(int i_list = begin_index_ ; i_list < end_index_ ; i_list++){
       if(not joined_string.empty()) joined_string += delimiter_;
@@ -274,6 +300,21 @@ namespace toolbox{
     }
 
     return joined_string;
+  }
+  std::string remove_extra_doubled_characters(std::string input_str_, std::string doubled_char_){
+
+    std::vector<std::string> substr_list = split_string(input_str_, doubled_char_);
+    std::vector<std::string> cleaned_substr_list;
+    for(int i_substr = 0 ; i_substr < int(substr_list.size()) ; i_substr++){
+      if(not substr_list[i_substr].empty())
+        cleaned_substr_list.emplace_back(substr_list[i_substr]);
+    }
+    std::string cleaned_input_str;
+    if(do_string_starts_with_substring(input_str_, doubled_char_)) cleaned_input_str += doubled_char_;
+    cleaned_input_str += join_vector_string(cleaned_substr_list, doubled_char_);
+    if(do_string_ends_with_substring(input_str_, doubled_char_)) cleaned_input_str += doubled_char_;
+    return cleaned_input_str;
+
   }
   std::string repeat_string(std::string str_, int n_times_){
     std::string out_str;

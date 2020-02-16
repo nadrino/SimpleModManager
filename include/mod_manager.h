@@ -26,7 +26,7 @@ public:
   std::string get_install_mods_base_folder();
 
   std::string get_mod_status(std::string mod_folder_path_);
-  void apply_mod(std::string mod_folder_path_);
+  void apply_mod(std::string mod_folder_path_, bool force_ = false);
   void remove_mod(std::string mod_folder_path_);
   void display_mod_files_status(std::string mod_folder_path_);
 
