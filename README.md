@@ -1,4 +1,5 @@
-![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
+![License](https://img.shields.io/badge/License-GPLv3-blue.svg) [![GitHub version](https://badge.fury.io/gh/nadrino%2FSimpleModManager.svg)](https://github.com/nadrino/SimpleModManager/releases/) [![Github all releases](https://img.shields.io/github/downloads/nadrino/SimpleModManager/total.svg)](https://GitHub.com/nadrino/SimpleModManager/releases/)
+
 # SimpleModManager
 SimpleModManager is an homebrew app for the Nintendo Switch CFW : Atmosphere. It allows to manage your mods (via LayeredFS).
 
