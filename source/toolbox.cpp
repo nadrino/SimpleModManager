@@ -18,6 +18,8 @@
 #include <switch.h>
 #include <ctime>
 
+#include <zlib.h>
+
 #include <version_config.h>
 #include <selector.h>
 
@@ -32,7 +34,8 @@ namespace toolbox{
   void set_last_timestamp(){
     last_timestamp = std::time(nullptr);
   }
-  void display_loading(int current_index_, int end_index_, std::string title_, std::string prefix_, bool force_display_) {
+  void display_loading(int current_index_, int end_index_, std::string title_, std::string prefix_,
+                       std::string &color_str_, bool force_display_) {
 
     int percent = int(round(double(current_index_) / end_index_ * 100.));
     if(last_displayed_value == -1) {
@@ -48,32 +51,34 @@ namespace toolbox{
       last_displayed_value = percent;
       std::stringstream ss;
       ss << prefix_ << percent << "% / " << title_;
-      std::cout << "\r" << ss.str();
-      std::cout << toolbox::repeat_string(" ", toolbox::get_terminal_width() - int(ss.str().size()) - 1);
-      std::cout << toolbox::reset_color << "\r";
+      print_left(ss.str(), color_str_, true);
       consoleUpdate(nullptr);
     }
 
-
-
   }
-  void print_right(std::string input_, std::string color_){
+  void print_right(std::string input_, std::string color_, bool flush_){
     int nb_space_left = get_terminal_width() - input_.size();
     if(nb_space_left <= 0){ // cut the string
       input_ = input_.substr(0, input_.size() + nb_space_left - 1);
       nb_space_left = get_terminal_width() - input_.size();
     }
+    if(flush_) nb_space_left-=1;
+    if(flush_) std::cout << "\r";
     std::cout << color_ << repeat_string(" ", nb_space_left) << input_ << reset_color;
-    if(int(input_.size()) > get_terminal_width()) std::cout << std::endl;
+    if(flush_) std::cout << "\r";
+    else if(int(input_.size()) > get_terminal_width()) std::cout << std::endl;
   }
-  void print_left(std::string input_, std::string color_){
+  void print_left(std::string input_, std::string color_, bool flush_){
     int nb_space_left = get_terminal_width() - input_.size();
     if(nb_space_left <= 0){ // cut the string
       input_ = input_.substr(0, input_.size() + nb_space_left - 1);
       nb_space_left = get_terminal_width() - input_.size();
     }
+    if(flush_) nb_space_left-=1;
+    if(flush_) std::cout << "\r";
     std::cout << color_ << input_ << repeat_string(" ", nb_space_left) << reset_color;
-    if(int(input_.size()) > get_terminal_width()) std::cout << std::endl;
+    if(flush_) std::cout << "\r";
+    else if(int(input_.size()) > get_terminal_width()) std::cout << std::endl;
   }
   void print_left_right(std::string input_left_, std::string input_right_, std::string color_){
 
@@ -111,26 +116,6 @@ namespace toolbox{
   int get_terminal_height(){
     return consoleGetDefault()->consoleHeight;
   }
-  int bsdChecksumFromFilepath(std::string path_){
-    if(do_path_is_file(path_)){
-      FILE* f = std::fopen(path_.c_str(), "r");
-      int checksum = bsdChecksumFromFile(f);
-      std::fclose(f);
-      return checksum;
-    } else{
-      return -1;
-    }
-  }
-  int bsdChecksumFromFile(FILE *fp) {
-    int checksum = 0;             /* The checksum mod 2^16. */
-
-    for (int ch = getc(fp); ch != EOF; ch = getc(fp)) {
-      checksum = (checksum >> 1) + ((checksum & 1) << 15);
-      checksum += ch;
-      checksum &= 0xffff;       /* Keep it within bounds. */
-    }
-    return checksum;
-  }
 
   bool do_string_contains_substring(std::string string_, std::string substring_){
     if(substring_.size() > string_.size()) return false;
@@ -145,13 +130,13 @@ namespace toolbox{
     if(substring_.size() > string_.size()) return false;
     return (not string_.compare(string_.size() - substring_.size(), substring_.size(), substring_));
   }
-  bool do_string_in_vector(std::string str_, std::vector<std::string>& vector_){
+  bool do_string_in_vector(std::string &str_, std::vector<std::string>& vector_){
     for(auto const &element : vector_){
       if(element == str_) return true;
     }
     return false;
   }
-  bool do_path_is_folder(std::string folder_path_) {
+  bool do_path_is_folder(std::string &folder_path_) {
     DIR* dir;
     dir = opendir(folder_path_.c_str());
     bool is_directory = false;
@@ -159,20 +144,18 @@ namespace toolbox{
     closedir(dir);
     return is_directory;
   }
-  bool do_path_is_file(std::string file_path_) {
-    struct stat buffer;
+  bool do_path_is_file(std::string &file_path_) {
+    struct stat buffer{};
     return (stat (file_path_.c_str(), &buffer) == 0);
   }
   bool do_files_are_the_same(std::string file1_path_, std::string file2_path_) {
 
     if(not do_path_is_file(file1_path_)) return false;
     if(not do_path_is_file(file2_path_)) return false;
+    if(toolbox::get_file_size(file1_path_) != toolbox::get_file_size(file2_path_)) return false; // very fast
 
-    if(toolbox::get_file_size(file1_path_) != toolbox::get_file_size(file2_path_)) return false;
-//    if(bsdChecksumFromFilepath(file1_path_) != bsdChecksumFromFilepath(file2_path_)) return false;
-
-    return true;
-
+    return toolbox::get_hash_CRC32(file1_path_) == toolbox::get_hash_CRC32(file2_path_);
+//    return true;
   }
   bool do_folder_is_empty(std::string folder_path_){
     if(not do_path_is_folder(folder_path_)) return false;
@@ -221,9 +204,9 @@ namespace toolbox{
   }
   bool copy_file(std::string source_, std::string dest_){
 
-    if(not do_path_is_folder(get_folder_path_from_file_path(dest_))){
-      mkdir_path(get_folder_path_from_file_path(dest_));
-//      mkdir_path(get_folder_path_from_file_path(dest_)); // sometimes doesnt work
+    std::string destination_folder_path = get_folder_path_from_file_path(dest_);
+    if(not do_path_is_folder(destination_folder_path)){
+      mkdir_path(destination_folder_path);
     }
     if(do_path_is_file(dest_)) rm_file(dest_);
 
@@ -285,6 +268,13 @@ namespace toolbox{
   std::string get_filename_from_file_path(std::string file_path_){
     auto splitted_path = split_string(file_path_, "/");
     return splitted_path.back();
+  }
+  std::string get_head_path_element_name(std::string folder_path_){
+    auto elements = toolbox::split_string(folder_path_, "/");
+    for(int i_element = elements.size()-1; i_element >= 0 ; i_element--){
+      if(not elements[i_element].empty()) return elements[i_element];
+    }
+    return "";
   }
   std::string join_vector_string(std::vector<std::string> string_list_, std::string delimiter_, int begin_index_, int end_index_) {
 
@@ -410,7 +400,7 @@ namespace toolbox{
       return entries_list;
     }
   }
-  std::vector<std::string> get_list_of_folders_in_folder(std::string folder_path_) {
+  std::vector<std::string> get_list_of_subfolders_in_folder(std::string folder_path_) {
     if(not do_path_is_folder(folder_path_)) return std::vector<std::string>();
     DIR* directory;
     directory = opendir(folder_path_.c_str()); //Open current-working-directory.
@@ -421,7 +411,8 @@ namespace toolbox{
       std::vector<std::string> entries_list;
       struct dirent* entry;
       while ( (entry = readdir(directory)) ) {
-        if(do_path_is_folder(folder_path_ + "/" + std::string(entry->d_name))){
+        std::string folder_candidate = folder_path_ + "/" + std::string(entry->d_name);
+        if(do_path_is_folder(folder_candidate)){
           entries_list.emplace_back(entry->d_name);
         }
       }
@@ -437,12 +428,17 @@ namespace toolbox{
     auto entries_list = get_list_of_entries_in_folder(folder_path_);
     std::string str_buffer;
     for(auto const& entry : entries_list){
-      if(do_path_is_folder(folder_path_ + "/" + entry)){
-        auto sub_files_list = get_list_files_in_subfolders(folder_path_ + "/" + entry);
+
+      std::string entry_path = folder_path_;
+      entry_path += "/";
+      entry_path += entry;
+
+      if(do_path_is_folder(entry_path)){
+        auto sub_files_list = get_list_files_in_subfolders(entry_path);
         for(auto const& sub_entry : sub_files_list){
           output_file_paths.emplace_back(entry + "/" + sub_entry);
         }
-      } else if(do_path_is_file( folder_path_ + "/" + entry)){
+      } else if(do_path_is_file(entry_path)){
         output_file_paths.emplace_back(entry);
       }
     }
@@ -450,7 +446,7 @@ namespace toolbox{
     return output_file_paths;
   }
 
-  long int get_file_size(std::string file_path_) {
+  long int get_file_size(std::string &file_path_) {
     if(not do_path_is_file(file_path_)) return 0;
 
     std::ifstream testFile(file_path_.c_str(), std::ios::binary);
@@ -460,7 +456,6 @@ namespace toolbox{
     const auto fsize = (end-begin);
     return fsize;
   }
-
   size_t get_hash_file(std::string file_path_){
 
     std::string data;
@@ -476,6 +471,39 @@ namespace toolbox{
     std::hash<std::string> hash_fn;
     return hash_fn(data);
 
+  }
+  int get_hash_bsdChecksumFromFilepath(std::string path_){
+    if(do_path_is_file(path_)){
+      FILE* f = std::fopen(path_.c_str(), "r");
+      int checksum = get_hash_bsdChecksumFromFile(f);
+      std::fclose(f);
+      return checksum;
+    } else{
+      return -1;
+    }
+  }
+  int get_hash_bsdChecksumFromFile(FILE *fp) {
+    int checksum = 0;             /* The checksum mod 2^16. */
+
+    for (int ch = getc(fp); ch != EOF; ch = getc(fp)) {
+      checksum = (checksum >> 1) + ((checksum & 1) << 15);
+      checksum += ch;
+      checksum &= 0xffff;       /* Keep it within bounds. */
+    }
+    return checksum;
+  }
+  unsigned long get_hash_CRC32(std::string file_path_){
+    if(not do_path_is_file(file_path_)) return 0;
+
+    std::ifstream input_file( file_path_.c_str(), std::ios::binary | std::ios::in );
+    std::ostringstream ss;
+    ss << input_file.rdbuf();
+    std::string data = ss.str();
+
+    input_file.close();
+
+    unsigned long  crc = crc32(0L, Z_NULL, 0);
+    return crc32(crc, (const unsigned char*)data.c_str(), data.size());
   }
 
 }

@@ -175,7 +175,7 @@ void mods_preseter::create_preset(){
   } while(toolbox::do_string_in_vector(default_preset_name, _presets_list_));
 
 
-  std::vector<std::string> mods_list = toolbox::get_list_of_folders_in_folder(_mod_folder_);
+  std::vector<std::string> mods_list = toolbox::get_list_of_subfolders_in_folder(_mod_folder_);
   std::sort(mods_list.begin(), mods_list.end());
   selector sel;
   sel.set_selection_list(mods_list);

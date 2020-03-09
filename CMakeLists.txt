@@ -17,14 +17,31 @@ if (NOT LIBNX_FOUND)
     cmake_panic("Unable to detect libnx on this system.")
 endif ()
 
+
+find_package(ZLIB REQUIRED)
+if (${ZLIB_FOUND})
+    message("ZLIB found : ${ZLIB_VERSION_STRING}")
+    message("ZLIB_INCLUDE_DIRS = ${ZLIB_INCLUDE_DIRS}")
+    message("ZLIB_LIBRARIES = ${ZLIB_LIBRARIES}")
+else()
+    message(FATAL_ERROR "ZLIB has not been found.")
+endif ()
+
+#find_package(SDL2 REQUIRED)
+#message("SDL2_INCLUDE_DIRS = ${SDL2_INCLUDE_DIRS}")
+#message("SDL2_LIBRARIES = ${SDL2_LIBRARIES}")
+
+
 include_directories(${PROJECT_BINARY_DIR})
 include_directories("${PORTLIBS}/include")
 include_directories("${LIBNX}/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
+include_directories("${ZLIB_INCLUDE_DIRS}")
+#include_directories("${SDL2_INCLUDE_DIRS}")
 
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 4)
-set(VERSION_MICRO 0)
+set(VERSION_MICRO 1)
 set(APP_VERSION
     "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}")
 
@@ -67,7 +84,13 @@ include_directories( ${CMAKE_BINARY_DIR}/generated/ )
 #include(include/CMakeLists.txt)
 include(source/CMakeLists.txt)
 
-target_link_libraries(${HOMEBREW_APP}.elf switch::libnx)
+target_link_libraries(
+        ${HOMEBREW_APP}.elf
+        switch::libnx
+        -L/opt/devkitpro/portlibs/switch/lib
+        ${ZLIB_LIBRARIES}
+#        -lSDL2 -march=armv8-a -fPIE -L/opt/devkitpro/libnx/lib -lEGL -lglapi -ldrm_nouveau -lnx
+)
 set_target_properties(${HOMEBREW_APP}.elf PROPERTIES
         LINKER_LANGUAGE CXX # Replace this with C if you have C source files
         LINK_FLAGS "-specs=${LIBNX}/switch.specs -Wl,-no-as-needed -Wl,-Map,.map")

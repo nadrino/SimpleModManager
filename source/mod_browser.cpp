@@ -74,26 +74,41 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
   if(get_current_relative_depth() == get_max_relative_depth()){
     if(kDown & KEY_A){ // select folder / apply mod
       // make mod action (ACTIVATE OR DEACTIVATE)
-      _mod_manager_.apply_mod(get_current_directory() + "/" + _selector_.get_selected_string());
-      toolbox::print_left("Checking installed mod...", toolbox::red_bg);
+      _mod_manager_.apply_mod(_selector_.get_selected_string());
+
+      toolbox::print_left("Checking...", toolbox::magenta_bg, true);
       _selector_.set_tag(
         _selector_.get_selected_entry(),
-        _mod_manager_.get_mod_status(get_current_directory() + "/" + _selector_.get_selected_string())
+        _mod_manager_.get_mod_status(_selector_.get_selected_string())
       );
-    } else if(kDown & KEY_X){ // disable mod
-      _mod_manager_.remove_mod(get_current_directory() + "/" + _selector_.get_selected_string());
+
+    }
+    else if(kDown & KEY_X){ // disable mod
+      _mod_manager_.remove_mod(_selector_.get_selected_string());
       _selector_.set_tag(
         _selector_.get_selected_entry(),
-        _mod_manager_.get_mod_status(get_current_directory() + "/" + _selector_.get_selected_string())
+        _mod_manager_.get_mod_status(_selector_.get_selected_string())
       );
-    }  else if(kDown & KEY_ZL){ // mod detailed infos
+    }
+    else if(kDown & KEY_ZL){ // recheck all mods
+      auto answer = toolbox::ask_question("Do you which to recheck all mods ?",
+        std::vector<std::string>({"Yes","No"}));
+      if(answer == "Yes"){
+        _mod_manager_.reset_all_mods_cache_status();
+        check_mods_status();
+      }
+    }
+    else if(kDown & KEY_Y){ // mod detailed infos
       _mod_manager_.display_mod_files_status(get_current_directory() + "/" + _selector_.get_selected_string());
-    } else if(kDown & KEY_ZR){ // disable all mods
+    }
+    else if(kDown & KEY_ZR){ // disable all mods
       remove_all_mods();
       check_mods_status();
-    } else if(kDown & KEY_MINUS){ // Enter the mods preset menu a mods preset
+    }
+    else if(kDown & KEY_MINUS){ // Enter the mods preset menu a mods preset
       _mods_preseter_.select_mod_preset();
-    } else if(kDown & KEY_PLUS){ // Apply a mods preset
+    }
+    else if(kDown & KEY_PLUS){ // Apply a mods preset
       std::string answer = toolbox::ask_question(
         "Do you want to apply " + _mods_preseter_.get_selected_mod_preset() + " ?",
         std::vector<std::string>({"Yes","No"})
@@ -104,10 +119,7 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
           _mods_preseter_.get_selected_mod_preset()
         );
         for(int i_mod = 0 ; i_mod < int(mods_list.size()) ; i_mod++){
-          _mod_manager_.apply_mod(
-            get_current_directory() + "/" + mods_list[i_mod],
-            true
-            );
+          _mod_manager_.apply_mod(mods_list[i_mod],true);
         }
         check_mods_status();
       }
@@ -116,6 +128,7 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
     if(kDown & KEY_A){ // select folder / apply mod
       go_to_selected_directory();
       if(get_current_relative_depth() == get_max_relative_depth()){
+        _mod_manager_.set_current_mods_folder(_current_directory_);
         check_mods_status();
         _mods_preseter_.read_parameter_file(_current_directory_);
       }
@@ -150,19 +163,17 @@ void mod_browser::print_menu(){
 
   std::cout << "Page (" << _selector_.get_current_page() + 1 << "/" << _selector_.get_nb_pages() << ")" << std::endl;
   std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
-//  toolbox::print_left("Mods preset : " + __current_mod_preset__);
   toolbox::print_left("Mod preset : " + _mods_preseter_.get_selected_mod_preset());
   toolbox::print_left("Configuration preset : " + _parameters_handler_.get_selected_preset_name());
   toolbox::print_left("install-mods-base-folder = " + _mod_manager_.get_install_mods_base_folder());
   std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
   if(get_current_relative_depth() == get_max_relative_depth()){
     toolbox::print_left_right(" A : Apply mod", "X : Disable mod ");
-    toolbox::print_left_right(" ZL : Mod status", "ZR : Disable all mods ");
+    toolbox::print_left_right(" ZL : Rescan all mods", "ZR : Disable all mods ");
     toolbox::print_left_right(" - : Select mod preset", "+ : Apply mod preset ");
   } else{
     toolbox::print_left_right(" A : Select folder", "Y : Change config preset ");
   }
-  if(_selector_.get_nb_pages() > 1) toolbox::print_left_right(" L : Previous Page", "R : Next Page ");
   if(get_current_relative_depth() > 0) toolbox::print_left(" B : Go back");
   else toolbox::print_left(" B : Quit");
   consoleUpdate(nullptr);
@@ -181,11 +192,9 @@ void mod_browser::check_mods_status(){
     print_menu();
     std::stringstream ss;
     ss << "Checking ("<< i_mod+1 << "/" << mods_list.size() << ") : " << mods_list[i_mod] << "...";
-    auto spaces = toolbox::repeat_string(" ",toolbox::get_terminal_width() - ss.str().size());
-    std::cout << toolbox::red_bg << ss.str() << spaces << toolbox::reset_color;
+    toolbox::print_left(ss.str(), toolbox::magenta_bg);
     consoleUpdate(nullptr);
-    std::string mod_path = get_current_directory() + "/" + mods_list[i_mod];
-    _selector_.set_tag(i_mod, _mod_manager_.get_mod_status(mod_path));
+    _selector_.set_tag(i_mod, _mod_manager_.get_mod_status(mods_list[i_mod]));
   }
 }
 bool mod_browser::change_directory(std::string new_directory_){
@@ -198,7 +207,7 @@ bool mod_browser::change_directory(std::string new_directory_){
   _current_relative_depth_ = new_path_relative_depth;
   std::vector<std::string> selection_list;
   if(not _only_show_folders_)selection_list = toolbox::get_list_of_entries_in_folder(_current_directory_);
-  else selection_list = toolbox::get_list_of_folders_in_folder(_current_directory_);
+  else selection_list = toolbox::get_list_of_subfolders_in_folder(_current_directory_);
   std::sort(selection_list.begin(), selection_list.end());
   _selector_.set_selection_list(selection_list);
   _selector_.reset_cursor_position();
@@ -250,7 +259,7 @@ void mod_browser::remove_all_mods(bool force_){
   }
   if(answer == "Yes") {
     for(int i_mod = 0 ; i_mod < int(_selector_.get_selection_list().size()) ; i_mod++){
-      _mod_manager_.remove_mod(get_current_directory() + "/" + _selector_.get_selection_list()[i_mod]);
+      _mod_manager_.remove_mod(_selector_.get_selection_list()[i_mod]);
     }
   }
 }
