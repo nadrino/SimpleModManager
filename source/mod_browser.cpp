@@ -124,7 +124,14 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
         check_mods_status();
       }
     }
-  } else {
+    else if(kDown & KEY_L){
+      _mods_preseter_.select_previous_mod_preset();
+    }
+    else if(kDown & KEY_R){
+      _mods_preseter_.select_next_mod_preset();
+    }
+  }
+  else {
     if(kDown & KEY_A){ // select folder / apply mod
       go_to_selected_directory();
       if(get_current_relative_depth() == get_max_relative_depth()){
@@ -161,7 +168,7 @@ void mod_browser::print_menu(){
   _selector_.print_selector();
   std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
 
-  std::cout << "Page (" << _selector_.get_current_page() + 1 << "/" << _selector_.get_nb_pages() << ")" << std::endl;
+  std::cout << "  Page (" << _selector_.get_current_page() + 1 << "/" << _selector_.get_nb_pages() << ")" << std::endl;
   std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
   toolbox::print_left("Mod preset : " + _mods_preseter_.get_selected_mod_preset());
   toolbox::print_left("Configuration preset : " + _parameters_handler_.get_selected_preset_name());
@@ -171,7 +178,8 @@ void mod_browser::print_menu(){
     toolbox::print_left_right(" A : Apply mod", "X : Disable mod ");
     toolbox::print_left_right(" ZL : Rescan all mods", "ZR : Disable all mods ");
     toolbox::print_left_right(" - : Select mod preset", "+ : Apply mod preset ");
-  } else{
+  }
+  else{
     toolbox::print_left_right(" A : Select folder", "Y : Change config preset ");
   }
   if(get_current_relative_depth() > 0) toolbox::print_left(" B : Go back");
@@ -249,6 +257,8 @@ int mod_browser::get_path_depth(std::string& path_){
 
 void mod_browser::remove_all_mods(bool force_){
   std::string answer;
+  bool CRC_check_state = toolbox::get_CRC_check_is_enabled();
+  toolbox::set_CRC_check_is_enabled(false);
   if(not force_){
     answer = toolbox::ask_question(
       "Do you want to disable all mods ?",
@@ -262,5 +272,6 @@ void mod_browser::remove_all_mods(bool force_){
       _mod_manager_.remove_mod(_selector_.get_selection_list()[i_mod]);
     }
   }
+  toolbox::set_CRC_check_is_enabled(CRC_check_state);
 }
 

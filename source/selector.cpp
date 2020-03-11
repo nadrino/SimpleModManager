@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <switch.h>
+#include <sstream>
 
 selector::selector() {
 
@@ -104,42 +105,6 @@ void selector::print_selector() {
 
   }
 
-
-//  for(int i_entry = 0 ; i_entry < _max_items_per_page_ ; i_entry++){
-//    // page management
-//    int current_entry = _current_page_*_max_items_per_page_ + i_entry;
-//    if(current_entry >= int(_selection_list_.size())) break;
-//
-//    // formatting
-//    prefix_string = "";
-//    if(i_entry == _cursor_position_) prefix_string += _cursor_marker_;
-//    else prefix_string += " ";
-//    prefix_string += " ";
-//    std::string element_title = _selection_list_[current_entry];
-//    std::string spaces = "";
-//    int total_line_length = prefix_string.size() + element_title.size() + _tags_list_[current_entry].size() + 2;
-//    if(total_line_length > consoleGetDefault()->consoleWidth){ // then cut the mod title
-//      element_title = element_title.substr(
-//        0,
-//        element_title.size() - (total_line_length - consoleGetDefault()->consoleWidth)
-//          );
-//    } else { // then increase space
-//      for(int i_space = 0 ; i_space < (consoleGetDefault()->consoleWidth - total_line_length) ; i_space++ ){
-//        spaces += " ";
-//      }
-//    }
-//
-//    // actual printing
-//    if(i_entry == _cursor_position_) std::cout << toolbox::blue_bg;
-//    std::cout << prefix_string << element_title << spaces << _tags_list_[current_entry] << "  " << toolbox::reset_color;
-//    if(not _descriptions_list_[current_entry].empty()){
-//      for(int i_desc_line = 0 ; i_desc_line < int(_descriptions_list_[current_entry].size()) ; i_desc_line++){
-//        if(i_entry == _cursor_position_) toolbox::print_left(_descriptions_list_[current_entry][i_desc_line], toolbox::blue_bg);
-//        else toolbox::print_left(_descriptions_list_[current_entry][i_desc_line]);
-//      }
-//    }
-//  }
-
 }
 void selector::scan_inputs(u64 kDown, u64 kHeld){
 
@@ -180,15 +145,21 @@ void selector::reset_description_list(){
   process_page_numbering(); // reset
 }
 void selector::process_page_numbering(){
-  int page_lines_buffer = -1;
+  int page_lines_buffer = 1;
   _item_list_for_each_page_.clear();
+  _item_list_for_each_page_.emplace_back();
   for(int i_entry = 0 ; i_entry < int(_selection_list_.size()) ; i_entry++){
+    page_lines_buffer += 1 + int(_descriptions_list_[i_entry].size()); // space taken by i_entry
     if(page_lines_buffer == -1 or page_lines_buffer >= _max_items_per_page_){
       _item_list_for_each_page_.emplace_back(); // next items will be displayed on the next page
       page_lines_buffer = 1; // shift, not 0
     }
+//    std::stringstream ss;
+//    ss << "page_lines_buffer=" << page_lines_buffer << " / i_entry=" << i_entry << "/" << _selection_list_[i_entry];
+//    toolbox::print_left(ss.str());
+//    toolbox::make_pause();
     _item_list_for_each_page_.back().emplace_back(i_entry);
-    page_lines_buffer += 1 + int(_descriptions_list_[i_entry].size()); // space taken by i_entry
+//    page_lines_buffer += 1 + int(_descriptions_list_[i_entry].size()); // space taken by i_entry
   }
   _nb_pages_ = int(_item_list_for_each_page_.size());
 }
@@ -217,13 +188,21 @@ void selector::decrement_cursor_position(){
 }
 void selector::next_page(){
   _current_page_++;
-  if(_current_page_ >= get_nb_pages()) _current_page_ = 0;
-  _cursor_position_ = 0;
+  if(_current_page_ >= get_nb_pages()){
+    _current_page_ = 0;
+  }
+  else{
+    _cursor_position_ = 0;
+  }
 }
 void selector::previous_page(){
   _current_page_--;
-  if(_current_page_ < 0) _current_page_ = get_nb_pages() - 1;
-  _cursor_position_ = 0;
+  if(_current_page_ < 0){
+    _current_page_ = get_nb_pages() - 1;
+  }
+  else{
+    _cursor_position_ = 0;
+  }
 }
 
 std::string selector::get_selected_string(){

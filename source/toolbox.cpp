@@ -16,7 +16,6 @@
 #include <filesystem> // cpp 17 functions -> does not work
 #include <exception>
 #include <switch.h>
-#include <ctime>
 
 #include <zlib.h>
 
@@ -27,6 +26,7 @@ namespace toolbox{
 
   static std::time_t last_timestamp;
   static double last_displayed_value = -1;
+  static bool CRC_check_is_enabled = true;
 
   void reset_last_displayed_value(){
     last_displayed_value = -1;
@@ -34,6 +34,13 @@ namespace toolbox{
   void set_last_timestamp(){
     last_timestamp = std::time(nullptr);
   }
+  void set_CRC_check_is_enabled(bool CRC_check_is_enabled_){
+    CRC_check_is_enabled = CRC_check_is_enabled_;
+  }
+  bool get_CRC_check_is_enabled(){
+    return CRC_check_is_enabled;
+  }
+
   void display_loading(int current_index_, int end_index_, std::string title_, std::string prefix_,
                        std::string &color_str_, bool force_display_) {
 
@@ -136,26 +143,32 @@ namespace toolbox{
     }
     return false;
   }
-  bool do_path_is_folder(std::string &folder_path_) {
-    DIR* dir;
-    dir = opendir(folder_path_.c_str());
-    bool is_directory = false;
-    if(dir != NULL) is_directory = true;
-    closedir(dir);
-    return is_directory;
+  bool do_path_is_valid(std::string &path_){
+    struct stat buffer{};
+    return (stat (path_.c_str(), &buffer) == 0);
+  }
+  bool do_path_is_folder(std::string &folder_path_){
+    struct stat info{};
+    stat( folder_path_.c_str(), &info );
+    return (info.st_mode & S_IFDIR) != 0;
   }
   bool do_path_is_file(std::string &file_path_) {
-    struct stat buffer{};
-    return (stat (file_path_.c_str(), &buffer) == 0);
+    if(do_path_is_valid(file_path_)){
+      return not do_path_is_folder(file_path_);
+    } else{
+      return false;
+    }
   }
   bool do_files_are_the_same(std::string file1_path_, std::string file2_path_) {
 
     if(not do_path_is_file(file1_path_)) return false;
     if(not do_path_is_file(file2_path_)) return false;
     if(toolbox::get_file_size(file1_path_) != toolbox::get_file_size(file2_path_)) return false; // very fast
+    if(CRC_check_is_enabled){
+      if(toolbox::get_hash_CRC32(file1_path_) != toolbox::get_hash_CRC32(file2_path_)) return false;
+    }
+    return true;
 
-    return toolbox::get_hash_CRC32(file1_path_) == toolbox::get_hash_CRC32(file2_path_);
-//    return true;
   }
   bool do_folder_is_empty(std::string folder_path_){
     if(not do_path_is_folder(folder_path_)) return false;
@@ -253,6 +266,28 @@ namespace toolbox{
 
   }
 
+  std::string get_user_string(std::string default_str_) {
+
+    SwkbdConfig kbd;
+    Result rc=0;
+    rc = swkbdCreate(&kbd, 0);
+
+    char tmpoutstr[32] = {0};
+
+    if (R_SUCCEEDED(rc)) {
+
+      swkbdConfigMakePresetDefault(&kbd);
+      swkbdConfigSetInitialText(&kbd, default_str_.c_str());
+      rc = swkbdShow(&kbd, tmpoutstr, sizeof(tmpoutstr));
+      if (R_SUCCEEDED(rc)) {
+        printf("out str: %s\n", tmpoutstr);
+      }
+      swkbdClose(&kbd);
+
+    }
+
+    return std::string(tmpoutstr);
+  }
   std::string get_folder_path_from_file_path(std::string file_path_){
     std::string folder_path;
     if(file_path_[0] == '/') folder_path += "/";

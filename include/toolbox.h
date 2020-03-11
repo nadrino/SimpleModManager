@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <ctime>
 
 namespace toolbox{
 
@@ -20,6 +21,9 @@ namespace toolbox{
 
   void reset_last_displayed_value();
   void set_last_timestamp();
+  void set_CRC_check_is_enabled(bool CRC_check_is_enabled_);
+  bool get_CRC_check_is_enabled();
+
   void display_loading(int current_index_, int end_index_, std::string title_, std::string prefix_, std::string &color_str_ = empty_str, bool force_display_ = false);
   void print_right(std::string input_, std::string color_ = "", bool flush_ = false);
   void print_left(std::string input_, std::string color_ = "", bool flush_ = false);
@@ -33,6 +37,7 @@ namespace toolbox{
   bool do_string_starts_with_substring(std::string string_, std::string substring_);
   bool do_string_ends_with_substring(std::string string_, std::string substring_);
   bool do_string_in_vector(std::string &str_, std::vector<std::string>& vector_);
+  bool do_path_is_valid(std::string &path_);
   bool do_path_is_folder(std::string &folder_path_);
   bool do_path_is_file(std::string &file_path_);
   bool do_files_are_the_same(std::string file1_path_, std::string file2_path_);
@@ -42,6 +47,7 @@ namespace toolbox{
   bool rm_dir(std::string folder_path_);
   bool copy_file(std::string source_, std::string dest_);
 
+  std::string get_user_string(std::string default_str_ = "");
   std::string get_folder_path_from_file_path(std::string file_path_);
   std::string get_filename_from_file_path(std::string file_path_);
   std::string get_head_path_element_name(std::string folder_path_);
