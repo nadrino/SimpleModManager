@@ -36,7 +36,7 @@ void parameters_handler::initialize() {
 }
 void parameters_handler::reset() {
 
-  _parameters_file_path_ = "./parameters.ini";
+  _parameters_file_path_ = "/config/SimpleModManager/parameters.ini";
   _data_handler_.clear();
   _presets_list_.clear();
   set_default_parameters();
@@ -86,6 +86,8 @@ void parameters_handler::set_default_parameters() {
 
 }
 void parameters_handler::recreate_parameters_file() {
+
+  toolbox::mkdir_path(toolbox::get_folder_path_from_file_path(_parameters_file_path_));
 
   std::ofstream parameter_file;
   parameter_file.open (_parameters_file_path_.c_str());

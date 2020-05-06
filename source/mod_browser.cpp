@@ -64,6 +64,12 @@ int mod_browser::get_max_relative_depth(){
 std::string mod_browser::get_current_directory(){
   return _current_directory_;
 }
+std::string mod_browser::get_base_folder(){
+  return _base_folder_;
+}
+parameters_handler &mod_browser::get_parameters_handler(){
+  return _parameters_handler_;
+}
 
 void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
 
@@ -139,7 +145,8 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
         check_mods_status();
         _mods_preseter_.read_parameter_file(_current_directory_);
       }
-    } else if(kDown & KEY_Y){ // switch between config preset
+    }
+    else if(kDown & KEY_Y){ // switch between config preset
       if(get_current_relative_depth() == 0){
         _parameters_handler_.increment_selected_preset_id();
         _mod_manager_.set_install_mods_base_folder(

@@ -29,6 +29,8 @@ public:
   int get_current_relative_depth();
   int get_max_relative_depth();
   std::string get_current_directory();
+  std::string get_base_folder();
+  parameters_handler &get_parameters_handler();
 
   void scan_inputs(u64 kDown, u64 kHeld);
   void print_menu();
