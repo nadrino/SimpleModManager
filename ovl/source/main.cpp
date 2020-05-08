@@ -6,24 +6,117 @@
 
 mod_browser __mod_browser__;
 
-
-class GuiMods : public tsl::Gui {
+class ThridLevelGui : public tsl::Gui {
 public:
-  GuiMods() {}
 
-  virtual tsl::elm::Element* createUI() override {
+  explicit ThridLevelGui(){
+
+  }
+
+  tsl::elm::Element* createUI() override {
+
     auto *rootFrame = new tsl::elm::OverlayFrame("SimpleModManager", toolbox::get_app_version());
 
-    rootFrame->setContent(new tsl::elm::DebugRectangle(tsl::gfx::Color{ 0x8, 0x3, 0x8, 0xF }));
+    // A list that can contain sub elements and handles scrolling
+    auto list = new tsl::elm::List();
+
+    // List Items
+    list->addItem(new tsl::elm::CategoryHeader("Applying mod : " + __mod_browser__.get_current_directory()));
+
+
+    // Add the list to the frame for it to be drawn
+    rootFrame->setContent(list);
 
     return rootFrame;
-  }
+    }
+
 };
 
 
-class GuiBrowser : public tsl::Gui {
+class SecondLevelGui : public tsl::Gui {
 public:
-  GuiBrowser(u8 arg1, u8 arg2, bool arg3) { }
+
+  explicit SecondLevelGui(const std::basic_string<char>& current_sub_folder_) {
+    _current_sub_folder_ = current_sub_folder_;
+  }
+
+  virtual tsl::elm::Element* createUI() override {
+
+    auto *rootFrame = new tsl::elm::OverlayFrame("SimpleModManager", toolbox::get_app_version());
+
+    std::string new_path = __mod_browser__.get_current_directory() + "/" + _current_sub_folder_;
+    new_path = toolbox::remove_extra_doubled_characters(new_path, "/");
+    __mod_browser__.change_directory(new_path);
+    __mod_browser__.get_mod_manager().set_current_mods_folder(new_path);
+    __mod_browser__.get_mod_manager().set_use_cache_only_for_status_check(true);
+    __mod_browser__.get_mods_preseter().read_parameter_file(new_path);
+
+    // A list that can contain sub elements and handles scrolling
+    auto list = new tsl::elm::List();
+
+    // List Items
+    list->addItem(new tsl::elm::CategoryHeader(_current_sub_folder_));
+
+    auto mods_list = __mod_browser__.get_selector().get_selection_list();
+    for(int i_folder = 0 ; i_folder < int(mods_list.size()) ; i_folder++){
+      auto *clickableListItem = new tsl::elm::ListItem(mods_list[i_folder]);
+      std::string selected_mod_name = mods_list[i_folder];
+
+      clickableListItem->setClickListener([selected_mod_name](u64 keys) {
+        if (keys & KEY_A) {
+          // apply mod...
+          return true;
+        }
+        return false;
+      });
+      list->addItem(clickableListItem);
+
+      double mod_fraction = __mod_browser__.get_mod_manager().get_mod_status_fraction(mods_list[i_folder]);
+      if(mod_fraction == -1){
+        mod_fraction = 0;
+        list->addItem(new tsl::elm::CustomDrawer([mod_fraction](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
+          renderer->drawRect(x, y+4, 400, 10, renderer->a(tsl::gfx::Color(100, 100,100,255)));
+        }), 17);
+      } else {
+        list->addItem(new tsl::elm::CustomDrawer([mod_fraction](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
+          renderer->drawRect(x, y+4, 400*mod_fraction, 10, renderer->a(tsl::gfx::Color(100, 200,100,255)));
+          renderer->drawRect(x+400*mod_fraction, y+4, 400*(1-mod_fraction), 10, renderer->a(tsl::gfx::Color(100, 100,100,255)));
+        }), 17);
+      }
+
+    }
+
+    list->addItem(new tsl::elm::CategoryHeader("Mods Preset"));
+
+    (__mod_browser__.get_mods_preseter().get_presets_list());
+    list->addItem(new tsl::elm::NamedStepTrackBar("\uE132", { "Selection 1", "Selection 2", "Selection 3" }));
+
+    // Add the list to the frame for it to be drawn
+    rootFrame->setContent(list);
+
+    return rootFrame;
+  }
+
+  // Called once every frame to handle inputs not handled by other UI elements
+  virtual bool handleInput(u64 keysDown, u64 keysHeld, touchPosition touchInput, JoystickPosition leftJoyStick, JoystickPosition rightJoyStick) override {
+    if (keysDown & KEY_B) {
+      __mod_browser__.go_back();
+      tsl::goBack();
+      return true;
+    }
+    return false;   // Return true here to singal the inputs have been consumed
+  }
+
+private:
+
+  std::string _current_sub_folder_;
+
+};
+
+
+class FirstLevelGui : public tsl::Gui {
+public:
+  FirstLevelGui(u8 arg1, u8 arg2, bool arg3) { }
 
   // Called when this Gui gets loaded to create the UI
   // Allocate all elements on the heap. libtesla will make sure to clean them up when not needed anymore
@@ -32,35 +125,28 @@ public:
     // If you need more information in the header or want to change it's look, use a HeaderOverlayFrame.
     auto frame = new tsl::elm::OverlayFrame("SimpleModManager", toolbox::get_app_version());
 
-    __mod_browser__.set_only_show_folders(true);
-    __mod_browser__.set_max_relative_depth(1);
-    __mod_browser__.initialize();
-
     // A list that can contain sub elements and handles scrolling
     auto list = new tsl::elm::List();
 
     // List Items
-    list->addItem(new tsl::elm::CategoryHeader("Mod Folder : " + __mod_browser__.get_current_directory()));
+    list->addItem(new tsl::elm::CategoryHeader("Folder : " + __mod_browser__.get_current_directory()));
 
-//    auto *clickableListItem = new tsl::elm::ListItem("Clickable List Item", "...");
-//    clickableListItem->setClickListener([](u64 keys) {
-//      if (keys & KEY_A) {
-//        tsl::changeTo<GuiMods>();
-//        return true;
-//      }
-//
-//      return false;
-//    });
-//
-//    list->addItem(clickableListItem);
+    auto mod_folders_list = __mod_browser__.get_selector().get_selection_list();
+    for(int i_folder = 0 ; i_folder < int(mod_folders_list.size()) ; i_folder++){
+      auto *clickableListItem = new tsl::elm::ListItem(mod_folders_list[i_folder]);
+      std::string selected_folder = mod_folders_list[i_folder];
 
-    std::string base = __mod_browser__.get_base_folder();
+      clickableListItem->setClickListener([selected_folder](u64 keys) {
+        if (keys & KEY_A) {
+          tsl::changeTo<SecondLevelGui>(selected_folder);
+          return true;
+        }
+        return false;
+      });
+      list->addItem(clickableListItem);
+    }
 
-    list->addItem(new tsl::elm::ListItem("folder? : " + std::to_string(toolbox::do_path_is_folder(base))));
-    list->addItem(new tsl::elm::ListItem("Base Folder : " + __mod_browser__.get_base_folder()));
-    list->addItem(new tsl::elm::ListItem("Param file : " + __mod_browser__.get_parameters_handler().get_parameters_file_path()));
-    list->addItem(new tsl::elm::ListItem("Mods : " + __mod_browser__.get_parameters_handler().get_parameter("stored-mods-base-folder")));
-    list->addItem(new tsl::elm::ListItem("Default List Item with an extra long name to trigger truncation and scrolling"));
+
     list->addItem(new tsl::elm::ToggleListItem("Toggle List Item", true));
 
     // Custom Drawer, a element that gives direct access to the renderer
@@ -95,6 +181,7 @@ public:
   virtual bool handleInput(u64 keysDown, u64 keysHeld, touchPosition touchInput, JoystickPosition leftJoyStick, JoystickPosition rightJoyStick) override {
     return false;   // Return true here to singal the inputs have been consumed
   }
+
 };
 
 
@@ -102,15 +189,24 @@ class SimpleModManagerOverlay : public tsl::Overlay {
 public:
   // libtesla already initialized fs, hid, pl, pmdmnt, hid:sys and set:sys
   virtual void initServices() override {
+    auto rc = fsInitialize();
+    if (R_FAILED(rc))
+      fatalThrow(MAKERESULT(Module_Libnx, LibnxError_InitFail_FS));
+    fsdevMountSdmc();
+    __mod_browser__.set_only_show_folders(true);
+    __mod_browser__.set_max_relative_depth(1);
+    __mod_browser__.initialize();
   }  // Called at the start to initialize all services necessary for this Overlay
   virtual void exitServices() override {
+    fsdevUnmountAll();
+    fsExit();
   }  // Callet at the end to clean up all services previously initialized
 
   virtual void onShow() override {}    // Called before overlay wants to change from invisible to visible state
   virtual void onHide() override {}    // Called before overlay wants to change from visible to invisible state
 
   virtual std::unique_ptr<tsl::Gui> loadInitialGui() override {
-    return initially<GuiBrowser>(1, 2, true);  // Initial Gui to load. It's possible to pass arguments to it's constructor like this
+    return initially<FirstLevelGui>(1, 2, true);  // Initial Gui to load. It's possible to pass arguments to it's constructor like this
   }
 };
 

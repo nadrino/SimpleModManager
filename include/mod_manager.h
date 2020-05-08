@@ -21,6 +21,7 @@ public:
   void initialize();
 
   void set_install_mods_base_folder(std::string install_mods_base_folder_);
+  void set_use_cache_only_for_status_check(bool use_cache_only_for_status_check_);
 
   std::string get_install_mods_base_folder();
 
@@ -30,6 +31,7 @@ public:
   void reset_mod_cache_status(std::string mod_name_);
   void reset_all_mods_cache_status();
 
+  double get_mod_status_fraction(std::string mod_name_);
   std::string get_mod_status(std::string mod_name_);
 
   void apply_mod(std::string mod_name_, bool force_ = false);
@@ -42,10 +44,13 @@ protected:
 
 private:
 
+  bool _use_cache_only_for_status_check_;
+
   std::string _install_mods_base_folder_;
   std::string _current_mods_folder_path_;
   std::map<std::string, std::vector<std::string>> _relative_file_path_list_cache_;
   std::map<std::string, std::string> _mods_status_cache_;
+  std::map<std::string, double> _mods_status_cache_fraction_;
 
   parameters_handler _parameters_handler_;
 

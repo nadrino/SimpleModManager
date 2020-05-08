@@ -46,6 +46,9 @@ std::string mods_preseter::get_selected_mod_preset(){
 std::vector<std::string> mods_preseter::get_mods_list(std::string preset_) {
   return _data_handler_[preset_];
 }
+std::vector<std::string>& mods_preseter::get_presets_list(){
+  return _presets_list_;
+}
 
 void mods_preseter::read_parameter_file(std::string mod_folder_) {
 

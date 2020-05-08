@@ -28,6 +28,12 @@ namespace toolbox{
   static double last_displayed_value = -1;
   static bool CRC_check_is_enabled = true;
 
+  static bool use_embedded_switch_fs = false;
+  static char* fs_pathBuffer;
+  static Result* fs_resultBuffer;
+  static FsDir* fs_DirBuffer;
+  static FsFileSystem* fs_FileSystemBuffer;
+
   void reset_last_displayed_value(){
     last_displayed_value = -1;
   }
@@ -116,6 +122,17 @@ namespace toolbox{
 
 
   }
+  void toggle_use_embedded_switch_fs(){ // for test purposes
+    // enable
+    delete[] fs_pathBuffer; fs_pathBuffer = new char[FS_MAX_PATH];
+    delete fs_resultBuffer; fs_resultBuffer = new Result();
+    delete fs_DirBuffer; fs_DirBuffer = new FsDir();
+    delete fs_FileSystemBuffer; fs_FileSystemBuffer = new FsFileSystem();
+    *fs_resultBuffer = fsOpenSdCardFileSystem(fs_FileSystemBuffer);
+    use_embedded_switch_fs = true;
+    // disable
+    // no use.
+  }
 
   int get_terminal_width(){
     return consoleGetDefault()->consoleWidth;
@@ -148,16 +165,58 @@ namespace toolbox{
     return (stat (path_.c_str(), &buffer) == 0);
   }
   bool do_path_is_folder(std::string &folder_path_){
-    struct stat info{};
-    stat( folder_path_.c_str(), &info );
-    return (info.st_mode & S_IFDIR) != 0;
+    bool is_folder = false;
+    if(not use_embedded_switch_fs){
+      struct stat info{};
+      stat( folder_path_.c_str(), &info );
+      is_folder = S_ISDIR(info.st_mode);
+    }
+    else{
+      strcpy(fs_pathBuffer, folder_path_.c_str());
+      *fs_resultBuffer = fsFsOpenDirectory(fs_FileSystemBuffer, fs_pathBuffer, FsDirOpenMode_ReadDirs, fs_DirBuffer);
+      if (not R_FAILED(*fs_resultBuffer))
+        is_folder = true;
+      fsDirClose(fs_DirBuffer);
+    }
+    return is_folder;
+  }
+  std::string debug_string(std::string str_){
+
+    if(not use_embedded_switch_fs){
+      toggle_use_embedded_switch_fs();
+    }
+
+    std::stringstream ss;
+    ss << str_ << ": ";
+
+    char pathBuffer[FS_MAX_PATH];
+    FsDir DirBuffer;
+    s64 counter;
+    Result rc;
+
+    strcpy(pathBuffer, str_.c_str());
+    fsFsOpenDirectory(fs_FileSystemBuffer, pathBuffer, FsDirOpenMode_ReadDirs, &DirBuffer);
+//    fsDirGetEntryCount(&DirBuffer, &counter);
+//    ss << counter+1 << "-> ";
+//    counter = 0;
+
+    FsDirectoryEntry dirEntry;
+
+    for(s64 i_count = 0 ; i_count < counter; i_count++){
+      rc = fsDirRead(&DirBuffer, &counter, 1, &dirEntry);
+      if( R_FAILED(rc) ){
+        continue;
+      }
+      ss<<dirEntry.name<<",";
+    }
+
+    fsDirClose(&DirBuffer);
+
+    return ss.str();
   }
   bool do_path_is_file(std::string &file_path_) {
-    if(do_path_is_valid(file_path_)){
-      return not do_path_is_folder(file_path_);
-    } else{
-      return false;
-    }
+    if(not do_path_is_valid(file_path_)) return false;
+    return (not do_path_is_folder(file_path_));
   }
   bool do_files_are_the_same(std::string file1_path_, std::string file2_path_) {
 

@@ -11,6 +11,7 @@
 #include <mods_preseter.h>
 
 #include <string>
+#include <switch.h>
 
 class mod_browser{
 
@@ -31,6 +32,9 @@ public:
   std::string get_current_directory();
   std::string get_base_folder();
   parameters_handler &get_parameters_handler();
+  selector &get_selector();
+  mods_preseter &get_mods_preseter();
+  mod_manager &get_mod_manager();
 
   void scan_inputs(u64 kDown, u64 kHeld);
   void print_menu();

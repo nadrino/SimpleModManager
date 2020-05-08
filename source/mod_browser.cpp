@@ -70,6 +70,15 @@ std::string mod_browser::get_base_folder(){
 parameters_handler &mod_browser::get_parameters_handler(){
   return _parameters_handler_;
 }
+selector &mod_browser::get_selector(){
+  return _selector_;
+}
+mods_preseter &mod_browser::get_mods_preseter(){
+  return _mods_preseter_;
+}
+mod_manager &mod_browser::get_mod_manager(){
+  return _mod_manager_;
+}
 
 void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
 

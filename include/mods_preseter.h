@@ -23,6 +23,7 @@ public:
   int get_selected_mod_preset_index();
   std::string get_selected_mod_preset();
   std::vector<std::string> get_mods_list(std::string preset_);
+  std::vector<std::string>& get_presets_list();
 
   void read_parameter_file(std::string mod_folder_);
   void recreate_preset_file();
