@@ -56,7 +56,11 @@ private:
   int _max_relative_depth_;
   int _current_relative_depth_;
 
+  int _last_page_;
+  int _last_cursor_position_;
+
   std::string _current_directory_;
+  std::string _last_directory_;
   std::string _base_folder_;
 
   selector _selector_;

@@ -14,7 +14,7 @@
 
 mod_manager::mod_manager() {
 
-  _relative_file_path_list_cache_.clear();
+//  _relative_file_path_list_cache_.clear();
   _install_mods_base_folder_ = "/atmosphere/"; // should not be used
   _current_mods_folder_path_ = "";
   _use_cache_only_for_status_check_ = false;
@@ -38,10 +38,13 @@ void mod_manager::set_use_cache_only_for_status_check(bool use_cache_only_for_st
 std::string mod_manager::get_install_mods_base_folder() {
   return _install_mods_base_folder_;
 }
+std::string & mod_manager::get_current_mods_folder_path(){
+  return _current_mods_folder_path_;
+}
 
 void mod_manager::set_current_mods_folder(std::string folder_path_) {
   _current_mods_folder_path_ = folder_path_;
-  _relative_file_path_list_cache_.clear();
+//  _relative_file_path_list_cache_.clear();
   _mods_status_cache_.clear();
   _mods_status_cache_fraction_.clear();
   load_mods_status_cache_file();
@@ -117,12 +120,14 @@ std::string mod_manager::get_mod_status(std::string mod_name_){
   toolbox::print_left("   Checking : Listing mod files...", toolbox::magenta_bg, true);
   consoleUpdate(nullptr);
   std::vector<std::string> relative_file_path_list;
-  if(_relative_file_path_list_cache_[mod_name_].empty()){
-    relative_file_path_list = toolbox::get_list_files_in_subfolders(absolute_mod_folder_path);
-    _relative_file_path_list_cache_[mod_name_] = relative_file_path_list;
-  } else{
-    relative_file_path_list = _relative_file_path_list_cache_[mod_name_];
-  }
+//  if(_relative_file_path_list_cache_[mod_name_].empty()){
+//    relative_file_path_list = toolbox::get_list_files_in_subfolders(absolute_mod_folder_path);
+//    _relative_file_path_list_cache_[mod_name_] = relative_file_path_list;
+//  } else{
+//    relative_file_path_list = _relative_file_path_list_cache_[mod_name_];
+//  }
+
+  relative_file_path_list = toolbox::get_list_files_in_subfolders(absolute_mod_folder_path);
 
   int total_files_count = relative_file_path_list.size();
   toolbox::reset_last_displayed_value();
@@ -161,18 +166,27 @@ void mod_manager::apply_mod(std::string mod_name_, bool force_) {
 
   std::vector<std::string> relative_file_path_list;
   toolbox::print_left("   Getting files list...", toolbox::green_bg, true);
-  if(_relative_file_path_list_cache_[mod_name_].empty()){
-    relative_file_path_list = toolbox::get_list_files_in_subfolders(absolute_mod_folder_path);
-    _relative_file_path_list_cache_[mod_name_] = relative_file_path_list;
-  } else {
-    relative_file_path_list = _relative_file_path_list_cache_[mod_name_];
+
+//  if(_relative_file_path_list_cache_[mod_name_].empty()){
+//    relative_file_path_list = toolbox::get_list_files_in_subfolders(absolute_mod_folder_path);
+//    _relative_file_path_list_cache_[mod_name_] = relative_file_path_list;
+//  } else {
+//    relative_file_path_list = _relative_file_path_list_cache_[mod_name_];
+//  }
+
+  relative_file_path_list = toolbox::get_list_files_in_subfolders(absolute_mod_folder_path);
+
+  // deleting ignored entries
+  for(int i_mod = int(relative_file_path_list.size()) ; i_mod >= 0 ; i_mod--){
+    if(toolbox::do_string_in_vector(relative_file_path_list[i_mod], _ignored_file_list_)){
+      relative_file_path_list.erase(relative_file_path_list.begin() + i_mod);
+    }
   }
 
   std::string replace_option;
   if(force_) replace_option = "Yes to all";
   bool is_conflict;
   std::stringstream ss_files_list;
-  toolbox::reset_last_displayed_value();
 
   toolbox::reset_last_displayed_value();
   for(int i_file = 0 ; i_file < int(relative_file_path_list.size()) ; i_file++){
@@ -215,18 +229,46 @@ void mod_manager::apply_mod(std::string mod_name_, bool force_) {
   reset_mod_cache_status(mod_name_);
 
 }
+void mod_manager::apply_mod_list(std::vector<std::string> &mod_names_list_){
+
+  // checking for overwritten files in advance
+  std::vector<std::string> applied_files_listing;
+  std::vector<std::vector<std::string>> mods_ignored_files_list(mod_names_list_.size());
+  for(int i_mod = int(mod_names_list_.size()) ; i_mod >= 0 ; i_mod--){
+    std::string mod_path = _current_mods_folder_path_ + "/" + mod_names_list_[i_mod];
+    auto mod_files_list = toolbox::get_list_files_in_subfolders(mod_path);
+    for(auto& mod_file : mod_files_list){
+      if(toolbox::do_string_in_vector(mod_file, applied_files_listing)){
+        mods_ignored_files_list[i_mod].emplace_back(mod_file);
+      }
+      else {
+        applied_files_listing.emplace_back(mod_file);
+      }
+    }
+  }
+
+  // applying mods with ignored files
+  for(int i_mod = 0 ; i_mod < int(mod_names_list_.size()) ; i_mod++){
+    _ignored_file_list_ = mods_ignored_files_list[i_mod];
+    apply_mod(mod_names_list_[i_mod], true);
+    _ignored_file_list_.clear();
+  }
+
+}
 void mod_manager::remove_mod(std::string mod_name_){
 
   toolbox::print_left("Disabling : " + mod_name_, toolbox::red_bg);
   std::string absolute_mod_folder_path = _current_mods_folder_path_ + "/" + mod_name_;
 
   std::vector<std::string> relative_file_path_list;
-  if(_relative_file_path_list_cache_[mod_name_].empty()){
-    relative_file_path_list = toolbox::get_list_files_in_subfolders(absolute_mod_folder_path);
-    _relative_file_path_list_cache_[mod_name_] = relative_file_path_list;
-  } else{
-    relative_file_path_list = _relative_file_path_list_cache_[mod_name_];
-  }
+//  if(_relative_file_path_list_cache_[mod_name_].empty()){
+//    relative_file_path_list = toolbox::get_list_files_in_subfolders(absolute_mod_folder_path);
+//    _relative_file_path_list_cache_[mod_name_] = relative_file_path_list;
+//  } else{
+//    relative_file_path_list = _relative_file_path_list_cache_[mod_name_];
+//  }
+
+  relative_file_path_list = toolbox::get_list_files_in_subfolders(absolute_mod_folder_path);
 
   int i_file=0;
   toolbox::reset_last_displayed_value();
@@ -248,17 +290,19 @@ void mod_manager::remove_mod(std::string mod_name_){
     if( toolbox::do_files_are_the_same( absolute_file_path, installed_file_path ) ){
 
       // Remove the mod file
-      toolbox::rm_file( installed_file_path );
+      toolbox::delete_file(installed_file_path);
 
       // Delete the folder if no other files is present
       std::string empty_folder_path_candidate = toolbox::get_folder_path_from_file_path(installed_file_path);
-      while( toolbox::do_folder_is_empty( empty_folder_path_candidate ) ){
-        toolbox::rm_dir( empty_folder_path_candidate );
+      while( toolbox::do_folder_is_empty( empty_folder_path_candidate ) ) {
+
+        toolbox::delete_directory(empty_folder_path_candidate);
+
         std::vector<std::string> sub_folder_list = toolbox::split_string(empty_folder_path_candidate, "/");
         if(sub_folder_list.empty()) break; // virtually impossible -> would mean everything has been deleted on the sd
         // decrement folder depth
         empty_folder_path_candidate =
-          toolbox::join_vector_string(
+          "/" + toolbox::join_vector_string(
             sub_folder_list,
             "/",
             0,
@@ -276,12 +320,13 @@ void mod_manager::display_mod_files_status(std::string mod_folder_path_){
   std::vector<std::string> file_path_list;
   toolbox::print_left("Listing Files...", toolbox::red_bg);
   consoleUpdate(nullptr);
-  if(_relative_file_path_list_cache_[mod_folder_path_].empty()){
-    file_path_list = toolbox::get_list_files_in_subfolders(mod_folder_path_);
-    _relative_file_path_list_cache_[mod_folder_path_] = file_path_list;
-  } else{
-    file_path_list = _relative_file_path_list_cache_[mod_folder_path_];
-  }
+//  if(_relative_file_path_list_cache_[mod_folder_path_].empty()){
+//    file_path_list = toolbox::get_list_files_in_subfolders(mod_folder_path_);
+//    _relative_file_path_list_cache_[mod_folder_path_] = file_path_list;
+//  } else{
+//    file_path_list = _relative_file_path_list_cache_[mod_folder_path_];
+//  }
+  file_path_list = toolbox::get_list_files_in_subfolders(mod_folder_path_);
   selector sel;
   sel.set_selection_list(file_path_list);
   toolbox::print_left("Checking Files...", toolbox::red_bg);

@@ -37,6 +37,21 @@ int main(int argc, char **argv){
 
   consoleInit(nullptr);
 
+//  toolbox::set_use_embedded_switch_fs();
+//  std::string path = "/mods/The Legend of Zelda - Breath of the Wild/Linkle";
+//  toolbox::print_left(path + " : " + std::to_string(toolbox::do_path_is_folder(path) ));
+//  auto entries = toolbox::get_list_files_in_subfolders(path);
+//  for(auto &entry : entries){
+//    toolbox::print_left(entry);
+//  }
+//  consoleUpdate(nullptr);
+//  toolbox::make_pause();
+////  fsdevUnmountAll();
+////  fsExit();
+//  consoleExit(nullptr);
+//  return 0;
+
+  toolbox::set_use_embedded_switch_fs(true);
   int max_depth = 1; // could be a parameter in the future
 
   __mod_browser__.set_only_show_folders(true);

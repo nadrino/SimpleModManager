@@ -31,7 +31,9 @@ public:
 
   int get_nb_pages();
   int get_current_page();
+  int get_cursor_position();
   int get_selected_entry();
+  int get_entry(std::string entry_name_);
   std::string get_tag(int entry_);
   std::vector<std::string> get_selection_list();
 

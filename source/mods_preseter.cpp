@@ -99,7 +99,7 @@ void mods_preseter::read_parameter_file(std::string mod_folder_) {
 void mods_preseter::recreate_preset_file() {
 
   if(_presets_list_.empty()){
-    toolbox::rm_file(_preset_file_path_);
+    toolbox::delete_file(_preset_file_path_);
     return;
   }
 

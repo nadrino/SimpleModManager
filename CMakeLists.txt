@@ -40,8 +40,8 @@ include_directories("${ZLIB_INCLUDE_DIRS}")
 #include_directories("${SDL2_INCLUDE_DIRS}")
 
 set(VERSION_MAJOR 1)
-set(VERSION_MINOR 4)
-set(VERSION_MICRO 1)
+set(VERSION_MINOR 5)
+set(VERSION_MICRO 0)
 set(APP_VERSION
     "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}")
 
@@ -49,15 +49,6 @@ add_definitions( -DVERSION_APP=${APP_VERSION} )
 add_definitions( -DVERSION_MAJOR_APP=${VERSION_MAJOR} )
 add_definitions( -DVERSION_MINOR_APP=${VERSION_MINOR} )
 add_definitions( -DVERSION_MICRO_APP=${VERSION_MICRO} )
-
-# Replace this with the name of your application
-set(APP_NAME "SimpleModManager")
-set(HOMEBREW_APP "${APP_NAME}_${VERSION_MAJOR}_${VERSION_MINOR}_${VERSION_MICRO}")
-
-# Meta information about the app
-set(APP_TITLE ${APP_NAME})
-set(APP_AUTHOR "Nadrino")
-set(APP_ICON "${CMAKE_CURRENT_SOURCE_DIR}/assets/icon.jpg")
 
 if (NOT DEFINED CMAKE_BUILD_TYPE_INIT)
     set(CMAKE_BUILD_TYPE_INIT Release)
@@ -84,5 +75,5 @@ include_directories( ${CMAKE_BINARY_DIR}/generated/ )
 #add_subdirectory(source)
 #add_subdirectory(ovl)
 
-include(source/CMakeLists.txt)
+include(source/CMakeLists.txt) # needs to be called before ovl -> defined mod manager classes
 include(ovl/CMakeLists.txt)

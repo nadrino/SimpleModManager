@@ -227,6 +227,16 @@ bool mod_browser::change_directory(std::string new_directory_){
   auto new_path_relative_depth = get_relative_path_depth(new_directory_);
   if(new_path_relative_depth != -1 and new_path_relative_depth > _max_relative_depth_) return false;
 
+  int restored_cursor_position = -1;
+  int restored_page = -1;
+  if(new_directory_ == _last_directory_){
+    restored_cursor_position = _last_cursor_position_;
+    restored_page = _last_page_;
+  }
+  _last_directory_ = _current_directory_;
+  _last_cursor_position_ = _selector_.get_cursor_position();
+  _last_page_ = _selector_.get_current_page();
+
   _current_directory_ = new_directory_;
   _current_relative_depth_ = new_path_relative_depth;
   std::vector<std::string> selection_list;
@@ -236,6 +246,14 @@ bool mod_browser::change_directory(std::string new_directory_){
   _selector_.set_selection_list(selection_list);
   _selector_.reset_cursor_position();
   _selector_.reset_page();
+
+  if(restored_page != -1){
+    while(_selector_.get_current_page() != restored_page){
+      _selector_.next_page();
+    }
+    _selector_.set_cursor_position(restored_cursor_position);
+  }
+
   return true;
 
 }

@@ -143,6 +143,26 @@ function(add_nro_target target)
     endif ()
 endfunction()
 
+function(add_ovl_target target)
+    set(__NRO_COMMAND
+            ${ELF2NRO} $<TARGET_FILE:${target}.elf> ${CMAKE_CURRENT_BINARY_DIR}/${target}.ovl --nacp=${CMAKE_CURRENT_BINARY_DIR}/${target}.nacp --icon=${APP_ICON})
+
+    if (NOT ${CMAKE_CURRENT_BINARY_DIR}/${target}.nacp)
+        add_nacp(${target}.nacp)
+    endif ()
+
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${target}.ovl
+            COMMAND ${__NRO_COMMAND}
+            DEPENDS ${target}.elf ${CMAKE_CURRENT_BINARY_DIR}/${target}.nacp
+            VERBATIM)
+
+    if (CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+        add_custom_target(${target}.ovl ALL SOURCES ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}.ovl)
+    else ()
+        add_custom_target(${target}.ovl ALL SOURCES ${CMAKE_CURRENT_BINARY_DIR}/${target}.ovl)
+    endif ()
+endfunction()
+
 function(build_switch_binaries target)
     get_filename_component(target_we ${target} NAME_WE)
 
@@ -181,4 +201,45 @@ function(build_switch_binaries target)
     # Build the binaries
     add_nso_target(${target_we})
     add_nro_target(${target_we})
+endfunction()
+
+function(build_switch_ovl_binaries target)
+
+    get_filename_component(target_we ${target} NAME_WE)
+
+    if (NOT APP_TITLE)
+        if (${ARGC} GREATER 1)
+            set(APP_TITLE ${ARGV1})
+        else ()
+            set(APP_TITLE ${target_we})
+        endif ()
+    endif ()
+
+    if (NOT APP_AUTHOR)
+        if (${ARGC} GREATER 2)
+            set(APP_AUTHOR ${ARGV2})
+        else ()
+            set(APP_AUTHOR "Unspecified Author")
+        endif ()
+    endif ()
+
+    if (NOT APP_ICON)
+        if (${ARGC} GREATER 4)
+            set(APP_ICON ${ARGV4})
+        else ()
+            acquire_homebrew_icon(${target_we})
+        endif ()
+    endif ()
+
+    if (NOT APP_VERSION)
+        if (${ARGC} GREATER 3)
+            set(APP_VERSION ${ARGV3})
+        else ()
+            set(APP_VERSION "1.0.0")
+        endif ()
+    endif ()
+
+    # Build the binaries
+    add_nso_target(${target_we})
+    add_ovl_target(${target_we})
 endfunction()

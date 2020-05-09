@@ -70,8 +70,21 @@ int selector::get_nb_pages(){
 int selector::get_current_page(){
   return _current_page_;
 }
+int selector::get_cursor_position(){
+  return _cursor_position_;
+}
 int selector::get_selected_entry(){
   return _item_list_for_each_page_[_current_page_][_cursor_position_];
+}
+int selector::get_entry(std::string entry_name_){
+  int entry = -1;
+  for(int i_entry = 0 ; i_entry < int(_selection_list_.size()) ; i_entry++){
+    if(_selection_list_[i_entry] == entry_name_){
+      entry = i_entry;
+      break;
+    }
+  }
+  return entry;
 }
 std::string selector::get_tag(int entry_){
   return _tags_list_[entry_];

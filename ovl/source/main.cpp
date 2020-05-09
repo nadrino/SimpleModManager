@@ -42,7 +42,7 @@ public:
 
   virtual tsl::elm::Element* createUI() override {
 
-    auto *rootFrame = new tsl::elm::OverlayFrame("SimpleModManager", toolbox::get_app_version());
+    auto* rootFrame = new tsl::elm::OverlayFrame("SimpleModManager", toolbox::get_app_version());
 
     std::string new_path = __mod_browser__.get_current_directory() + "/" + _current_sub_folder_;
     new_path = toolbox::remove_extra_doubled_characters(new_path, "/");
@@ -52,7 +52,9 @@ public:
     __mod_browser__.get_mods_preseter().read_parameter_file(new_path);
 
     // A list that can contain sub elements and handles scrolling
-    auto list = new tsl::elm::List();
+    auto* list = new tsl::elm::List();
+
+    list->addItem(new tsl::elm::ListItem(__mod_browser__.get_mod_manager().get_current_mods_folder_path()));
 
     // List Items
     list->addItem(new tsl::elm::CategoryHeader(_current_sub_folder_));
@@ -62,9 +64,15 @@ public:
       auto *clickableListItem = new tsl::elm::ListItem(mods_list[i_folder]);
       std::string selected_mod_name = mods_list[i_folder];
 
-      clickableListItem->setClickListener([selected_mod_name](u64 keys) {
+      clickableListItem->setClickListener([selected_mod_name, this](u64 keys) {
         if (keys & KEY_A) {
           // apply mod...
+//          __mod_browser__.get_mod_manager().apply_mod(selected_mod_name, true);
+//          __mod_browser__.get_selector().set_tag(
+//            __mod_browser__.get_selector().get_entry(selected_mod_name),
+//            __mod_browser__.get_mod_manager().get_mod_status(selected_mod_name)
+//          );
+//          this->recreateUI();
           return true;
         }
         return false;
@@ -89,7 +97,7 @@ public:
     list->addItem(new tsl::elm::CategoryHeader("Mods Preset"));
 
     (__mod_browser__.get_mods_preseter().get_presets_list());
-    list->addItem(new tsl::elm::NamedStepTrackBar("\uE132", { "Selection 1", "Selection 2", "Selection 3" }));
+    list->addItem(new tsl::elm::NamedStepTrackBar("\uE132", {"Selection 1", "Selection 2", "Selection 3" }));
 
     // Add the list to the frame for it to be drawn
     rootFrame->setContent(list);
@@ -192,14 +200,12 @@ public:
     auto rc = fsInitialize();
     if (R_FAILED(rc))
       fatalThrow(MAKERESULT(Module_Libnx, LibnxError_InitFail_FS));
-    fsdevMountSdmc();
+    toolbox::set_use_embedded_switch_fs(true);
     __mod_browser__.set_only_show_folders(true);
     __mod_browser__.set_max_relative_depth(1);
     __mod_browser__.initialize();
   }  // Called at the start to initialize all services necessary for this Overlay
   virtual void exitServices() override {
-    fsdevUnmountAll();
-    fsExit();
   }  // Callet at the end to clean up all services previously initialized
 
   virtual void onShow() override {}    // Called before overlay wants to change from invisible to visible state

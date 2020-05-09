@@ -15,6 +15,8 @@
 #include <sstream>
 #include <filesystem> // cpp 17 functions -> does not work
 #include <exception>
+#include <chrono>
+
 #include <switch.h>
 
 #include <zlib.h>
@@ -24,44 +26,32 @@
 
 namespace toolbox{
 
-  static std::time_t last_timestamp;
-  static double last_displayed_value = -1;
-  static bool CRC_check_is_enabled = true;
+  static std::time_t __last_timestamp__;
+  static double __last_displayed_value__ = -1;
+  static bool __CRC_check_is_enabled__ = true;
 
-  static bool use_embedded_switch_fs = false;
-  static char* fs_pathBuffer;
-  static Result* fs_resultBuffer;
-  static FsDir* fs_DirBuffer;
-  static FsFileSystem* fs_FileSystemBuffer;
+  static bool __use_embedded_switch_fs__ = false;
+  static char __fs_pathBuffer__[FS_MAX_PATH];
+  static FsDir __fs_DirBuffer__;
+  static FsFile __fs_FileBuffer__;
+  static FsFileSystem __fs_FileSystemBuffer__;
 
-  void reset_last_displayed_value(){
-    last_displayed_value = -1;
-  }
-  void set_last_timestamp(){
-    last_timestamp = std::time(nullptr);
-  }
-  void set_CRC_check_is_enabled(bool CRC_check_is_enabled_){
-    CRC_check_is_enabled = CRC_check_is_enabled_;
-  }
-  bool get_CRC_check_is_enabled(){
-    return CRC_check_is_enabled;
-  }
 
-  void display_loading(int current_index_, int end_index_, std::string title_, std::string prefix_,
-                       std::string &color_str_, bool force_display_) {
+  //! printout functions :
+  void display_loading(int current_index_, int end_index_, std::string title_, std::string prefix_, std::string &color_str_, bool force_display_) {
 
     int percent = int(round(double(current_index_) / end_index_ * 100.));
-    if(last_displayed_value == -1) {
+    if(__last_displayed_value__ == -1) {
       set_last_timestamp();
     }
     if(
-        last_displayed_value == -1 or std::time(nullptr) - last_timestamp >= 1 // every second
-        or current_index_ == 0 // first call
-        or force_display_ // display every calls
-        or current_index_ >= end_index_-1 // last entry
-        ){
+      __last_displayed_value__ == -1 or std::time(nullptr) - __last_timestamp__ >= 1 // every second
+      or current_index_ == 0 // first call
+      or force_display_ // display every calls
+      or current_index_ >= end_index_-1 // last entry
+      ){
       set_last_timestamp();
-      last_displayed_value = percent;
+      __last_displayed_value__ = percent;
       std::stringstream ss;
       ss << prefix_ << percent << "% / " << title_;
       print_left(ss.str(), color_str_, true);
@@ -109,81 +99,32 @@ namespace toolbox{
   }
   void make_pause(){
 
-    std::cout << "PRESS A to continue." << std::endl;
+    std::cout << "PRESS A to continue or + to quit now." << std::endl;
     consoleUpdate(nullptr);
 
+    std::chrono::high_resolution_clock::time_point clock_buffer = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> time_span = clock_buffer - clock_buffer;
     while(appletMainLoop()){
       hidScanInput();
       u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-      if (kDown & KEY_A) {
+      u64 kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
+      if (kDown & KEY_A or (kHeld & KEY_A and time_span.count() > 250)) {
         break; // break in order to return to hbmenu
       }
+      if (kDown & KEY_PLUS) {
+        consoleExit(nullptr);
+        exit(EXIT_SUCCESS);
+      }
+      time_span += std::chrono::high_resolution_clock::now() - clock_buffer;
+      clock_buffer = std::chrono::high_resolution_clock::now();
     }
 
-
-  }
-  void toggle_use_embedded_switch_fs(){ // for test purposes
-    // enable
-    delete[] fs_pathBuffer; fs_pathBuffer = new char[FS_MAX_PATH];
-    delete fs_resultBuffer; fs_resultBuffer = new Result();
-    delete fs_DirBuffer; fs_DirBuffer = new FsDir();
-    delete fs_FileSystemBuffer; fs_FileSystemBuffer = new FsFileSystem();
-    *fs_resultBuffer = fsOpenSdCardFileSystem(fs_FileSystemBuffer);
-    use_embedded_switch_fs = true;
-    // disable
-    // no use.
   }
 
-  int get_terminal_width(){
-    return consoleGetDefault()->consoleWidth;
-  }
-  int get_terminal_height(){
-    return consoleGetDefault()->consoleHeight;
-  }
-
-  bool do_string_contains_substring(std::string string_, std::string substring_){
-    if(substring_.size() > string_.size()) return false;
-    if(string_.find(substring_) != std::string::npos) return true;
-    else return false;
-  }
-  bool do_string_starts_with_substring(std::string string_, std::string substring_){
-    if(substring_.size() > string_.size()) return false;
-    return (not string_.compare(0, substring_.size(), substring_));
-  }
-  bool do_string_ends_with_substring(std::string string_, std::string substring_){
-    if(substring_.size() > string_.size()) return false;
-    return (not string_.compare(string_.size() - substring_.size(), substring_.size(), substring_));
-  }
-  bool do_string_in_vector(std::string &str_, std::vector<std::string>& vector_){
-    for(auto const &element : vector_){
-      if(element == str_) return true;
-    }
-    return false;
-  }
-  bool do_path_is_valid(std::string &path_){
-    struct stat buffer{};
-    return (stat (path_.c_str(), &buffer) == 0);
-  }
-  bool do_path_is_folder(std::string &folder_path_){
-    bool is_folder = false;
-    if(not use_embedded_switch_fs){
-      struct stat info{};
-      stat( folder_path_.c_str(), &info );
-      is_folder = S_ISDIR(info.st_mode);
-    }
-    else{
-      strcpy(fs_pathBuffer, folder_path_.c_str());
-      *fs_resultBuffer = fsFsOpenDirectory(fs_FileSystemBuffer, fs_pathBuffer, FsDirOpenMode_ReadDirs, fs_DirBuffer);
-      if (not R_FAILED(*fs_resultBuffer))
-        is_folder = true;
-      fsDirClose(fs_DirBuffer);
-    }
-    return is_folder;
-  }
   std::string debug_string(std::string str_){
 
-    if(not use_embedded_switch_fs){
-      toggle_use_embedded_switch_fs();
+    if(not __use_embedded_switch_fs__){
+      set_use_embedded_switch_fs(true);
     }
 
     std::stringstream ss;
@@ -195,7 +136,7 @@ namespace toolbox{
     Result rc;
 
     strcpy(pathBuffer, str_.c_str());
-    fsFsOpenDirectory(fs_FileSystemBuffer, pathBuffer, FsDirOpenMode_ReadDirs, &DirBuffer);
+    fsFsOpenDirectory(&__fs_FileSystemBuffer__, &pathBuffer[0], FsDirOpenMode_ReadDirs, &DirBuffer);
 //    fsDirGetEntryCount(&DirBuffer, &counter);
 //    ss << counter+1 << "-> ";
 //    counter = 0;
@@ -214,117 +155,6 @@ namespace toolbox{
 
     return ss.str();
   }
-  bool do_path_is_file(std::string &file_path_) {
-    if(not do_path_is_valid(file_path_)) return false;
-    return (not do_path_is_folder(file_path_));
-  }
-  bool do_files_are_the_same(std::string file1_path_, std::string file2_path_) {
-
-    if(not do_path_is_file(file1_path_)) return false;
-    if(not do_path_is_file(file2_path_)) return false;
-    if(toolbox::get_file_size(file1_path_) != toolbox::get_file_size(file2_path_)) return false; // very fast
-    if(CRC_check_is_enabled){
-      if(toolbox::get_hash_CRC32(file1_path_) != toolbox::get_hash_CRC32(file2_path_)) return false;
-    }
-    return true;
-
-  }
-  bool do_folder_is_empty(std::string folder_path_){
-    if(not do_path_is_folder(folder_path_)) return false;
-    return get_list_of_entries_in_folder(folder_path_).size() == 0;
-  }
-  bool mkdir_path(std::string new_folder_path_){
-
-    if(do_path_is_folder(new_folder_path_)) return true;
-
-    std::string current_level;
-    std::string level;
-    std::stringstream ss(new_folder_path_);
-
-    // split path using slash as a separator
-    while (std::getline(ss, level, '/'))
-    {
-      current_level += level; // append folder to the current level
-      if(current_level.empty()) current_level = "/";
-      // create current level
-      if(not do_path_is_folder(current_level)){
-        ::mkdir(current_level.c_str(),0777);
-//        int n_times = 0;
-//        while(::mkdir(current_level.c_str(),0777)){
-//          n_times++;
-//          if(n_times > 10) break;
-//        }
-//        std::cout << current_level << "-> n_times = " << n_times << std::endl;
-      }
-
-      current_level += "/"; // don't forget to append a slash
-    }
-
-    return true;
-
-  }
-  bool rm_file(std::string file_path_){
-    std::remove(file_path_.c_str());
-    if(do_path_is_file(file_path_)) return false;
-    return true;
-  }
-  bool rm_dir(std::string folder_path_){
-    if(not do_folder_is_empty(folder_path_)) return false;
-    rmdir(folder_path_.c_str());
-    if(do_path_is_folder(folder_path_)) return false;
-    return true;
-  }
-  bool copy_file(std::string source_, std::string dest_){
-
-    std::string destination_folder_path = get_folder_path_from_file_path(dest_);
-    if(not do_path_is_folder(destination_folder_path)){
-      mkdir_path(destination_folder_path);
-    }
-    if(do_path_is_file(dest_)) rm_file(dest_);
-
-    std::ifstream source(source_, std::ios::binary);
-    std::ofstream dest(dest_, std::ios::binary);
-
-    source.seekg(0, std::ios::end);
-    std::ifstream::pos_type size = source.tellg();
-    source.seekg(0);
-
-    char* buffer = new char[size];
-
-    source.read(buffer, size);
-    dest.write(buffer, size);
-
-    delete[] buffer;
-    source.close();
-    dest.close();
-
-//    FILE *in, *out;
-//    int c;
-//    if ((in = fopen(source_.c_str(),"rb")) == NULL)
-//    {
-//      printf("Could not open source file: %s\n",source_.c_str());
-//      return 1;
-//    }
-//
-//    if ((out = fopen(dest_.c_str(),"wb")) == NULL)
-//    {
-//      printf("Could not open destination file: %s\n",dest_.c_str());
-//      return 1;
-//    }
-//
-//    while ((c = fgetc(in)) != EOF)
-//      fputc(c,out);
-//
-//    fclose(in);
-//    fclose(out);
-
-//    if(not toolbox::do_files_are_the_same(source_, dest_)){
-//      return false;
-//    }
-    return true;
-
-  }
-
   std::string get_user_string(std::string default_str_) {
 
     SwkbdConfig kbd;
@@ -347,16 +177,90 @@ namespace toolbox{
 
     return std::string(tmpoutstr);
   }
+  std::string ask_question(std::string question_, std::vector<std::string> answers_){
+
+    consoleClear();
+    std::cout << question_ << std::endl;
+
+    auto sel = selector();
+    sel.set_selection_list(answers_);
+    sel.print_selector();
+
+    while(appletMainLoop()){
+      //Scan all the inputs. This should be done once for each frame
+      hidScanInput();
+
+      //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
+      u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+
+      if(kDown & KEY_DOWN){
+        sel.increment_cursor_position();
+        consoleClear();
+        std::cout << question_ << std::endl;
+        sel.print_selector();
+      } else if(kDown & KEY_UP){
+        sel.decrement_cursor_position();
+        consoleClear();
+        std::cout << question_ << std::endl;
+        sel.print_selector();
+      } else if(kDown & KEY_A){
+        consoleClear();
+        return sel.get_selected_string();
+      }
+      consoleUpdate(nullptr);
+    }
+
+    return "";
+  }
+
+
+  //! toolbox vars management functions :
+  void reset_last_displayed_value(){
+    __last_displayed_value__ = -1;
+  }
+  void set_last_timestamp(){
+    __last_timestamp__ = std::time(nullptr);
+  }
+  void set_CRC_check_is_enabled(bool CRC_check_is_enabled_){
+    __CRC_check_is_enabled__ = CRC_check_is_enabled_;
+  }
+
+  bool get_CRC_check_is_enabled(){
+    return __CRC_check_is_enabled__;
+  }
+
+
+  //! generic tools functions
+  bool do_string_contains_substring(std::string string_, std::string substring_){
+    if(substring_.size() > string_.size()) return false;
+    if(string_.find(substring_) != std::string::npos) return true;
+    else return false;
+  }
+  bool do_string_starts_with_substring(std::string string_, std::string substring_){
+    if(substring_.size() > string_.size()) return false;
+    return (not string_.compare(0, substring_.size(), substring_));
+  }
+  bool do_string_ends_with_substring(std::string string_, std::string substring_){
+    if(substring_.size() > string_.size()) return false;
+    return (not string_.compare(string_.size() - substring_.size(), substring_.size(), substring_));
+  }
+  bool do_string_in_vector(std::string &str_, std::vector<std::string>& vector_){
+    for(auto const &element : vector_){
+      if(element == str_) return true;
+    }
+    return false;
+  }
+
   std::string get_folder_path_from_file_path(std::string file_path_){
     std::string folder_path;
     if(file_path_[0] == '/') folder_path += "/";
     auto splitted_path = split_string(file_path_, "/");
     folder_path += join_vector_string(
-        splitted_path,
-        "/",
-        0,
-        int(splitted_path.size()) - 1
-        );
+      splitted_path,
+      "/",
+      0,
+      int(splitted_path.size()) - 1
+    );
     return folder_path;
   }
   std::string get_filename_from_file_path(std::string file_path_){
@@ -407,46 +311,6 @@ namespace toolbox{
     }
     return out_str;
   }
-  std::string ask_question(std::string question_, std::vector<std::string> answers_){
-
-    consoleClear();
-    std::cout << question_ << std::endl;
-
-    auto sel = selector();
-    sel.set_selection_list(answers_);
-    sel.print_selector();
-
-    while(appletMainLoop()){
-      //Scan all the inputs. This should be done once for each frame
-      hidScanInput();
-
-      //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
-      u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-
-      if(kDown & KEY_DOWN){
-        sel.increment_cursor_position();
-        consoleClear();
-        std::cout << question_ << std::endl;
-        sel.print_selector();
-      } else if(kDown & KEY_UP){
-        sel.decrement_cursor_position();
-        consoleClear();
-        std::cout << question_ << std::endl;
-        sel.print_selector();
-      } else if(kDown & KEY_A){
-        consoleClear();
-        return sel.get_selected_string();
-      }
-      consoleUpdate(nullptr);
-    }
-
-    return "";
-  }
-  std::string get_app_version(){
-    std::stringstream ss;
-    ss << get_version_major() << "." << get_version_minor() << "." << get_version_micro();
-    return ss.str();
-  }
 
   std::vector<std::string> split_string(std::string input_string_, std::string delimiter_){
 
@@ -477,79 +341,687 @@ namespace toolbox{
     return output_splited_string;
 
   }
-  std::vector<std::string> get_list_of_entries_in_folder(std::string folder_path_) {
-    if(not do_path_is_folder(folder_path_)) return std::vector<std::string>();
-    DIR* directory;
-    directory = opendir(folder_path_.c_str()); //Open current-working-directory.
-    if( directory == nullptr ) {
-      std::cout << "Failed to open directory : " << folder_path_ << std::endl;
-      return std::vector<std::string>();
-    } else {
-      std::vector<std::string> entries_list;
-      struct dirent* entry;
-      while ( (entry = readdir(directory)) ) {
-        entries_list.emplace_back(entry->d_name);
-      }
-      closedir(directory);
-      return entries_list;
+
+
+  //! Hardware functions :
+  int get_terminal_width(){
+    return consoleGetDefault()->consoleWidth;
+  }
+  int get_terminal_height(){
+    return consoleGetDefault()->consoleHeight;
+  }
+
+
+  //! direct filesystem functions :
+  void set_use_embedded_switch_fs(bool use_embedded_switch_fs_) { // for test purposes
+    // enable
+    if(use_embedded_switch_fs_){
+      fsOpenSdCardFileSystem(&__fs_FileSystemBuffer__);
+      __use_embedded_switch_fs__ = use_embedded_switch_fs_;
+    }
+      // disable
+    else {
+      fsFsClose(&__fs_FileSystemBuffer__);
+      __use_embedded_switch_fs__ = use_embedded_switch_fs_;
     }
   }
-  std::vector<std::string> get_list_of_subfolders_in_folder(std::string folder_path_) {
-    if(not do_path_is_folder(folder_path_)) return std::vector<std::string>();
-    DIR* directory;
-    directory = opendir(folder_path_.c_str()); //Open current-working-directory.
-    if( directory == nullptr ) {
-      std::cout << "Failed to open directory : " << folder_path_ << std::endl;
-      return std::vector<std::string>();
-    } else {
-      std::vector<std::string> entries_list;
-      struct dirent* entry;
-      while ( (entry = readdir(directory)) ) {
-        std::string folder_candidate = folder_path_ + "/" + std::string(entry->d_name);
-        if(do_path_is_folder(folder_candidate)){
-          entries_list.emplace_back(entry->d_name);
-        }
+
+  bool do_path_is_valid(std::string &path_){
+    if(not __use_embedded_switch_fs__){
+      struct stat buffer{};
+      return (stat (path_.c_str(), &buffer) == 0);
+    }
+    else {
+      if(do_path_is_folder(path_)){
+        return true;
       }
-      closedir(directory);
-      return entries_list;
+      else return do_path_is_file(path_);
     }
   }
-  std::vector<std::string> get_list_files_in_subfolders(std::string folder_path_) {
+  bool do_path_is_folder(std::string &folder_path_){
+    if(not __use_embedded_switch_fs__){
+      struct stat info{};
+      stat( folder_path_.c_str(), &info );
+      return S_ISDIR(info.st_mode);
+    }
+    else {
+      strcpy(__fs_pathBuffer__, folder_path_.c_str());
+      if(R_FAILED(fsFsOpenDirectory(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0], FsDirOpenMode_ReadDirs, &__fs_DirBuffer__))){
+        fsDirClose(&__fs_DirBuffer__);
+        return false;
+      }
+      else{
+        fsDirClose(&__fs_DirBuffer__);
+        return true;
+      }
+    }
+  }
+  bool do_path_is_file(std::string &file_path_) {
+    if(not __use_embedded_switch_fs__){
+      if(not do_path_is_valid(file_path_)) return false;
+      return (not do_path_is_folder(file_path_));
+    }
+    else{
+      strcpy(__fs_pathBuffer__, file_path_.c_str());
+      if(R_FAILED(fsFsOpenFile(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0], FsOpenMode_Read, &__fs_FileBuffer__))){
+        fsFileClose(&__fs_FileBuffer__);
+        return false;
+      }
+      else{
+        fsFileClose(&__fs_FileBuffer__);
+        return true;
+      }
+    }
+  }
+  bool do_files_are_the_same(std::string file1_path_, std::string file2_path_) {
 
-    std::vector<std::string> output_file_paths;
+    if(not __use_embedded_switch_fs__){
+      if(not do_path_is_file(file1_path_)) return false;
+      if(not do_path_is_file(file2_path_)) return false;
+      if(toolbox::get_file_size(file1_path_) != toolbox::get_file_size(file2_path_)) return false; // very fast
+      if(__CRC_check_is_enabled__){
+        if(toolbox::get_hash_CRC32(file1_path_) != toolbox::get_hash_CRC32(file2_path_)) return false;
+      }
+    }
+    else {
 
-    // WARNING : Recursive function
-    auto entries_list = get_list_of_entries_in_folder(folder_path_);
-    std::string str_buffer;
-    for(auto const& entry : entries_list){
+      // opening file1
+      char path_buffer_file1[FS_MAX_PATH];
+      FsFile fs_file1;
+      strcpy(path_buffer_file1, file1_path_.c_str());
+      if(R_FAILED(fsFsOpenFile(&__fs_FileSystemBuffer__, &path_buffer_file1[0], FsOpenMode_Read, &fs_file1))){
+        fsFileClose(&fs_file1);
+        return false;
+      }
+      // opening file2
+      char path_buffer_file2[FS_MAX_PATH];
+      FsFile fs_file2;
+      strcpy(path_buffer_file2, file2_path_.c_str());
+      if(R_FAILED(fsFsOpenFile(&__fs_FileSystemBuffer__, &path_buffer_file2[0], FsOpenMode_Read, &fs_file2))){
+        fsFileClose(&fs_file1);
+        fsFileClose(&fs_file2);
+        return false;
+      }
 
-      std::string entry_path = folder_path_;
-      entry_path += "/";
-      entry_path += entry;
+      // get size of file1
+      s64 size_file1 = 0;
+      if(R_FAILED(fsFileGetSize(&fs_file1, &size_file1))){
+        fsFileClose(&fs_file1);
+        fsFileClose(&fs_file2);
+        return false;
+      }
 
-      if(do_path_is_folder(entry_path)){
-        auto sub_files_list = get_list_files_in_subfolders(entry_path);
-        for(auto const& sub_entry : sub_files_list){
-          output_file_paths.emplace_back(entry + "/" + sub_entry);
+      // get size of file2
+      s64 size_file2 = 0;
+      if(R_FAILED(fsFileGetSize(&fs_file2, &size_file2))){
+        fsFileClose(&fs_file1);
+        fsFileClose(&fs_file2);
+        return false;
+      }
+
+      // comparing file sizes
+      if(size_file1 != size_file2)
+        return false;
+
+      if(__CRC_check_is_enabled__){
+
+        size_t copy_buffer_size = 0x10000;
+        u8 data_buffer_file1[copy_buffer_size];
+        u8 data_buffer_file2[copy_buffer_size];
+
+        u64 bytes_read_counter_file1 = 0;
+        u64 bytes_read_counter_file2 = 0;
+        u64 read_offset = 0;
+
+        unsigned long  last_crc1 = crc32(0L, Z_NULL, 0);
+        unsigned long  last_crc2 = crc32(0L, Z_NULL, 0);
+        do {
+
+          // buffering file1
+          if(R_FAILED(fsFileRead(&fs_file1, read_offset, &data_buffer_file1[0], copy_buffer_size, FsReadOption_None, &bytes_read_counter_file1))){
+            fsFileClose(&fs_file1);
+            fsFileClose(&fs_file2);
+            return false;
+          }
+
+          // buffering file2
+          if(R_FAILED(fsFileRead(&fs_file2, read_offset, &data_buffer_file2[0], copy_buffer_size, FsReadOption_None, &bytes_read_counter_file2))){
+            fsFileClose(&fs_file1);
+            fsFileClose(&fs_file2);
+            return false;
+          }
+
+          if(bytes_read_counter_file1 != bytes_read_counter_file2){
+            fsFileClose(&fs_file1);
+            fsFileClose(&fs_file2);
+            return false;
+          }
+
+          last_crc1 = crc32(last_crc1, data_buffer_file1, bytes_read_counter_file1);
+          last_crc2 = crc32(last_crc2, data_buffer_file2, bytes_read_counter_file2);
+          if(last_crc1 != last_crc2){
+            fsFileClose(&fs_file1);
+            fsFileClose(&fs_file2);
+            return false;
+          }
+
+          // preparing next loop
+          read_offset += bytes_read_counter_file1;
+
         }
-      } else if(do_path_is_file(entry_path)){
-        output_file_paths.emplace_back(entry);
+        while(s64(read_offset) < size_file1);
+      }
+      fsFileClose(&fs_file1);
+      fsFileClose(&fs_file2);
+
+    }
+
+    return true;
+
+  }
+
+  bool copy_file(std::string &source_file_path_, std::string &destination_file_path_){
+
+    if(not do_path_is_file(source_file_path_)){
+      return false;
+    }
+
+    if(do_path_is_file(destination_file_path_)){
+      delete_file(destination_file_path_);
+    }
+    else{
+      std::string destination_folder_path = get_folder_path_from_file_path(destination_file_path_);
+      if(not do_path_is_folder(destination_folder_path)){
+        mkdir_path(destination_folder_path);
       }
     }
 
-    return output_file_paths;
+    if(not __use_embedded_switch_fs__){
+
+      // faster but more ram is needed
+      std::ifstream source(source_file_path_, std::ios::binary);
+      std::ofstream dest(destination_file_path_, std::ios::binary);
+
+      source.seekg(0, std::ios::end);
+      std::ifstream::pos_type size = source.tellg();
+      source.seekg(0);
+
+      char* buffer = new char[size];
+
+      source.read(buffer, size);
+      dest.write(buffer, size);
+
+      delete[] buffer;
+      dest.close();
+      source.close();
+
+      // (alot) slower but less memory needed
+//    FILE *in, *out;
+//    int c;
+//    if ((in = fopen(source_file_path_.c_str(),"rb")) == NULL)
+//    {
+//      printf("Could not open source file: %s\n",source_file_path_.c_str());
+//      return 1;
+//    }
+//
+//    if ((out = fopen(destination_file_path_.c_str(),"wb")) == NULL)
+//    {
+//      printf("Could not open destination file: %s\n",destination_file_path_.c_str());
+//      return 1;
+//    }
+//
+//    while ((c = fgetc(in)) != EOF)
+//      fputc(c,out);
+//
+//    fclose(in);
+//    fclose(out);
+
+    }
+    else {
+
+      // opening source file
+      char path_buffer_source[FS_MAX_PATH];
+      FsFile fs_file_source;
+      strcpy(path_buffer_source, source_file_path_.c_str());
+      if(R_FAILED(fsFsOpenFile(&__fs_FileSystemBuffer__, &path_buffer_source[0], FsOpenMode_Read, &fs_file_source))){
+        fsFileClose(&fs_file_source);
+        return false;
+      }
+
+      // get size of source file
+      s64 source_size = 0;
+      if(R_FAILED(fsFileGetSize(&fs_file_source, &source_size))){
+        fsFileClose(&fs_file_source);
+        return false;
+      }
+
+      // create destination file
+      char path_buffer_destination[FS_MAX_PATH];
+      FsFile fs_file_destination;
+      strcpy(path_buffer_destination, destination_file_path_.c_str());
+      if(R_FAILED(fsFsCreateFile(&__fs_FileSystemBuffer__, &path_buffer_destination[0], source_size, 0))){
+        fsFileClose(&fs_file_source);
+        return false;
+      }
+
+      // open destination file
+      if(R_FAILED(fsFsOpenFile(&__fs_FileSystemBuffer__, &path_buffer_destination[0], FsOpenMode_Write, &fs_file_destination))){
+        fsFileClose(&fs_file_destination);
+        fsFileClose(&fs_file_source);
+        return false;
+      }
+
+      size_t copy_buffer_size = 0x10000;
+      u8 data_buffer[copy_buffer_size];
+
+      u64 bytes_read_counter = 0;
+      u64 read_offset = 0;
+
+      do {
+
+        // buffering source file
+        if(R_FAILED(fsFileRead(&fs_file_source, read_offset, &data_buffer[0], copy_buffer_size, FsReadOption_None, &bytes_read_counter))){
+          fsFileClose(&fs_file_destination);
+          fsFileClose(&fs_file_source);
+          return false;
+        }
+
+        // dumping data in destination file
+        if(R_FAILED(fsFileWrite(&fs_file_destination, read_offset, &data_buffer[0], bytes_read_counter, FsWriteOption_Flush))){
+          fsFileClose(&fs_file_destination);
+          fsFileClose(&fs_file_source);
+          return false;
+        }
+
+        // preparing next loop
+        read_offset += bytes_read_counter;
+
+      }
+      while(s64(read_offset) < source_size);
+
+      // cleaning up
+      fsFileClose(&fs_file_destination);
+      fsFileClose(&fs_file_source);
+
+    }
+
+    return true;
+
+  }
+  bool mv_file(std::string &source_file_path_, std::string &destination_file_path_){
+
+    if(not do_path_is_file(source_file_path_)){
+      return false;
+    }
+
+    if(do_path_is_file(destination_file_path_)){
+      delete_file(destination_file_path_);
+    }
+    else{
+      std::string destination_folder_path = get_folder_path_from_file_path(destination_file_path_);
+      if(not do_path_is_folder(destination_folder_path)){
+        mkdir_path(destination_folder_path);
+      }
+    }
+
+    if(not __use_embedded_switch_fs__){
+      std::rename(source_file_path_.c_str(), destination_file_path_.c_str());
+      if(not toolbox::do_path_is_file(destination_file_path_) or toolbox::do_path_is_file(source_file_path_)){
+        return false;
+      }
+    }
+    else{
+      char source_char[FS_MAX_PATH];
+      char dest_char[FS_MAX_PATH];
+      strcpy(source_char, source_file_path_.c_str());
+      strcpy(dest_char, destination_file_path_.c_str());
+      if(R_FAILED(fsFsRenameFile(&__fs_FileSystemBuffer__, &source_char[0], &dest_char[0]))){
+        return false;
+      }
+    }
+
+    return true;
+  }
+  bool delete_file(std::string file_path_){
+    if(not do_path_is_file(file_path_)) return true;
+    if(not __use_embedded_switch_fs__){
+      std::remove(file_path_.c_str());
+      return not do_path_is_file(file_path_);
+    }
+    else{
+      char fs_path_buffer[FS_MAX_PATH];
+      strcpy(fs_path_buffer, file_path_.c_str());
+      if(R_FAILED(fsFsDeleteFile(&__fs_FileSystemBuffer__, &fs_path_buffer[0]))){
+        return false;
+      }
+      return true;
+    }
+  }
+  bool mkdir_path(std::string new_folder_path_){
+
+    if(do_path_is_folder(new_folder_path_)) return true;
+
+      std::string current_level;
+      std::string level;
+      std::stringstream ss(new_folder_path_);
+
+      // split path using slash as a separator
+      while (std::getline(ss, level, '/'))
+      {
+        current_level += level; // append folder to the current level
+        if(current_level.empty()) current_level = "/";
+        // create current level
+        if(not do_path_is_folder(current_level)){
+          if(not __use_embedded_switch_fs__) {
+            ::mkdir(current_level.c_str(), 0777);
+          }
+          else{
+            strcpy(__fs_pathBuffer__, current_level.c_str());
+            fsFsCreateDirectory(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0]);
+          }
+        }
+        current_level += "/"; // don't forget to append a slash
+      }
+      return true;
+
+  }
+  bool delete_directory(std::string folder_path_){
+    if(not do_folder_is_empty(folder_path_)) return false;
+    if(not __use_embedded_switch_fs__){
+      rmdir(folder_path_.c_str());
+    }
+    else{
+      strcpy(__fs_pathBuffer__, folder_path_.c_str());
+      if(R_FAILED(fsFsDeleteDirectory(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0]))){
+        return false;
+      }
+    }
+    if(do_path_is_folder(folder_path_)) return false;
+    return true;
   }
 
   long int get_file_size(std::string &file_path_) {
-    if(not do_path_is_file(file_path_)) return 0;
+    if(not __use_embedded_switch_fs__){
+      if(not do_path_is_file(file_path_)) return 0;
+      std::ifstream testFile(file_path_.c_str(), std::ios::binary);
+      const auto begin = testFile.tellg();
+      testFile.seekg (0, std::ios::end);
+      const auto end = testFile.tellg();
+      const auto fsize = (end-begin);
+      return fsize;
+    }
+    else{
+      s64 file_size;
+      strcpy(__fs_pathBuffer__, file_path_.c_str());
+      if(R_FAILED(fsFsOpenFile(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0], FsOpenMode_Read, &__fs_FileBuffer__))){
+        return 0;
+      }
+      if(R_SUCCEEDED(fsFileGetSize(&__fs_FileBuffer__, &file_size))){
+        fsFileClose(&__fs_FileBuffer__);
+        return (long int)(file_size);
+      }
+      return 0;
+    }
 
-    std::ifstream testFile(file_path_.c_str(), std::ios::binary);
-    const auto begin = testFile.tellg();
-    testFile.seekg (0, std::ios::end);
-    const auto end = testFile.tellg();
-    const auto fsize = (end-begin);
-    return fsize;
   }
+  unsigned long get_hash_CRC32(std::string file_path_){
+
+    if(not toolbox::do_path_is_file(file_path_))
+      return 0;
+
+    if(not __use_embedded_switch_fs__){
+      std::string data = toolbox::dump_file_as_string(file_path_);
+      if(data.empty())
+        return 0;
+      unsigned long  crc = crc32(0L, Z_NULL, 0);
+      return crc32(crc, (const unsigned char*)data.c_str(), data.size());
+    }
+    else {
+
+      // opening source file
+      strcpy(__fs_pathBuffer__, file_path_.c_str());
+      if(R_FAILED(fsFsOpenFile(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0], FsOpenMode_Read, &__fs_FileBuffer__))){
+        fsFileClose(&__fs_FileBuffer__);
+        return false;
+      }
+
+      // get size of source file
+      s64 source_size = 0;
+      if(R_FAILED(fsFileGetSize(&__fs_FileBuffer__, &source_size))){
+        fsFileClose(&__fs_FileBuffer__);
+        return false;
+      }
+
+      size_t copy_buffer_size = 0x10000;
+      u8 data_buffer[copy_buffer_size];
+
+      u64 bytes_read_counter = 0;
+      u64 read_offset = 0;
+
+      unsigned long  last_crc = crc32(0L, Z_NULL, 0);
+      do {
+
+        // buffering source file
+        if(R_FAILED(fsFileRead(&__fs_FileBuffer__, read_offset, &data_buffer[0], copy_buffer_size, FsReadOption_None, &bytes_read_counter))){
+          fsFileClose(&__fs_FileBuffer__);
+          return false;
+        }
+
+        unsigned long  crc = crc32_combine(last_crc, u64(data_buffer), bytes_read_counter);
+        last_crc = crc;
+
+        // preparing next loop
+        read_offset += bytes_read_counter;
+
+      }
+      while(s64(read_offset) < source_size);
+      fsFileClose(&__fs_FileBuffer__);
+      return last_crc;
+
+    }
+
+  }
+
+  std::string dump_file_as_string(std::string file_path_){
+    std::string data;
+    if(do_path_is_file(file_path_)){
+      if(not __use_embedded_switch_fs__){
+        std::ifstream input_file( file_path_.c_str(), std::ios::binary | std::ios::in );
+        std::ostringstream ss;
+        ss << input_file.rdbuf();
+        data = ss.str();
+        input_file.close();
+      }
+      else {
+        strcpy(__fs_pathBuffer__, file_path_.c_str());
+        if(R_FAILED(fsFsOpenFile(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0], FsOpenMode_Read, &__fs_FileBuffer__))){
+          fsFileClose(&__fs_FileBuffer__);
+          return "";
+        }
+        s64 file_size = 0;
+        if(R_FAILED(fsFileGetSize(&__fs_FileBuffer__, &file_size))){
+          fsFileClose(&__fs_FileBuffer__);
+          return "";
+        }
+        char *buf = (char *)malloc(file_size + 1);
+        u64 file_size_u = (u64) file_size;
+        u64 bytes_read;
+        if(R_FAILED(fsFileRead(&__fs_FileBuffer__, 0, buf, file_size_u, FsReadOption_None, &bytes_read))){
+          fsFileClose(&__fs_FileBuffer__);
+          return
+            "";
+        }
+        data = std::string(buf);
+        fsFileClose(&__fs_FileBuffer__);
+      }
+    }
+    return data;
+  }
+  std::vector<std::string> dump_file_as_vector_string(std::string file_path_){
+    std::vector<std::string> lines;
+    if(do_path_is_file(file_path_)){
+    }
+    return lines;
+  }
+
+  std::vector<std::string> get_list_of_entries_in_folder(std::string folder_path_) {
+
+    std::vector<std::string> entries_list;
+    if(not __use_embedded_switch_fs__){
+      if(not do_path_is_folder(folder_path_)) return entries_list;
+      DIR* directory;
+      directory = opendir(folder_path_.c_str()); //Open current-working-directory.
+      if( directory == nullptr ) {
+        std::cout << "Failed to open directory : " << folder_path_ << std::endl;
+        return entries_list;
+      }
+      else {
+        struct dirent* entry;
+        while ( (entry = readdir(directory)) ) {
+          entries_list.emplace_back(entry->d_name);
+        }
+        closedir(directory);
+        return entries_list;
+      }
+    }
+    else{
+      strcpy(__fs_pathBuffer__, folder_path_.c_str());
+      if(R_FAILED(fsFsOpenDirectory(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0], FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &__fs_DirBuffer__))){
+        fsDirClose(&__fs_DirBuffer__);
+        return entries_list;
+      }
+      s64 entry_count;
+      if(R_FAILED(fsDirGetEntryCount(&__fs_DirBuffer__, &entry_count))){
+        fsDirClose(&__fs_DirBuffer__);
+        return entries_list;
+      }
+      size_t entry_count_size_t(entry_count);
+      s64 total_entries;
+      std::vector<FsDirectoryEntry> fs_directory_entries(entry_count_size_t);
+      if(R_FAILED(fsDirRead(&__fs_DirBuffer__, &total_entries, entry_count_size_t, &fs_directory_entries[0]))){
+        fsDirClose(&__fs_DirBuffer__);
+        return entries_list;
+      }
+      for(u32 i_entry = 0 ; i_entry < entry_count_size_t ; i_entry++){
+        std::string entry_name = fs_directory_entries[i_entry].name;
+        if(entry_name == "." or entry_name == ".."){
+          continue;
+        }
+        entries_list.emplace_back(fs_directory_entries[i_entry].name);
+      }
+      fsDirClose(&__fs_DirBuffer__);
+      return entries_list;
+    }
+
+  }
+  std::vector<std::string> get_list_of_subfolders_in_folder(std::string folder_path_) {
+    std::vector<std::string> subfolders_list;
+    if(not __use_embedded_switch_fs__){
+      if(not do_path_is_folder(folder_path_)) return subfolders_list;
+      DIR* directory;
+      directory = opendir(folder_path_.c_str()); //Open current-working-directory.
+      if( directory == nullptr ) {
+        std::cout << "Failed to open directory : " << folder_path_ << std::endl;
+        return subfolders_list;
+      } else {
+        struct dirent* entry;
+        while ( (entry = readdir(directory)) ) {
+          std::string folder_candidate = folder_path_ + "/" + std::string(entry->d_name);
+          if(do_path_is_folder(folder_candidate)){
+            subfolders_list.emplace_back(entry->d_name);
+          }
+        }
+        closedir(directory);
+        return subfolders_list;
+      }
+    }
+    else{
+      strcpy(__fs_pathBuffer__, folder_path_.c_str());
+      if(R_FAILED(fsFsOpenDirectory(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0], FsDirOpenMode_ReadDirs, &__fs_DirBuffer__))){
+        fsDirClose(&__fs_DirBuffer__);
+        return subfolders_list;
+      }
+      s64 entry_count;
+      if(R_FAILED(fsDirGetEntryCount(&__fs_DirBuffer__, &entry_count))){
+        fsDirClose(&__fs_DirBuffer__);
+        return subfolders_list;
+      }
+      size_t entry_count_size_t(entry_count);
+      s64 total_entries;
+      std::vector<FsDirectoryEntry> fs_directory_entries(entry_count_size_t);
+      if(R_FAILED(fsDirRead(&__fs_DirBuffer__, &total_entries, entry_count_size_t, &fs_directory_entries[0]))){
+        fsDirClose(&__fs_DirBuffer__);
+        return subfolders_list;
+      }
+      for(u32 i_entry = 0 ; i_entry < entry_count_size_t ; i_entry++){
+        if(fs_directory_entries[i_entry].type != FsDirEntryType_Dir) // should not be necessary
+          continue;
+        std::string entry_name = fs_directory_entries[i_entry].name;
+        if(entry_name == "." or entry_name == ".."){
+          continue;
+        }
+        subfolders_list.emplace_back(fs_directory_entries[i_entry].name);
+      }
+      fsDirClose(&__fs_DirBuffer__);
+      return subfolders_list;
+    }
+
+  }
+  std::vector<std::string> get_list_of_files_in_folder(std::string folder_path_){
+    std::vector<std::string> files_list;
+    if(not __use_embedded_switch_fs__){
+      if(not do_path_is_folder(folder_path_)) return files_list;
+      DIR* directory;
+      directory = opendir(folder_path_.c_str()); //Open current-working-directory.
+      if( directory == nullptr ) {
+        std::cout << "Failed to open directory : " << folder_path_ << std::endl;
+        return files_list;
+      } else {
+        struct dirent* entry;
+        while ( (entry = readdir(directory)) ) {
+          std::string file_candidate = folder_path_ + "/" + std::string(entry->d_name);
+          if(do_path_is_file(file_candidate)){
+            files_list.emplace_back(entry->d_name);
+          }
+        }
+        closedir(directory);
+        return files_list;
+      }
+    }
+    else{
+      strcpy(__fs_pathBuffer__, folder_path_.c_str());
+      if(R_FAILED(fsFsOpenDirectory(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0], FsDirOpenMode_ReadFiles, &__fs_DirBuffer__))){
+        fsDirClose(&__fs_DirBuffer__);
+        return files_list;
+      }
+      s64 entry_count;
+      if(R_FAILED(fsDirGetEntryCount(&__fs_DirBuffer__, &entry_count))){
+        fsDirClose(&__fs_DirBuffer__);
+        return files_list;
+      }
+      size_t entry_count_size_t(entry_count);
+      s64 total_entries;
+      std::vector<FsDirectoryEntry> fs_directory_entries(entry_count_size_t);
+      if(R_FAILED(fsDirRead(&__fs_DirBuffer__, &total_entries, entry_count_size_t, &fs_directory_entries[0]))){
+        fsDirClose(&__fs_DirBuffer__);
+        return files_list;
+      }
+      for(u32 i_entry = 0 ; i_entry < entry_count_size_t ; i_entry++){
+        if(fs_directory_entries[i_entry].type != FsDirEntryType_File)
+          continue;
+        std::string entry_name = fs_directory_entries[i_entry].name;
+        if(entry_name == "." or entry_name == ".."){
+          continue;
+        }
+        files_list.emplace_back(fs_directory_entries[i_entry].name);
+      }
+      fsDirClose(&__fs_DirBuffer__);
+      return files_list;
+    }
+  }
+
+
+  //! direct filesystem (not native switch fs) functions :
   size_t get_hash_file(std::string file_path_){
 
     std::string data;
@@ -586,18 +1058,44 @@ namespace toolbox{
     }
     return checksum;
   }
-  unsigned long get_hash_CRC32(std::string file_path_){
-    if(not do_path_is_file(file_path_)) return 0;
 
-    std::ifstream input_file( file_path_.c_str(), std::ios::binary | std::ios::in );
-    std::ostringstream ss;
-    ss << input_file.rdbuf();
-    std::string data = ss.str();
 
-    input_file.close();
+  //! indirect filesystem (through dependencies) functions :
+  bool do_folder_is_empty(std::string folder_path_){
+    if(not do_path_is_folder(folder_path_)) return false;
+    return get_list_of_entries_in_folder(folder_path_).empty();
+  }
 
-    unsigned long  crc = crc32(0L, Z_NULL, 0);
-    return crc32(crc, (const unsigned char*)data.c_str(), data.size());
+  std::vector<std::string> get_list_files_in_subfolders(std::string &folder_path_) {
+
+    // WARNING : Recursive function
+    std::vector<std::string> output_file_paths = get_list_of_files_in_folder(folder_path_);
+
+    auto subfolder_names_list = get_list_of_subfolders_in_folder(folder_path_);
+    for(auto &subfolder_name : subfolder_names_list){
+      std::string subfolder_full_path = folder_path_;
+      subfolder_full_path += "/";
+      subfolder_full_path += subfolder_name;
+      auto subfile_names_list = get_list_files_in_subfolders(subfolder_full_path);
+      for(auto &subfile_name : subfile_names_list){
+        std::string relative_subfile_path;
+        relative_subfile_path += subfolder_name;
+        relative_subfile_path += "/";
+        relative_subfile_path += subfile_name;
+        output_file_paths.emplace_back(toolbox::remove_extra_doubled_characters(relative_subfile_path, "/"));
+      }
+    }
+
+    return output_file_paths;
+
+  }
+
+
+  //! External function
+  std::string get_app_version(){
+    std::stringstream ss;
+    ss << get_version_major() << "." << get_version_minor() << "." << get_version_micro();
+    return ss.str();
   }
 
 }
