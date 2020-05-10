@@ -65,34 +65,25 @@ void mod_manager::load_mods_status_cache_file() {
       _mods_status_cache_fraction_[line_elements[0]] = std::stod(line_elements[2]);
     }
 
-//    std::ifstream cache_file;
-//    cache_file.open (cache_file_path.c_str());
-//    std::string line;
-//    while( std::getline(cache_file, line) ){
-//      auto line_elements = toolbox::split_string(line, "=");
-//      if(line_elements.size() < 2) continue;
-//      _mods_status_cache_[line_elements[0]] = line_elements[1];
-//      if(line_elements.size() < 3) continue;
-//      _mods_status_cache_fraction_[line_elements[0]] = std::stod(line_elements[2]);
-//    }
-//    cache_file.close();
-
   }
 
 }
 void mod_manager::save_mods_status_cache_file() {
 
   std::string cache_file_path = _current_mods_folder_path_ + "/mods_status_cache";
-  std::ofstream cache_file;
-  cache_file.open (cache_file_path.c_str());
+  std::string data_string;
 
   for(auto const &mod_status : _mods_status_cache_){
     if(not mod_status.second.empty()){
-      cache_file << mod_status.first << "=" << mod_status.second << "=" << _mods_status_cache_fraction_[mod_status.first] << std::endl;
+      data_string += mod_status.first;
+      data_string += "=" ;
+      data_string += mod_status.second ;
+      data_string += "=" ;
+      data_string += std::to_string(_mods_status_cache_fraction_[mod_status.first]) ;
+      data_string += "\n";
     }
   }
-
-  cache_file.close();
+  toolbox::dump_string_in_file(data_string, cache_file_path);
 
 }
 void mod_manager::reset_mod_cache_status(std::string mod_name_){
@@ -270,12 +261,6 @@ void mod_manager::remove_mod(std::string mod_name_){
   std::string absolute_mod_folder_path = _current_mods_folder_path_ + "/" + mod_name_;
 
   std::vector<std::string> relative_file_path_list;
-//  if(_relative_file_path_list_cache_[mod_name_].empty()){
-//    relative_file_path_list = toolbox::get_list_files_in_subfolders(absolute_mod_folder_path);
-//    _relative_file_path_list_cache_[mod_name_] = relative_file_path_list;
-//  } else{
-//    relative_file_path_list = _relative_file_path_list_cache_[mod_name_];
-//  }
 
   relative_file_path_list = toolbox::get_list_files_in_subfolders(absolute_mod_folder_path);
 
@@ -331,12 +316,7 @@ void mod_manager::display_mod_files_status(std::string mod_folder_path_){
   std::vector<std::string> file_path_list;
   toolbox::print_left("Listing Files...", toolbox::red_bg);
   consoleUpdate(nullptr);
-//  if(_relative_file_path_list_cache_[mod_folder_path_].empty()){
-//    file_path_list = toolbox::get_list_files_in_subfolders(mod_folder_path_);
-//    _relative_file_path_list_cache_[mod_folder_path_] = file_path_list;
-//  } else{
-//    file_path_list = _relative_file_path_list_cache_[mod_folder_path_];
-//  }
+
   file_path_list = toolbox::get_list_files_in_subfolders(mod_folder_path_);
   selector sel;
   sel.set_selection_list(file_path_list);

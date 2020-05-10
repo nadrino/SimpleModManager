@@ -89,9 +89,7 @@ void parameters_handler::recreate_parameters_file() {
 
   toolbox::mkdir_path(toolbox::get_folder_path_from_file_path(_parameters_file_path_));
 
-  std::ofstream parameter_file;
-  parameter_file.open (_parameters_file_path_.c_str());
-
+  std::stringstream parameter_file;
   parameter_file << "# This is a config file" << std::endl;
   parameter_file << std::endl;
   parameter_file << "# folder where mods are stored" << std::endl;
@@ -113,21 +111,19 @@ void parameters_handler::recreate_parameters_file() {
   parameter_file << "last-program-version = " << toolbox::get_app_version() << std::endl;
   parameter_file << std::endl;
 
-  parameter_file.close();
-
+  std::string data = parameter_file.str();
+  toolbox::dump_string_in_file(data, _parameters_file_path_);
 
 }
 void parameters_handler::read_parameters() {
 
-  std::ifstream parameter_file;
-  parameter_file.open (_parameters_file_path_.c_str());
+  auto lines = toolbox::dump_file_as_vector_string(_parameters_file_path_);
 
   // specifying first preset to keep compatibility with older versions
   // where presets were not implemented yet (1.2.0)
   std::string current_preset = "default";
 
-  std::string line;
-  while( std::getline(parameter_file, line) ){
+  for(auto &line : lines){
 
     if(line[0] == '#') continue;
 
@@ -152,8 +148,6 @@ void parameters_handler::read_parameters() {
     }
 
   }
-
-  parameter_file.close();
 
 }
 

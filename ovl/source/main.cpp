@@ -40,7 +40,7 @@ public:
     _current_sub_folder_ = current_sub_folder_;
   }
 
-  virtual tsl::elm::Element* createUI() override {
+  tsl::elm::Element* createUI() override {
 
     auto* rootFrame = new tsl::elm::OverlayFrame("SimpleModManager", toolbox::get_app_version());
 
@@ -53,8 +53,6 @@ public:
 
     // A list that can contain sub elements and handles scrolling
     auto* list = new tsl::elm::List();
-
-    list->addItem(new tsl::elm::ListItem("debug"));
 
     // List Items
     list->addItem(new tsl::elm::CategoryHeader(_current_sub_folder_));
@@ -72,8 +70,17 @@ public:
             __mod_browser__.get_selector().get_entry(selected_mod_name),
             __mod_browser__.get_mod_manager().get_mod_status(selected_mod_name)
           );
-//          this->recreateUI();
+          __mod_browser__.go_back();
+          tsl::goBack();
           return true;
+        } else if(keys & KEY_X){
+          __mod_browser__.get_mod_manager().remove_mod(__mod_browser__.get_selector().get_selected_string());
+          __mod_browser__.get_selector().set_tag(
+            __mod_browser__.get_selector().get_selected_entry(),
+            __mod_browser__.get_mod_manager().get_mod_status(__mod_browser__.get_selector().get_selected_string())
+          );
+//          __mod_browser__.go_back();
+//          tsl::goBack();
         }
         return false;
       });
@@ -192,6 +199,7 @@ public:
 
 class SimpleModManagerOverlay : public tsl::Overlay {
 public:
+
   // libtesla already initialized fs, hid, pl, pmdmnt, hid:sys and set:sys
   virtual void initServices() override {
     auto rc = fsInitialize();
@@ -201,9 +209,15 @@ public:
     __mod_browser__.set_only_show_folders(true);
     __mod_browser__.set_max_relative_depth(1);
     __mod_browser__.initialize();
+
+    tsl::hlp::ScopeGuard dirGuard([&] {
+      toolbox::set_use_embedded_switch_fs(true);
+
+    });
+
   }  // Called at the start to initialize all services necessary for this Overlay
   virtual void exitServices() override {
-    toolbox::set_use_embedded_switch_fs(false);
+//    toolbox::set_use_embedded_switch_fs(false);
   }  // Callet at the end to clean up all services previously initialized
 
   virtual void onShow() override {}    // Called before overlay wants to change from invisible to visible state

@@ -31,7 +31,7 @@ namespace toolbox{
   static bool __CRC_check_is_enabled__ = true;
 
   static bool __use_embedded_switch_fs__ = false;
-  static void *addr;
+//  static void *addr;
   static FsFileSystem __FileSystemBuffer__;
 
   static std::string __buffer_string__;
@@ -163,19 +163,22 @@ namespace toolbox{
   }
   std::string get_file_size_string(std::string& file_path_){
     auto size = get_file_size(file_path_); // in bytes
-    if(size / 1000 == 0 ){ // print in bytes
-      return std::to_string(size) + " B";
+    return parse_size_unit(size);
+  }
+  std::string parse_size_unit(unsigned int size_){
+    if(size_ / 1000 == 0 ){ // print in bytes
+      return std::to_string(size_) + " B";
     }
-    size = size/1000; // in KB
-    if(size / 1000 == 0){ // print in KB
-      return std::to_string(size) + " KB";
+    size_ = size_ / 1000; // in KB
+    if(size_ / 1000 == 0){ // print in KB
+      return std::to_string(size_) + " KB";
     }
-    size = size/1000; // in MB
-    if(size / 1000 == 0){ // print in MB
-      return std::to_string(size) + " MB";
+    size_ = size_ / 1000; // in MB
+    if(size_ / 1000 == 0){ // print in MB
+      return std::to_string(size_) + " MB";
     }
-    size = size/1000; // in GB
-    return std::to_string(size) + " GB";
+    size_ = size_ / 1000; // in GB
+    return std::to_string(size_) + " GB";
   }
   std::string get_user_string(std::string default_str_) {
 
@@ -373,10 +376,45 @@ namespace toolbox{
     return consoleGetDefault()->consoleHeight;
   }
 
-  unsigned long get_used_RAM(){
-    return 0;
+  unsigned long get_RAM_info(std::string component_name_) {
+    u64 used_ram = 0;
+    if(component_name_ == "Total_application"){
+      svcGetSystemInfo(&used_ram, 0, INVALID_HANDLE, 0);
+    }
+    else if(component_name_ == "Total_applet"){
+      svcGetSystemInfo(&used_ram, 0, INVALID_HANDLE, 1);
+    }
+    else if(component_name_ == "Total_system"){
+      svcGetSystemInfo(&used_ram, 0, INVALID_HANDLE, 2);
+    }
+    else if(component_name_ == "Total_systemunsafe"){
+      svcGetSystemInfo(&used_ram, 0, INVALID_HANDLE, 3);
+    }
+    else if(component_name_ == "Used_application"){
+      svcGetSystemInfo(&used_ram, 1, INVALID_HANDLE, 0);
+    }
+    else if(component_name_ == "Used_applet"){
+      svcGetSystemInfo(&used_ram, 1, INVALID_HANDLE, 1);
+    }
+    else if(component_name_ == "Used_system"){
+      svcGetSystemInfo(&used_ram, 1, INVALID_HANDLE, 2);
+    }
+    else if(component_name_ == "Used_systemunsafe"){
+      svcGetSystemInfo(&used_ram, 1, INVALID_HANDLE, 3);
+    }
+    return used_ram;
   }
-
+  std::string get_RAM_info_string(std::string component_name_){
+    std::string out;
+    unsigned long total = get_RAM_info("Total_" + component_name_);
+    unsigned long used = get_RAM_info("Used_" + component_name_);
+    out += component_name_;
+    out += ": ";
+    out += toolbox::parse_size_unit(used);
+    out += "/";
+    out += toolbox::parse_size_unit(total);
+    return out;
+  }
 
   //! direct filesystem functions :
   void set_use_embedded_switch_fs(bool use_embedded_switch_fs_) { // for test purposes
@@ -390,7 +428,7 @@ namespace toolbox{
 //      __FileSystemBuffer__ = *fsdevGetDeviceFileSystem("sdmc");
       __use_embedded_switch_fs__ = true;
     }
-      // disable
+    // disable
     else {
       fsFsClose(&__FileSystemBuffer__);
 //      romfsExit();
@@ -399,6 +437,44 @@ namespace toolbox{
 //      svcSetHeapSize(&addr, ((u8 *)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8 *)addr);
       __use_embedded_switch_fs__ = use_embedded_switch_fs_;
     }
+  }
+  void dump_string_in_file(std::string &str_, std::string& path_){
+
+    if(toolbox::do_path_is_file(path_)){
+      toolbox::delete_file(path_);
+    }
+
+    if(not __use_embedded_switch_fs__){
+      std::ofstream out_file_stream;
+      out_file_stream.open(path_.c_str());
+      out_file_stream << str_ << std::endl;
+      out_file_stream.close();
+    }
+    else{
+      char path_buffer[FS_MAX_PATH];
+      snprintf(path_buffer, FS_MAX_PATH, "%s", path_.c_str());
+
+      // If we are talking specifically about std::string, then length() does return the number of bytes.
+      // This is because a std::string is a basic_string of chars, and the C++ Standard defines the size of one char to be exactly one byte.
+      // https://stackoverflow.com/questions/7743356/length-of-a-c-stdstring-in-bytes
+      size_t length = str_.length();
+      u64 size = 0;
+
+      appletLockExit(); // prevent app to exit while writting
+
+      if(R_SUCCEEDED(fsFsCreateFile(&__FileSystemBuffer__, path_buffer, size+length, 0))){
+        FsFile fs_file;
+        if(R_SUCCEEDED(fsFsOpenFile(&__FileSystemBuffer__, path_buffer, FsOpenMode_Write, &fs_file))){
+          if(R_SUCCEEDED(fsFileWrite(&fs_file, 0, str_.c_str(), size+length, FsWriteOption_Flush))){
+            fsFileFlush(&fs_file);
+          }
+        }
+        fsFileClose(&fs_file);
+      }
+      appletUnlockExit();
+
+    }
+
   }
 
   bool do_path_is_valid(std::string &path_){
@@ -877,15 +953,11 @@ namespace toolbox{
       char *buf = (char *)malloc(file_size + 1);
       u64 file_size_u = (u64) file_size;
       u64 bytes_read;
-      if(R_FAILED(fsFileRead(&fs_FileBuffer, 0, buf, file_size_u, FsReadOption_None, &bytes_read))){
-        fsFileClose(&fs_FileBuffer);
-        fsFsCommit(&__FileSystemBuffer__);
-        return
-          "";
+      if(R_SUCCEEDED(fsFileRead(&fs_FileBuffer, 0, buf, file_size_u, FsReadOption_None, &bytes_read))){
+        data = std::string(buf);
       }
-      data = std::string(buf);
       fsFileClose(&fs_FileBuffer);
-      fsFsCommit(&__FileSystemBuffer__);
+      free(buf);
     }
     return data;
   }

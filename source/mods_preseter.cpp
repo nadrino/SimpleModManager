@@ -57,71 +57,59 @@ void mods_preseter::read_parameter_file(std::string mod_folder_) {
   _preset_file_path_ = mod_folder_ + "/mod_presets.conf";
 
   // check if file exist
-  if(toolbox::do_path_is_file(_preset_file_path_)){
+  auto lines = toolbox::dump_file_as_vector_string(_preset_file_path_);
+  std::string current_preset = "";
+  for(auto &line : lines){
+    if(line[0] == '#') continue;
 
-    std::ifstream parameter_file;
-    parameter_file.open (_preset_file_path_.c_str());
+    auto line_elements = toolbox::split_string(line, "=");
+    if(line_elements.size() != 2) continue;
 
-    std::string current_preset = "";
-    std::string line;
-    while( std::getline(parameter_file, line) ){
-
-      if(line[0] == '#') continue;
-
-      auto line_elements = toolbox::split_string(line, "=");
-      if(line_elements.size() != 2) continue;
-
-      // clean up for extra spaces characters
-      for(auto &element : line_elements){
-        while(element[0] == ' '){
-          element.erase(element.begin());
-        }
-        while(element[element.size()-1] == ' '){
-          element.erase(element.end()-1);
-        }
+    // clean up for extra spaces characters
+    for(auto &element : line_elements){
+      while(element[0] == ' '){
+        element.erase(element.begin());
       }
-
-      if(line_elements[0] == "preset"){
-        current_preset = line_elements[1];
-        if(_selected_mod_preset_index_ == -1) _selected_mod_preset_index_ = 0;
-        if (not toolbox::do_string_in_vector(current_preset, _presets_list_)){
-          _presets_list_.emplace_back(current_preset);
-        }
-      } else {
-        _data_handler_[current_preset].emplace_back(line_elements[1]);
+      while(element[element.size()-1] == ' '){
+        element.erase(element.end()-1);
       }
     }
-    parameter_file.close();
 
+    if(line_elements[0] == "preset"){
+      current_preset = line_elements[1];
+      if(_selected_mod_preset_index_ == -1) _selected_mod_preset_index_ = 0;
+      if (not toolbox::do_string_in_vector(current_preset, _presets_list_)){
+        _presets_list_.emplace_back(current_preset);
+      }
+    } else {
+      _data_handler_[current_preset].emplace_back(line_elements[1]);
+    }
   }
 
 }
 void mods_preseter::recreate_preset_file() {
 
-  if(_presets_list_.empty()){
-    toolbox::delete_file(_preset_file_path_);
-    return;
-  }
+  std::stringstream ss;
 
-  std::ofstream parameter_file;
-  parameter_file.open (_preset_file_path_.c_str());
-
-  parameter_file << "# This is a config file" << std::endl;
-  parameter_file << std::endl;
-  parameter_file << std::endl;
+  ss << "# This is a config file" << std::endl;
+  ss << std::endl;
+  ss << std::endl;
 
   for(auto const &preset : _presets_list_){
-    parameter_file << "########################################" << std::endl;
-    parameter_file << "# mods preset name" << std::endl;
-    parameter_file << "preset = " << preset << std::endl;
-    parameter_file << std::endl;
-    parameter_file << "# mods list" << std::endl;
+    ss << "########################################" << std::endl;
+    ss << "# mods preset name" << std::endl;
+    ss << "preset = " << preset << std::endl;
+    ss << std::endl;
+    ss << "# mods list" << std::endl;
     for(int i_entry = 0 ; i_entry < int(_data_handler_[preset].size()) ; i_entry++){
-      parameter_file << "mod" << i_entry << " = " << _data_handler_[preset][i_entry] << std::endl;
+      ss << "mod" << i_entry << " = " << _data_handler_[preset][i_entry] << std::endl;
     }
-    parameter_file << "########################################" << std::endl;
-    parameter_file << std::endl;
+    ss << "########################################" << std::endl;
+    ss << std::endl;
   }
+
+  std::string data = ss.str();
+  toolbox::dump_string_in_file(data, _preset_file_path_);
 
 }
 void mods_preseter::select_mod_preset() {
