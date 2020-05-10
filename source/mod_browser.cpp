@@ -198,11 +198,11 @@ void mod_browser::print_menu(){
   }
   if(get_current_relative_depth() > 0) toolbox::print_left(" B : Go back");
   else toolbox::print_left(" B : Quit");
-  toolbox::print_left_right(
-    toolbox::get_RAM_info_string("applet"),
-    toolbox::get_RAM_info_string("system"),
-    toolbox::green_bg
-    );
+//  toolbox::print_left_right(
+//    toolbox::get_RAM_info_string("applet"),
+//    toolbox::get_RAM_info_string("system"),
+//    toolbox::green_bg
+//    );
   consoleUpdate(nullptr);
 
 }
