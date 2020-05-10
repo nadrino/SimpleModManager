@@ -54,7 +54,7 @@ public:
     // A list that can contain sub elements and handles scrolling
     auto* list = new tsl::elm::List();
 
-    list->addItem(new tsl::elm::ListItem(__mod_browser__.get_mod_manager().get_current_mods_folder_path()));
+    list->addItem(new tsl::elm::ListItem("debug"));
 
     // List Items
     list->addItem(new tsl::elm::CategoryHeader(_current_sub_folder_));
@@ -80,6 +80,7 @@ public:
       list->addItem(clickableListItem);
 
       double mod_fraction = __mod_browser__.get_mod_manager().get_mod_status_fraction(mods_list[i_folder]);
+      list->addItem(new tsl::elm::ListItem("mod_fraction:" + std::to_string(mod_fraction)));
       if(mod_fraction == -1){
         mod_fraction = 0;
         list->addItem(new tsl::elm::CustomDrawer([mod_fraction](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
@@ -95,9 +96,6 @@ public:
     }
 
     list->addItem(new tsl::elm::CategoryHeader("Mods Preset"));
-
-    (__mod_browser__.get_mods_preseter().get_presets_list());
-    list->addItem(new tsl::elm::NamedStepTrackBar("\uE132", {"Selection 1", "Selection 2", "Selection 3" }));
 
     // Add the list to the frame for it to be drawn
     rootFrame->setContent(list);
@@ -219,5 +217,6 @@ public:
 
 
 int main(int argc, char **argv) {
-  return tsl::loop<SimpleModManagerOverlay>(argc, argv);
+  tsl::loop<SimpleModManagerOverlay>(argc, argv);
+  return EXIT_SUCCESS;
 }

@@ -380,21 +380,21 @@ namespace toolbox{
   void set_use_embedded_switch_fs(bool use_embedded_switch_fs_) { // for test purposes
     // enable
     if(use_embedded_switch_fs_){
-      svcSetHeapSize(&addr, 0x10000000);
-      psmInitialize();
-      romfsInit();
+//      svcSetHeapSize(&addr, 0x10000000);
+//      psmInitialize();
+//      romfsInit();
 
-//      fsOpenSdCardFileSystem(&__FileSystemBuffer__);
-      __FileSystemBuffer__ = *fsdevGetDeviceFileSystem("sdmc");
+      fsOpenSdCardFileSystem(&__FileSystemBuffer__);
+//      __FileSystemBuffer__ = *fsdevGetDeviceFileSystem("sdmc");
       __use_embedded_switch_fs__ = true;
     }
       // disable
     else {
       fsFsClose(&__FileSystemBuffer__);
-      romfsExit();
-      psmExit();
+//      romfsExit();
+//      psmExit();
 
-      svcSetHeapSize(&addr, ((u8 *)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8 *)addr);
+//      svcSetHeapSize(&addr, ((u8 *)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8 *)addr);
       __use_embedded_switch_fs__ = use_embedded_switch_fs_;
     }
   }
