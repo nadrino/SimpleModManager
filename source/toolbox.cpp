@@ -28,14 +28,13 @@ namespace toolbox{
 
   static std::time_t __last_timestamp__;
   static double __last_displayed_value__ = -1;
-  static std::string __last_loading_title__ = "";
-  static std::string __last_loading_prefix__ = "";
-  static std::string __last_loading_color__ = "";
   static bool __CRC_check_is_enabled__ = true;
 
   static bool __use_embedded_switch_fs__ = false;
   static void *addr;
   static FsFileSystem __FileSystemBuffer__;
+
+  static std::string __buffer_string__;
 
 
   //! printout functions :
@@ -123,6 +122,9 @@ namespace toolbox{
       clock_buffer = std::chrono::high_resolution_clock::now();
     }
 
+  }
+  void set_buffer_string(std::string str_){
+    __buffer_string__ = str_;
   }
 
   std::string debug_string(std::string str_){
@@ -900,6 +902,8 @@ namespace toolbox{
   std::vector<std::string> dump_file_as_vector_string(std::string file_path_){
     std::vector<std::string> lines;
     if(do_path_is_file(file_path_)){
+      std::string data = toolbox::dump_file_as_string(file_path_);
+      lines = toolbox::split_string(data, "\n");
     }
     return lines;
   }

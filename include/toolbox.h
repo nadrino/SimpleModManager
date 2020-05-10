@@ -28,6 +28,7 @@ namespace toolbox{
   void print_left(std::string input_, std::string color_ = "", bool flush_ = false);
   void print_left_right(std::string input_left_, std::string input_right_, std::string color_ = "");
   void make_pause();
+  void set_buffer_string(std::string str_);
 
   std::string debug_string(std::string str_);
   std::string get_file_size_string(std::string& file_path_);

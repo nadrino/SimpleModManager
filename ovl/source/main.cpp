@@ -67,11 +67,11 @@ public:
       clickableListItem->setClickListener([selected_mod_name, this](u64 keys) {
         if (keys & KEY_A) {
           // apply mod...
-//          __mod_browser__.get_mod_manager().apply_mod(selected_mod_name, true);
-//          __mod_browser__.get_selector().set_tag(
-//            __mod_browser__.get_selector().get_entry(selected_mod_name),
-//            __mod_browser__.get_mod_manager().get_mod_status(selected_mod_name)
-//          );
+          __mod_browser__.get_mod_manager().apply_mod(selected_mod_name, true);
+          __mod_browser__.get_selector().set_tag(
+            __mod_browser__.get_selector().get_entry(selected_mod_name),
+            __mod_browser__.get_mod_manager().get_mod_status(selected_mod_name)
+          );
 //          this->recreateUI();
           return true;
         }
@@ -80,16 +80,15 @@ public:
       list->addItem(clickableListItem);
 
       double mod_fraction = __mod_browser__.get_mod_manager().get_mod_status_fraction(mods_list[i_folder]);
-      list->addItem(new tsl::elm::ListItem("mod_fraction:" + std::to_string(mod_fraction)));
       if(mod_fraction == -1){
         mod_fraction = 0;
         list->addItem(new tsl::elm::CustomDrawer([mod_fraction](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
-          renderer->drawRect(x, y+4, 400, 10, renderer->a(tsl::gfx::Color(100, 100,100,255)));
+          renderer->drawRect(x, y+4, 400, 10, renderer->a(tsl::Color(100, 100,100,255)));
         }), 17);
       } else {
         list->addItem(new tsl::elm::CustomDrawer([mod_fraction](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
-          renderer->drawRect(x, y+4, 400*mod_fraction, 10, renderer->a(tsl::gfx::Color(100, 200,100,255)));
-          renderer->drawRect(x+400*mod_fraction, y+4, 400*(1-mod_fraction), 10, renderer->a(tsl::gfx::Color(100, 100,100,255)));
+          renderer->drawRect(x, y+4, 400*mod_fraction, 10, renderer->a(tsl::Color(100, 200,100,255)));
+          renderer->drawRect(x+400*mod_fraction, y+4, 400*(1-mod_fraction), 10, renderer->a(tsl::Color(100, 100,100,255)));
         }), 17);
       }
 

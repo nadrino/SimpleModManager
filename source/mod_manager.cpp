@@ -56,17 +56,26 @@ void mod_manager::load_mods_status_cache_file() {
   std::string cache_file_path = _current_mods_folder_path_ + "/mods_status_cache";
   if(toolbox::do_path_is_file(cache_file_path)){
 
-    std::ifstream cache_file;
-    cache_file.open (cache_file_path.c_str());
-    std::string line;
-    while( std::getline(cache_file, line) ){
-      auto line_elements = toolbox::split_string(line, "=");
+    auto lines = toolbox::dump_file_as_vector_string(cache_file_path);
+    for(int i_line = 0 ; i_line < int(lines.size()) ; i_line++){
+      auto line_elements = toolbox::split_string(lines[i_line], "=");
       if(line_elements.size() < 2) continue;
       _mods_status_cache_[line_elements[0]] = line_elements[1];
       if(line_elements.size() < 3) continue;
       _mods_status_cache_fraction_[line_elements[0]] = std::stod(line_elements[2]);
     }
-    cache_file.close();
+
+//    std::ifstream cache_file;
+//    cache_file.open (cache_file_path.c_str());
+//    std::string line;
+//    while( std::getline(cache_file, line) ){
+//      auto line_elements = toolbox::split_string(line, "=");
+//      if(line_elements.size() < 2) continue;
+//      _mods_status_cache_[line_elements[0]] = line_elements[1];
+//      if(line_elements.size() < 3) continue;
+//      _mods_status_cache_fraction_[line_elements[0]] = std::stod(line_elements[2]);
+//    }
+//    cache_file.close();
 
   }
 
