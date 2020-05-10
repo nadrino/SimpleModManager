@@ -177,7 +177,7 @@ void mod_manager::apply_mod(std::string mod_name_, bool force_) {
   relative_file_path_list = toolbox::get_list_files_in_subfolders(absolute_mod_folder_path);
 
   // deleting ignored entries
-  for(int i_mod = int(relative_file_path_list.size()) ; i_mod >= 0 ; i_mod--){
+  for(int i_mod = int(relative_file_path_list.size())-1 ; i_mod >= 0 ; i_mod--){
     if(toolbox::do_string_in_vector(relative_file_path_list[i_mod], _ignored_file_list_)){
       relative_file_path_list.erase(relative_file_path_list.begin() + i_mod);
     }
@@ -196,7 +196,7 @@ void mod_manager::apply_mod(std::string mod_name_, bool force_) {
       continue;
     }
     std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path_list[i_file];
-    std::string file_size = std::to_string(toolbox::get_file_size(absolute_file_path)/1000) + " kB";
+    std::string file_size = toolbox::get_file_size_string(absolute_file_path);
 
     toolbox::display_loading(
       i_file, int(relative_file_path_list.size()),
@@ -234,7 +234,7 @@ void mod_manager::apply_mod_list(std::vector<std::string> &mod_names_list_){
   // checking for overwritten files in advance
   std::vector<std::string> applied_files_listing;
   std::vector<std::vector<std::string>> mods_ignored_files_list(mod_names_list_.size());
-  for(int i_mod = int(mod_names_list_.size()) ; i_mod >= 0 ; i_mod--){
+  for(int i_mod = int(mod_names_list_.size())-1 ; i_mod >= 0 ; i_mod--){
     std::string mod_path = _current_mods_folder_path_ + "/" + mod_names_list_[i_mod];
     auto mod_files_list = toolbox::get_list_files_in_subfolders(mod_path);
     for(auto& mod_file : mod_files_list){
@@ -250,7 +250,7 @@ void mod_manager::apply_mod_list(std::vector<std::string> &mod_names_list_){
   // applying mods with ignored files
   for(int i_mod = 0 ; i_mod < int(mod_names_list_.size()) ; i_mod++){
     _ignored_file_list_ = mods_ignored_files_list[i_mod];
-    apply_mod(mod_names_list_[i_mod], true);
+    apply_mod(mod_names_list_[i_mod], true); // normally should work without force (tested) but just in case...
     _ignored_file_list_.clear();
   }
 
@@ -276,7 +276,8 @@ void mod_manager::remove_mod(std::string mod_name_){
 
     i_file++;
     std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path;
-    std::string file_size = std::to_string(toolbox::get_file_size(absolute_file_path)/1000) + " kB";
+    absolute_file_path = toolbox::remove_extra_doubled_characters(absolute_file_path, "/");
+    std::string file_size = toolbox::get_file_size_string(absolute_file_path);
 
     toolbox::display_loading(
       i_file, relative_file_path_list.size(),
@@ -286,6 +287,7 @@ void mod_manager::remove_mod(std::string mod_name_){
       );
 
     std::string installed_file_path = _install_mods_base_folder_ + "/" + relative_file_path;
+    installed_file_path = toolbox::remove_extra_doubled_characters(installed_file_path, "/");
     // Check if the installed mod belongs to the selected mod
     if( toolbox::do_files_are_the_same( absolute_file_path, installed_file_path ) ){
 

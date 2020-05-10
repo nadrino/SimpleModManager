@@ -206,6 +206,7 @@ public:
     __mod_browser__.initialize();
   }  // Called at the start to initialize all services necessary for this Overlay
   virtual void exitServices() override {
+    toolbox::set_use_embedded_switch_fs(false);
   }  // Callet at the end to clean up all services previously initialized
 
   virtual void onShow() override {}    // Called before overlay wants to change from invisible to visible state

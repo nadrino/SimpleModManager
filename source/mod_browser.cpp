@@ -133,9 +133,7 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
         std::vector<std::string> mods_list = _mods_preseter_.get_mods_list(
           _mods_preseter_.get_selected_mod_preset()
         );
-        for(int i_mod = 0 ; i_mod < int(mods_list.size()) ; i_mod++){
-          _mod_manager_.apply_mod(mods_list[i_mod],true);
-        }
+        _mod_manager_.apply_mod_list(mods_list);
         check_mods_status();
       }
     }
@@ -222,6 +220,10 @@ void mod_browser::check_mods_status(){
   }
 }
 bool mod_browser::change_directory(std::string new_directory_){
+
+  if(new_directory_[new_directory_.size()-1] == '/'){ // remove '/' tail
+    new_directory_ = new_directory_.substr(0, new_directory_.size()-1);
+  }
 
   if(not toolbox::do_path_is_folder(new_directory_)) return false;
   auto new_path_relative_depth = get_relative_path_depth(new_directory_);

@@ -36,22 +36,28 @@ int main(int argc, char **argv){
 //  }
 
   consoleInit(nullptr);
-
-//  toolbox::set_use_embedded_switch_fs();
-//  std::string path = "/mods/The Legend of Zelda - Breath of the Wild/Linkle";
-//  toolbox::print_left(path + " : " + std::to_string(toolbox::do_path_is_folder(path) ));
-//  auto entries = toolbox::get_list_files_in_subfolders(path);
-//  for(auto &entry : entries){
-//    toolbox::print_left(entry);
-//  }
-//  consoleUpdate(nullptr);
-//  toolbox::make_pause();
-////  fsdevUnmountAll();
-////  fsExit();
-//  consoleExit(nullptr);
-//  return 0;
-
   toolbox::set_use_embedded_switch_fs(true);
+
+  std::string old_config_path = toolbox::get_working_directory() + "/parameters.ini"; // before 1.5.0
+  if(toolbox::do_path_is_file(old_config_path)){
+    parameters_handler p;
+    p.initialize();
+    std::string new_param_file = p.get_parameters_file_path();
+    toolbox::print_left("");
+    toolbox::print_left("Welcome in SimpleModManager v" + toolbox::get_app_version(), toolbox::green_bg);
+    toolbox::print_left("");
+    toolbox::print_left("");
+    toolbox::print_left("");
+    toolbox::print_left("");
+    toolbox::print_left(" > Looks like you've been running on a version <= " + toolbox::get_app_version());
+    toolbox::print_left(" > Now parameters.ini is read from : " + new_param_file);
+    toolbox::print_left(" > The old file will be moved to this location.");
+    toolbox::print_left("");
+    toolbox::print_left("");
+    toolbox::ask_question("Confirm by pressing A.", {"Ok"}, false);
+    toolbox::mv_file(old_config_path, new_param_file);
+  }
+
   int max_depth = 1; // could be a parameter in the future
 
   __mod_browser__.set_only_show_folders(true);
@@ -81,6 +87,8 @@ int main(int argc, char **argv){
 //  SDL_DestroyWindow(window);
 //  SDL_Quit();
 
+  toolbox::set_use_embedded_switch_fs(false);
   consoleExit(nullptr);
   return 0;
+
 }

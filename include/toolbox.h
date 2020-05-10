@@ -21,15 +21,18 @@ namespace toolbox{
 
 
   //! printout/printin functions :
-  void display_loading(int current_index_, int end_index_, std::string title_, std::string prefix_, std::string &color_str_ = empty_str, bool force_display_ = false);
+  void display_loading(int current_index_, int end_index_, std::string title_, std::string prefix_,
+    std::string &color_str_ = empty_str, bool force_display_ = false);
+  void display_second_level_loading(int current_index_, int end_index_);
   void print_right(std::string input_, std::string color_ = "", bool flush_ = false);
   void print_left(std::string input_, std::string color_ = "", bool flush_ = false);
   void print_left_right(std::string input_left_, std::string input_right_, std::string color_ = "");
   void make_pause();
 
   std::string debug_string(std::string str_);
+  std::string get_file_size_string(std::string& file_path_);
   std::string get_user_string(std::string default_str_ = "");
-  std::string ask_question(std::string question_, std::vector<std::string> answers_);
+  std::string ask_question(std::string question_, std::vector<std::string> answers_, bool erase_lines_before_=true);
 
 
   //! toolbox vars management functions :
@@ -60,6 +63,8 @@ namespace toolbox{
   int get_terminal_width();
   int get_terminal_height();
 
+  unsigned long get_used_RAM();
+
 
   //! direct filesystem functions :
   void set_use_embedded_switch_fs(bool use_embedded_switch_fs_);
@@ -78,6 +83,7 @@ namespace toolbox{
   unsigned long get_hash_CRC32(std::string file_path_);
 
   std::string dump_file_as_string(std::string file_path_);
+  std::string get_working_directory();
 
   std::vector<std::string> dump_file_as_vector_string(std::string file_path_);
   std::vector<std::string> get_list_of_entries_in_folder(std::string folder_path_);

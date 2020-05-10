@@ -28,13 +28,14 @@ namespace toolbox{
 
   static std::time_t __last_timestamp__;
   static double __last_displayed_value__ = -1;
+  static std::string __last_loading_title__ = "";
+  static std::string __last_loading_prefix__ = "";
+  static std::string __last_loading_color__ = "";
   static bool __CRC_check_is_enabled__ = true;
 
   static bool __use_embedded_switch_fs__ = false;
-  static char __fs_pathBuffer__[FS_MAX_PATH];
-  static FsDir __fs_DirBuffer__;
-  static FsFile __fs_FileBuffer__;
-  static FsFileSystem __fs_FileSystemBuffer__;
+  static void *addr;
+  static FsFileSystem __FileSystemBuffer__;
 
 
   //! printout functions :
@@ -57,6 +58,9 @@ namespace toolbox{
       print_left(ss.str(), color_str_, true);
       consoleUpdate(nullptr);
     }
+
+  }
+  void display_second_level_loading(int current_index_, int end_index_){
 
   }
   void print_right(std::string input_, std::string color_, bool flush_){
@@ -108,7 +112,7 @@ namespace toolbox{
       hidScanInput();
       u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
       u64 kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
-      if (kDown & KEY_A or (kHeld & KEY_A and time_span.count() > 250)) {
+      if (kDown & KEY_A or (kHeld & KEY_A and time_span.count() > 100)) {
         break; // break in order to return to hbmenu
       }
       if (kDown & KEY_PLUS) {
@@ -136,7 +140,7 @@ namespace toolbox{
     Result rc;
 
     strcpy(pathBuffer, str_.c_str());
-    fsFsOpenDirectory(&__fs_FileSystemBuffer__, &pathBuffer[0], FsDirOpenMode_ReadDirs, &DirBuffer);
+    fsFsOpenDirectory(&__FileSystemBuffer__, &pathBuffer[0], FsDirOpenMode_ReadDirs, &DirBuffer);
 //    fsDirGetEntryCount(&DirBuffer, &counter);
 //    ss << counter+1 << "-> ";
 //    counter = 0;
@@ -154,6 +158,22 @@ namespace toolbox{
     fsDirClose(&DirBuffer);
 
     return ss.str();
+  }
+  std::string get_file_size_string(std::string& file_path_){
+    auto size = get_file_size(file_path_); // in bytes
+    if(size / 1000 == 0 ){ // print in bytes
+      return std::to_string(size) + " B";
+    }
+    size = size/1000; // in KB
+    if(size / 1000 == 0){ // print in KB
+      return std::to_string(size) + " KB";
+    }
+    size = size/1000; // in MB
+    if(size / 1000 == 0){ // print in MB
+      return std::to_string(size) + " MB";
+    }
+    size = size/1000; // in GB
+    return std::to_string(size) + " GB";
   }
   std::string get_user_string(std::string default_str_) {
 
@@ -177,9 +197,9 @@ namespace toolbox{
 
     return std::string(tmpoutstr);
   }
-  std::string ask_question(std::string question_, std::vector<std::string> answers_){
+  std::string ask_question(std::string question_, std::vector<std::string> answers_, bool erase_lines_before_){
 
-    consoleClear();
+    if(erase_lines_before_) consoleClear();
     std::cout << question_ << std::endl;
 
     auto sel = selector();
@@ -351,17 +371,30 @@ namespace toolbox{
     return consoleGetDefault()->consoleHeight;
   }
 
+  unsigned long get_used_RAM(){
+    return 0;
+  }
+
 
   //! direct filesystem functions :
   void set_use_embedded_switch_fs(bool use_embedded_switch_fs_) { // for test purposes
     // enable
     if(use_embedded_switch_fs_){
-      fsOpenSdCardFileSystem(&__fs_FileSystemBuffer__);
-      __use_embedded_switch_fs__ = use_embedded_switch_fs_;
+      svcSetHeapSize(&addr, 0x10000000);
+      psmInitialize();
+      romfsInit();
+
+//      fsOpenSdCardFileSystem(&__FileSystemBuffer__);
+      __FileSystemBuffer__ = *fsdevGetDeviceFileSystem("sdmc");
+      __use_embedded_switch_fs__ = true;
     }
       // disable
     else {
-      fsFsClose(&__fs_FileSystemBuffer__);
+      fsFsClose(&__FileSystemBuffer__);
+      romfsExit();
+      psmExit();
+
+      svcSetHeapSize(&addr, ((u8 *)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8 *)addr);
       __use_embedded_switch_fs__ = use_embedded_switch_fs_;
     }
   }
@@ -382,16 +415,18 @@ namespace toolbox{
     if(not __use_embedded_switch_fs__){
       struct stat info{};
       stat( folder_path_.c_str(), &info );
-      return S_ISDIR(info.st_mode);
+      return bool(S_ISDIR(info.st_mode));
     }
     else {
-      strcpy(__fs_pathBuffer__, folder_path_.c_str());
-      if(R_FAILED(fsFsOpenDirectory(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0], FsDirOpenMode_ReadDirs, &__fs_DirBuffer__))){
-        fsDirClose(&__fs_DirBuffer__);
+      FsDir fs_DirBuffer;
+      char fs_pathBuffer[FS_MAX_PATH];
+      strcpy(fs_pathBuffer, folder_path_.c_str());
+      if(R_FAILED(fsFsOpenDirectory(&__FileSystemBuffer__, &fs_pathBuffer[0], FsDirOpenMode_ReadDirs, &fs_DirBuffer))){
+        fsDirClose(&fs_DirBuffer);
         return false;
       }
       else{
-        fsDirClose(&__fs_DirBuffer__);
+        fsDirClose(&fs_DirBuffer);
         return true;
       }
     }
@@ -402,18 +437,23 @@ namespace toolbox{
       return (not do_path_is_folder(file_path_));
     }
     else{
-      strcpy(__fs_pathBuffer__, file_path_.c_str());
-      if(R_FAILED(fsFsOpenFile(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0], FsOpenMode_Read, &__fs_FileBuffer__))){
-        fsFileClose(&__fs_FileBuffer__);
+      FsFile fs_FileBuffer;
+      char fs_pathBuffer[FS_MAX_PATH];
+      snprintf(fs_pathBuffer, FS_MAX_PATH, "%s", file_path_.c_str());
+      if(R_FAILED(fsFsOpenFile(&__FileSystemBuffer__, &fs_pathBuffer[0], FsOpenMode_Read, &fs_FileBuffer))){
+        fsFileClose(&fs_FileBuffer);
+        fsFsCommit(&__FileSystemBuffer__);
         return false;
       }
       else{
-        fsFileClose(&__fs_FileBuffer__);
+        fsFileClose(&fs_FileBuffer);
+        fsFsCommit(&__FileSystemBuffer__);
         return true;
       }
     }
   }
   bool do_files_are_the_same(std::string file1_path_, std::string file2_path_) {
+    bool file_are_same = false;
 
     if(not __use_embedded_switch_fs__){
       if(not do_path_is_file(file1_path_)) return false;
@@ -422,112 +462,100 @@ namespace toolbox{
       if(__CRC_check_is_enabled__){
         if(toolbox::get_hash_CRC32(file1_path_) != toolbox::get_hash_CRC32(file2_path_)) return false;
       }
+      file_are_same = true;
     }
     else {
 
       // opening file1
       char path_buffer_file1[FS_MAX_PATH];
       FsFile fs_file1;
-      strcpy(path_buffer_file1, file1_path_.c_str());
-      if(R_FAILED(fsFsOpenFile(&__fs_FileSystemBuffer__, &path_buffer_file1[0], FsOpenMode_Read, &fs_file1))){
-        fsFileClose(&fs_file1);
-        return false;
-      }
-      // opening file2
-      char path_buffer_file2[FS_MAX_PATH];
-      FsFile fs_file2;
-      strcpy(path_buffer_file2, file2_path_.c_str());
-      if(R_FAILED(fsFsOpenFile(&__fs_FileSystemBuffer__, &path_buffer_file2[0], FsOpenMode_Read, &fs_file2))){
-        fsFileClose(&fs_file1);
+      snprintf(path_buffer_file1, FS_MAX_PATH, "%s", file1_path_.c_str());
+      if(R_SUCCEEDED(fsFsOpenFile(&__FileSystemBuffer__, &path_buffer_file1[0], FsOpenMode_Read, &fs_file1))){
+        // opening file2
+        char path_buffer_file2[FS_MAX_PATH];
+        FsFile fs_file2;
+        snprintf(path_buffer_file2, FS_MAX_PATH, "%s", file2_path_.c_str());
+        if(R_SUCCEEDED(fsFsOpenFile(&__FileSystemBuffer__, &path_buffer_file2[0], FsOpenMode_Read, &fs_file2))){
+
+          // get size of file1
+          s64 size_file1 = 0;
+          if(R_SUCCEEDED(fsFileGetSize(&fs_file1, &size_file1))){
+            // get size of file2
+            s64 size_file2 = 0;
+            if(R_SUCCEEDED(fsFileGetSize(&fs_file2, &size_file2))){
+              if(size_file1 == size_file2){
+                if(__CRC_check_is_enabled__){
+
+                  size_t copy_buffer_size = 0x10000;
+                  u8 data_buffer_file1[copy_buffer_size];
+                  u8 data_buffer_file2[copy_buffer_size];
+                  u64 bytes_read_counter_file1 = 0;
+                  u64 bytes_read_counter_file2 = 0;
+                  u64 read_offset = 0;
+                  unsigned long  last_crc1 = crc32(0L, Z_NULL, 0);
+                  unsigned long  last_crc2 = crc32(0L, Z_NULL, 0);
+                  file_are_same = true; // true by default -> change if not
+                  do {
+
+                    // buffering file1
+                    if(R_FAILED(fsFileRead(&fs_file1, read_offset, &data_buffer_file1[0], copy_buffer_size, FsReadOption_None, &bytes_read_counter_file1))){
+                      file_are_same = false;
+                      break;
+                    }
+
+                    // buffering file2
+                    if(R_FAILED(fsFileRead(&fs_file2, read_offset, &data_buffer_file2[0], copy_buffer_size, FsReadOption_None, &bytes_read_counter_file2))){
+                      file_are_same = false;
+                      break;
+                    }
+
+                    // check read size
+                    if(bytes_read_counter_file1 != bytes_read_counter_file2){
+                      file_are_same = false;
+                      break;
+                    }
+
+                    // check crc
+                    last_crc1 = crc32(last_crc1, data_buffer_file1, bytes_read_counter_file1);
+                    last_crc2 = crc32(last_crc2, data_buffer_file2, bytes_read_counter_file2);
+                    if(last_crc1 != last_crc2){
+                      file_are_same = false;
+                      break;
+                    }
+
+                    // preparing next loop
+                    read_offset += bytes_read_counter_file1;
+
+                  }
+                  while(s64(read_offset) < size_file1);
+
+                } // CRC ? yes
+                else {
+                  file_are_same = true;
+                } // CRC ? no
+
+              } // size match ?
+            } // size file 2
+          } // size file 1
+        } // open file 2
         fsFileClose(&fs_file2);
-        return false;
-      }
-
-      // get size of file1
-      s64 size_file1 = 0;
-      if(R_FAILED(fsFileGetSize(&fs_file1, &size_file1))){
-        fsFileClose(&fs_file1);
-        fsFileClose(&fs_file2);
-        return false;
-      }
-
-      // get size of file2
-      s64 size_file2 = 0;
-      if(R_FAILED(fsFileGetSize(&fs_file2, &size_file2))){
-        fsFileClose(&fs_file1);
-        fsFileClose(&fs_file2);
-        return false;
-      }
-
-      // comparing file sizes
-      if(size_file1 != size_file2)
-        return false;
-
-      if(__CRC_check_is_enabled__){
-
-        size_t copy_buffer_size = 0x10000;
-        u8 data_buffer_file1[copy_buffer_size];
-        u8 data_buffer_file2[copy_buffer_size];
-
-        u64 bytes_read_counter_file1 = 0;
-        u64 bytes_read_counter_file2 = 0;
-        u64 read_offset = 0;
-
-        unsigned long  last_crc1 = crc32(0L, Z_NULL, 0);
-        unsigned long  last_crc2 = crc32(0L, Z_NULL, 0);
-        do {
-
-          // buffering file1
-          if(R_FAILED(fsFileRead(&fs_file1, read_offset, &data_buffer_file1[0], copy_buffer_size, FsReadOption_None, &bytes_read_counter_file1))){
-            fsFileClose(&fs_file1);
-            fsFileClose(&fs_file2);
-            return false;
-          }
-
-          // buffering file2
-          if(R_FAILED(fsFileRead(&fs_file2, read_offset, &data_buffer_file2[0], copy_buffer_size, FsReadOption_None, &bytes_read_counter_file2))){
-            fsFileClose(&fs_file1);
-            fsFileClose(&fs_file2);
-            return false;
-          }
-
-          if(bytes_read_counter_file1 != bytes_read_counter_file2){
-            fsFileClose(&fs_file1);
-            fsFileClose(&fs_file2);
-            return false;
-          }
-
-          last_crc1 = crc32(last_crc1, data_buffer_file1, bytes_read_counter_file1);
-          last_crc2 = crc32(last_crc2, data_buffer_file2, bytes_read_counter_file2);
-          if(last_crc1 != last_crc2){
-            fsFileClose(&fs_file1);
-            fsFileClose(&fs_file2);
-            return false;
-          }
-
-          // preparing next loop
-          read_offset += bytes_read_counter_file1;
-
-        }
-        while(s64(read_offset) < size_file1);
-      }
+      } // open file 1
       fsFileClose(&fs_file1);
-      fsFileClose(&fs_file2);
+      fsFsCommit(&__FileSystemBuffer__);
 
-    }
+    } // switch fs
 
-    return true;
+    return file_are_same;
 
   }
 
   bool copy_file(std::string &source_file_path_, std::string &destination_file_path_){
-
-    if(not do_path_is_file(source_file_path_)){
-      return false;
-    }
+    bool do_copy_is_success = false;
 
     if(do_path_is_file(destination_file_path_)){
-      delete_file(destination_file_path_);
+      if(not delete_file(destination_file_path_)){
+        return false;
+      }
     }
     else{
       std::string destination_folder_path = get_folder_path_from_file_path(destination_file_path_);
@@ -537,6 +565,10 @@ namespace toolbox{
     }
 
     if(not __use_embedded_switch_fs__){
+
+      if(not do_path_is_file(source_file_path_)){
+        return false;
+      }
 
       // faster but more ram is needed
       std::ifstream source(source_file_path_, std::ios::binary);
@@ -576,77 +608,65 @@ namespace toolbox{
 //    fclose(in);
 //    fclose(out);
 
+      do_copy_is_success = true;
+
     }
     else {
 
       // opening source file
       char path_buffer_source[FS_MAX_PATH];
       FsFile fs_file_source;
-      strcpy(path_buffer_source, source_file_path_.c_str());
-      if(R_FAILED(fsFsOpenFile(&__fs_FileSystemBuffer__, &path_buffer_source[0], FsOpenMode_Read, &fs_file_source))){
-        fsFileClose(&fs_file_source);
-        return false;
-      }
+      snprintf(path_buffer_source, FS_MAX_PATH, "%s", source_file_path_.c_str());
+      if(R_SUCCEEDED(fsFsOpenFile(&__FileSystemBuffer__, &path_buffer_source[0], FsOpenMode_Read, &fs_file_source))){
+        // get size of source file
+        s64 source_size = 0;
+        if(R_SUCCEEDED(fsFileGetSize(&fs_file_source, &source_size))){
 
-      // get size of source file
-      s64 source_size = 0;
-      if(R_FAILED(fsFileGetSize(&fs_file_source, &source_size))){
-        fsFileClose(&fs_file_source);
-        return false;
-      }
+          // create destination file
+          char path_buffer_destination[FS_MAX_PATH];
+          FsFile fs_file_destination;
+          snprintf(path_buffer_destination, FS_MAX_PATH, "%s", destination_file_path_.c_str());
+          if(R_SUCCEEDED(fsFsCreateFile(&__FileSystemBuffer__, &path_buffer_destination[0], source_size, 0))){
+            // open destination file
+            if(R_SUCCEEDED(fsFsOpenFile(&__FileSystemBuffer__, &path_buffer_destination[0], FsOpenMode_Write, &fs_file_destination))){
 
-      // create destination file
-      char path_buffer_destination[FS_MAX_PATH];
-      FsFile fs_file_destination;
-      strcpy(path_buffer_destination, destination_file_path_.c_str());
-      if(R_FAILED(fsFsCreateFile(&__fs_FileSystemBuffer__, &path_buffer_destination[0], source_size, 0))){
-        fsFileClose(&fs_file_source);
-        return false;
-      }
+              size_t copy_buffer_size = 0x10000;
+              u8 data_buffer[copy_buffer_size];
+              u64 bytes_read_counter = 0;
+              u64 read_offset = 0;
+              do_copy_is_success = true; // consider it worked by default -> will change if not
+              do {
 
-      // open destination file
-      if(R_FAILED(fsFsOpenFile(&__fs_FileSystemBuffer__, &path_buffer_destination[0], FsOpenMode_Write, &fs_file_destination))){
-        fsFileClose(&fs_file_destination);
-        fsFileClose(&fs_file_source);
-        return false;
-      }
+                // buffering source file
+                if(R_FAILED(fsFileRead(&fs_file_source, read_offset, &data_buffer[0], copy_buffer_size, FsReadOption_None, &bytes_read_counter))){
+                  do_copy_is_success = false;
+                  break;
+                }
 
-      size_t copy_buffer_size = 0x10000;
-      u8 data_buffer[copy_buffer_size];
+                // dumping data in destination file
+                if(R_FAILED(fsFileWrite(&fs_file_destination, read_offset, &data_buffer[0], bytes_read_counter, FsWriteOption_Flush))){
+                  do_copy_is_success = false;
+                  break;
+                }
 
-      u64 bytes_read_counter = 0;
-      u64 read_offset = 0;
+                // preparing next loop
+                read_offset += bytes_read_counter;
 
-      do {
+              }
+              while(s64(read_offset) < source_size);
 
-        // buffering source file
-        if(R_FAILED(fsFileRead(&fs_file_source, read_offset, &data_buffer[0], copy_buffer_size, FsReadOption_None, &bytes_read_counter))){
-          fsFileClose(&fs_file_destination);
-          fsFileClose(&fs_file_source);
-          return false;
+            }
+            fsFileClose(&fs_file_destination);
+          }
+
         }
-
-        // dumping data in destination file
-        if(R_FAILED(fsFileWrite(&fs_file_destination, read_offset, &data_buffer[0], bytes_read_counter, FsWriteOption_Flush))){
-          fsFileClose(&fs_file_destination);
-          fsFileClose(&fs_file_source);
-          return false;
-        }
-
-        // preparing next loop
-        read_offset += bytes_read_counter;
-
       }
-      while(s64(read_offset) < source_size);
-
-      // cleaning up
-      fsFileClose(&fs_file_destination);
       fsFileClose(&fs_file_source);
+      fsFsCommit(&__FileSystemBuffer__);
 
     }
 
-    return true;
-
+    return do_copy_is_success;
   }
   bool mv_file(std::string &source_file_path_, std::string &destination_file_path_){
 
@@ -673,9 +693,9 @@ namespace toolbox{
     else{
       char source_char[FS_MAX_PATH];
       char dest_char[FS_MAX_PATH];
-      strcpy(source_char, source_file_path_.c_str());
-      strcpy(dest_char, destination_file_path_.c_str());
-      if(R_FAILED(fsFsRenameFile(&__fs_FileSystemBuffer__, &source_char[0], &dest_char[0]))){
+      snprintf(source_char, FS_MAX_PATH, "%s", source_file_path_.c_str());
+      snprintf(dest_char, FS_MAX_PATH, "%s", destination_file_path_.c_str());
+      if(R_FAILED(fsFsRenameFile(&__FileSystemBuffer__, &source_char[0], &dest_char[0]))){
         return false;
       }
     }
@@ -686,16 +706,18 @@ namespace toolbox{
     if(not do_path_is_file(file_path_)) return true;
     if(not __use_embedded_switch_fs__){
       std::remove(file_path_.c_str());
-      return not do_path_is_file(file_path_);
     }
     else{
       char fs_path_buffer[FS_MAX_PATH];
-      strcpy(fs_path_buffer, file_path_.c_str());
-      if(R_FAILED(fsFsDeleteFile(&__fs_FileSystemBuffer__, &fs_path_buffer[0]))){
-        return false;
+      snprintf(fs_path_buffer, FS_MAX_PATH, "%s", file_path_.c_str());
+      auto res = fsFsDeleteFile(&__FileSystemBuffer__, &fs_path_buffer[0]);
+      if(R_FAILED(res)){
+//        printf("fsFsDeleteFile(%s) failed: 0x%lx\n", fs_path_buffer, res);
+//        toolbox::make_pause();
       }
-      return true;
+      fsFsCommit(&__FileSystemBuffer__);
     }
+    return not do_path_is_file(file_path_);
   }
   bool mkdir_path(std::string new_folder_path_){
 
@@ -716,8 +738,9 @@ namespace toolbox{
             ::mkdir(current_level.c_str(), 0777);
           }
           else{
-            strcpy(__fs_pathBuffer__, current_level.c_str());
-            fsFsCreateDirectory(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0]);
+            char fs_pathBuffer[FS_MAX_PATH];
+            snprintf(fs_pathBuffer, FS_MAX_PATH, "%s", current_level.c_str());
+            fsFsCreateDirectory(&__FileSystemBuffer__, fs_pathBuffer);
           }
         }
         current_level += "/"; // don't forget to append a slash
@@ -731,131 +754,148 @@ namespace toolbox{
       rmdir(folder_path_.c_str());
     }
     else{
-      strcpy(__fs_pathBuffer__, folder_path_.c_str());
-      if(R_FAILED(fsFsDeleteDirectory(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0]))){
+      char fs_pathBuffer[FS_MAX_PATH];
+      snprintf(fs_pathBuffer, FS_MAX_PATH, "%s", folder_path_.c_str());
+      if(R_FAILED(fsFsDeleteDirectory(&__FileSystemBuffer__, fs_pathBuffer))){
         return false;
       }
     }
-    if(do_path_is_folder(folder_path_)) return false;
-    return true;
+    return not do_path_is_folder(folder_path_);
   }
 
   long int get_file_size(std::string &file_path_) {
+    long int output_size = 0;
     if(not __use_embedded_switch_fs__){
-      if(not do_path_is_file(file_path_)) return 0;
-      std::ifstream testFile(file_path_.c_str(), std::ios::binary);
-      const auto begin = testFile.tellg();
-      testFile.seekg (0, std::ios::end);
-      const auto end = testFile.tellg();
-      const auto fsize = (end-begin);
-      return fsize;
+      if(do_path_is_file(file_path_)){
+        std::ifstream testFile(file_path_.c_str(), std::ios::binary);
+        const auto begin = testFile.tellg();
+        testFile.seekg (0, std::ios::end);
+        const auto end = testFile.tellg();
+        const auto fsize = (end-begin);
+        output_size = fsize;
+      }
     }
     else{
       s64 file_size;
-      strcpy(__fs_pathBuffer__, file_path_.c_str());
-      if(R_FAILED(fsFsOpenFile(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0], FsOpenMode_Read, &__fs_FileBuffer__))){
-        return 0;
+      char fs_pathBuffer[FS_MAX_PATH];
+      snprintf(fs_pathBuffer, FS_MAX_PATH, "%s", file_path_.c_str());
+      FsFile fs_FileBuffer;
+      if(R_SUCCEEDED(fsFsOpenFile(&__FileSystemBuffer__, fs_pathBuffer, FsOpenMode_Read, &fs_FileBuffer))){
+        if(R_SUCCEEDED(fsFileGetSize(&fs_FileBuffer, &file_size))){
+          fsFileClose(&fs_FileBuffer);
+          fsFsCommit(&__FileSystemBuffer__);
+          output_size = (long int)(file_size);
+        }
       }
-      if(R_SUCCEEDED(fsFileGetSize(&__fs_FileBuffer__, &file_size))){
-        fsFileClose(&__fs_FileBuffer__);
-        return (long int)(file_size);
-      }
-      return 0;
+      fsFileClose(&fs_FileBuffer);
+      fsFsCommit(&__FileSystemBuffer__);
     }
-
+    return output_size;
   }
   unsigned long get_hash_CRC32(std::string file_path_){
 
-    if(not toolbox::do_path_is_file(file_path_))
-      return 0;
-
+    unsigned long output_crc = crc32(0L, Z_NULL, 0);
     if(not __use_embedded_switch_fs__){
-      std::string data = toolbox::dump_file_as_string(file_path_);
-      if(data.empty())
-        return 0;
-      unsigned long  crc = crc32(0L, Z_NULL, 0);
-      return crc32(crc, (const unsigned char*)data.c_str(), data.size());
+      if(toolbox::do_path_is_file(file_path_)){
+        std::string data = toolbox::dump_file_as_string(file_path_);
+        if(not data.empty()){
+          output_crc = crc32(0L, Z_NULL, 0);
+          output_crc = crc32(output_crc, (const unsigned char*)data.c_str(), data.size());
+        }
+      }
     }
     else {
 
       // opening source file
-      strcpy(__fs_pathBuffer__, file_path_.c_str());
-      if(R_FAILED(fsFsOpenFile(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0], FsOpenMode_Read, &__fs_FileBuffer__))){
-        fsFileClose(&__fs_FileBuffer__);
-        return false;
-      }
+      char fs_pathBuffer[FS_MAX_PATH];
+      snprintf(fs_pathBuffer, FS_MAX_PATH, "%s", file_path_.c_str());
+      FsFile fs_FileBuffer;
+      if(R_SUCCEEDED(fsFsOpenFile(&__FileSystemBuffer__, fs_pathBuffer, FsOpenMode_Read, &fs_FileBuffer))){
 
-      // get size of source file
-      s64 source_size = 0;
-      if(R_FAILED(fsFileGetSize(&__fs_FileBuffer__, &source_size))){
-        fsFileClose(&__fs_FileBuffer__);
-        return false;
-      }
+        // get size of source file
+        s64 source_size = 0;
+        if(R_SUCCEEDED(fsFileGetSize(&fs_FileBuffer, &source_size))){
 
-      size_t copy_buffer_size = 0x10000;
-      u8 data_buffer[copy_buffer_size];
+          // read file
+          size_t copy_buffer_size = 0x10000;
+          u8 data_buffer[copy_buffer_size];
 
-      u64 bytes_read_counter = 0;
-      u64 read_offset = 0;
+          u64 bytes_read_counter = 0;
+          u64 read_offset = 0;
 
-      unsigned long  last_crc = crc32(0L, Z_NULL, 0);
-      do {
+          output_crc = crc32(0L, Z_NULL, 0);
+          do {
 
-        // buffering source file
-        if(R_FAILED(fsFileRead(&__fs_FileBuffer__, read_offset, &data_buffer[0], copy_buffer_size, FsReadOption_None, &bytes_read_counter))){
-          fsFileClose(&__fs_FileBuffer__);
-          return false;
+            // buffering source file
+            if(R_FAILED(fsFileRead(&fs_FileBuffer, read_offset, &data_buffer[0], copy_buffer_size, FsReadOption_None, &bytes_read_counter))){
+              break;
+            }
+
+            output_crc = crc32_combine(output_crc, u64(data_buffer), bytes_read_counter);
+
+            // preparing next loop
+            read_offset += bytes_read_counter;
+
+          }
+          while(s64(read_offset) < source_size);
         }
-
-        unsigned long  crc = crc32_combine(last_crc, u64(data_buffer), bytes_read_counter);
-        last_crc = crc;
-
-        // preparing next loop
-        read_offset += bytes_read_counter;
-
       }
-      while(s64(read_offset) < source_size);
-      fsFileClose(&__fs_FileBuffer__);
-      return last_crc;
-
+      fsFileClose(&fs_FileBuffer);
+      fsFsCommit(&__FileSystemBuffer__);
     }
-
+    return output_crc;
   }
 
   std::string dump_file_as_string(std::string file_path_){
     std::string data;
-    if(do_path_is_file(file_path_)){
-      if(not __use_embedded_switch_fs__){
+    if(not __use_embedded_switch_fs__){
+      if(do_path_is_file(file_path_)){
         std::ifstream input_file( file_path_.c_str(), std::ios::binary | std::ios::in );
         std::ostringstream ss;
         ss << input_file.rdbuf();
         data = ss.str();
         input_file.close();
       }
-      else {
-        strcpy(__fs_pathBuffer__, file_path_.c_str());
-        if(R_FAILED(fsFsOpenFile(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0], FsOpenMode_Read, &__fs_FileBuffer__))){
-          fsFileClose(&__fs_FileBuffer__);
-          return "";
-        }
-        s64 file_size = 0;
-        if(R_FAILED(fsFileGetSize(&__fs_FileBuffer__, &file_size))){
-          fsFileClose(&__fs_FileBuffer__);
-          return "";
-        }
-        char *buf = (char *)malloc(file_size + 1);
-        u64 file_size_u = (u64) file_size;
-        u64 bytes_read;
-        if(R_FAILED(fsFileRead(&__fs_FileBuffer__, 0, buf, file_size_u, FsReadOption_None, &bytes_read))){
-          fsFileClose(&__fs_FileBuffer__);
-          return
-            "";
-        }
-        data = std::string(buf);
-        fsFileClose(&__fs_FileBuffer__);
+    }
+    else {
+      char fs_pathBuffer[FS_MAX_PATH];
+      snprintf(fs_pathBuffer, FS_MAX_PATH, "%s", file_path_.c_str());
+      FsFile fs_FileBuffer;
+      if(R_FAILED(fsFsOpenFile(&__FileSystemBuffer__, fs_pathBuffer, FsOpenMode_Read, &fs_FileBuffer))){
+        fsFileClose(&fs_FileBuffer);
+        fsFsCommit(&__FileSystemBuffer__);
+        return "";
       }
+      s64 file_size = 0;
+      if(R_FAILED(fsFileGetSize(&fs_FileBuffer, &file_size))){
+        fsFileClose(&fs_FileBuffer);
+        fsFsCommit(&__FileSystemBuffer__);
+        return "";
+      }
+      char *buf = (char *)malloc(file_size + 1);
+      u64 file_size_u = (u64) file_size;
+      u64 bytes_read;
+      if(R_FAILED(fsFileRead(&fs_FileBuffer, 0, buf, file_size_u, FsReadOption_None, &bytes_read))){
+        fsFileClose(&fs_FileBuffer);
+        fsFsCommit(&__FileSystemBuffer__);
+        return
+          "";
+      }
+      data = std::string(buf);
+      fsFileClose(&fs_FileBuffer);
+      fsFsCommit(&__FileSystemBuffer__);
     }
     return data;
+  }
+  std::string get_working_directory(){
+    char cwd[PATH_MAX];
+    getcwd(cwd, sizeof(cwd));
+    std::string output_cwd(cwd);
+    std::string prefix = "sdmc:";
+    if(toolbox::do_string_starts_with_substring(output_cwd, prefix)){
+      output_cwd = output_cwd.substr(prefix.size(), output_cwd.size());
+    }
+    return output_cwd;
   }
   std::vector<std::string> dump_file_as_vector_string(std::string file_path_){
     std::vector<std::string> lines;
@@ -885,21 +925,23 @@ namespace toolbox{
       }
     }
     else{
-      strcpy(__fs_pathBuffer__, folder_path_.c_str());
-      if(R_FAILED(fsFsOpenDirectory(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0], FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &__fs_DirBuffer__))){
-        fsDirClose(&__fs_DirBuffer__);
+      char fs_pathBuffer[FS_MAX_PATH];
+      snprintf(fs_pathBuffer, FS_MAX_PATH, "%s", folder_path_.c_str());
+      FsDir fs_DirBuffer;
+      if(R_FAILED(fsFsOpenDirectory(&__FileSystemBuffer__, fs_pathBuffer, FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &fs_DirBuffer))){
+        fsDirClose(&fs_DirBuffer);
         return entries_list;
       }
       s64 entry_count;
-      if(R_FAILED(fsDirGetEntryCount(&__fs_DirBuffer__, &entry_count))){
-        fsDirClose(&__fs_DirBuffer__);
+      if(R_FAILED(fsDirGetEntryCount(&fs_DirBuffer, &entry_count))){
+        fsDirClose(&fs_DirBuffer);
         return entries_list;
       }
       size_t entry_count_size_t(entry_count);
       s64 total_entries;
       std::vector<FsDirectoryEntry> fs_directory_entries(entry_count_size_t);
-      if(R_FAILED(fsDirRead(&__fs_DirBuffer__, &total_entries, entry_count_size_t, &fs_directory_entries[0]))){
-        fsDirClose(&__fs_DirBuffer__);
+      if(R_FAILED(fsDirRead(&fs_DirBuffer, &total_entries, entry_count_size_t, &fs_directory_entries[0]))){
+        fsDirClose(&fs_DirBuffer);
         return entries_list;
       }
       for(u32 i_entry = 0 ; i_entry < entry_count_size_t ; i_entry++){
@@ -909,7 +951,7 @@ namespace toolbox{
         }
         entries_list.emplace_back(fs_directory_entries[i_entry].name);
       }
-      fsDirClose(&__fs_DirBuffer__);
+      fsDirClose(&fs_DirBuffer);
       return entries_list;
     }
 
@@ -936,21 +978,23 @@ namespace toolbox{
       }
     }
     else{
-      strcpy(__fs_pathBuffer__, folder_path_.c_str());
-      if(R_FAILED(fsFsOpenDirectory(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0], FsDirOpenMode_ReadDirs, &__fs_DirBuffer__))){
-        fsDirClose(&__fs_DirBuffer__);
+      char fs_pathBuffer[FS_MAX_PATH];
+      snprintf(fs_pathBuffer, FS_MAX_PATH, "%s", folder_path_.c_str());
+      FsDir fs_DirBuffer;
+      if(R_FAILED(fsFsOpenDirectory(&__FileSystemBuffer__, fs_pathBuffer, FsDirOpenMode_ReadDirs, &fs_DirBuffer))){
+        fsDirClose(&fs_DirBuffer);
         return subfolders_list;
       }
       s64 entry_count;
-      if(R_FAILED(fsDirGetEntryCount(&__fs_DirBuffer__, &entry_count))){
-        fsDirClose(&__fs_DirBuffer__);
+      if(R_FAILED(fsDirGetEntryCount(&fs_DirBuffer, &entry_count))){
+        fsDirClose(&fs_DirBuffer);
         return subfolders_list;
       }
       size_t entry_count_size_t(entry_count);
       s64 total_entries;
       std::vector<FsDirectoryEntry> fs_directory_entries(entry_count_size_t);
-      if(R_FAILED(fsDirRead(&__fs_DirBuffer__, &total_entries, entry_count_size_t, &fs_directory_entries[0]))){
-        fsDirClose(&__fs_DirBuffer__);
+      if(R_FAILED(fsDirRead(&fs_DirBuffer, &total_entries, entry_count_size_t, &fs_directory_entries[0]))){
+        fsDirClose(&fs_DirBuffer);
         return subfolders_list;
       }
       for(u32 i_entry = 0 ; i_entry < entry_count_size_t ; i_entry++){
@@ -962,7 +1006,7 @@ namespace toolbox{
         }
         subfolders_list.emplace_back(fs_directory_entries[i_entry].name);
       }
-      fsDirClose(&__fs_DirBuffer__);
+      fsDirClose(&fs_DirBuffer);
       return subfolders_list;
     }
 
@@ -989,21 +1033,23 @@ namespace toolbox{
       }
     }
     else{
-      strcpy(__fs_pathBuffer__, folder_path_.c_str());
-      if(R_FAILED(fsFsOpenDirectory(&__fs_FileSystemBuffer__, &__fs_pathBuffer__[0], FsDirOpenMode_ReadFiles, &__fs_DirBuffer__))){
-        fsDirClose(&__fs_DirBuffer__);
+      char fs_pathBuffer[FS_MAX_PATH];
+      snprintf(fs_pathBuffer, FS_MAX_PATH, "%s", folder_path_.c_str());
+      FsDir fs_DirBuffer;
+      if(R_FAILED(fsFsOpenDirectory(&__FileSystemBuffer__, fs_pathBuffer, FsDirOpenMode_ReadFiles, &fs_DirBuffer))){
+        fsDirClose(&fs_DirBuffer);
         return files_list;
       }
       s64 entry_count;
-      if(R_FAILED(fsDirGetEntryCount(&__fs_DirBuffer__, &entry_count))){
-        fsDirClose(&__fs_DirBuffer__);
+      if(R_FAILED(fsDirGetEntryCount(&fs_DirBuffer, &entry_count))){
+        fsDirClose(&fs_DirBuffer);
         return files_list;
       }
       size_t entry_count_size_t(entry_count);
       s64 total_entries;
       std::vector<FsDirectoryEntry> fs_directory_entries(entry_count_size_t);
-      if(R_FAILED(fsDirRead(&__fs_DirBuffer__, &total_entries, entry_count_size_t, &fs_directory_entries[0]))){
-        fsDirClose(&__fs_DirBuffer__);
+      if(R_FAILED(fsDirRead(&fs_DirBuffer, &total_entries, entry_count_size_t, &fs_directory_entries[0]))){
+        fsDirClose(&fs_DirBuffer);
         return files_list;
       }
       for(u32 i_entry = 0 ; i_entry < entry_count_size_t ; i_entry++){
@@ -1015,7 +1061,8 @@ namespace toolbox{
         }
         files_list.emplace_back(fs_directory_entries[i_entry].name);
       }
-      fsDirClose(&__fs_DirBuffer__);
+      fsDirClose(&fs_DirBuffer);
+      fsFsCommit(&__FileSystemBuffer__);
       return files_list;
     }
   }
