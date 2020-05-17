@@ -77,3 +77,4 @@ include_directories( ${CMAKE_BINARY_DIR}/generated/ )
 
 include(source/CMakeLists.txt) # needs to be called before ovl -> defined mod manager classes
 include(ovl/CMakeLists.txt)
+include(gui/CMakeLists.txt)

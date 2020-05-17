@@ -59,10 +59,17 @@ void mod_manager::load_mods_status_cache_file() {
     auto lines = toolbox::dump_file_as_vector_string(cache_file_path);
     for(int i_line = 0 ; i_line < int(lines.size()) ; i_line++){
       auto line_elements = toolbox::split_string(lines[i_line], "=");
-      if(line_elements.size() < 2) continue;
-      _mods_status_cache_[line_elements[0]] = line_elements[1];
-      if(line_elements.size() < 3) continue;
-      _mods_status_cache_fraction_[line_elements[0]] = std::stod(line_elements[2]);
+      if(line_elements.size() < 2) continue; // useless entry
+
+      int index_mod_name = 0;
+      if(line_elements.size() == 4){ // 1.5.1 -> added preset parameter (backward compatibility)
+        index_mod_name = 1;
+
+      }
+      _mods_status_cache_[line_elements[index_mod_name]] = line_elements[index_mod_name+1];
+      if(line_elements.size() < 3) continue; // v < 1.5.0
+      // v >= 1.5.0
+      _mods_status_cache_fraction_[line_elements[index_mod_name]] = std::stod(line_elements[index_mod_name+2]);
     }
 
   }
@@ -75,6 +82,8 @@ void mod_manager::save_mods_status_cache_file() {
 
   for(auto const &mod_status : _mods_status_cache_){
     if(not mod_status.second.empty()){
+      data_string += _parameters_handler_.get_selected_preset_name();
+      data_string += "=";
       data_string += mod_status.first;
       data_string += "=" ;
       data_string += mod_status.second ;
