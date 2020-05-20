@@ -45,10 +45,11 @@ target_link_libraries(
         ${GUI_APP}.elf
         switch::libnx
         -L/opt/devkitpro/portlibs/switch/lib
-        ${ZLIB_LIBRARIES}
+#        ${ZLIB_LIBRARIES}
 #        -lSDL2 -march=armv8-a -fPIE -L/opt/devkitpro/libnx/lib -lEGL -lglapi -ldrm_nouveau -lnx
-        -lnx -lfreetype -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lpng -ljpeg -L/opt/devkitpro/portlibs/switch/lib -lSDL2 -march=armv8-a -fPIE -L/opt/devkitpro/libnx/lib -lEGL -lglapi -ldrm_nouveau -lnx -L/opt/devkitpro/portlibs/switch/lib -lfreetype -lbz2 -lpng16 -lz -lm -lnx -lz -lwebp
-
+#        -lnx -lfreetype -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lpng -ljpeg -L/opt/devkitpro/portlibs/switch/lib -lSDL2 -march=armv8-a -fPIE -L/opt/devkitpro/libnx/lib -lEGL -lglapi -ldrm_nouveau -lnx -L/opt/devkitpro/portlibs/switch/lib -lfreetype -lbz2 -lpng16 -lz -lm -lnx -lz -lwebp
+        -lSDL2  -march=armv8-a -fPIE -lEGL -lglapi -ldrm_nouveau -lSDL2_ttf -lfreetype
+        -lpng -ljpeg -lnx
 )
 
 set_target_properties(${GUI_APP}.elf PROPERTIES
@@ -56,8 +57,10 @@ set_target_properties(${GUI_APP}.elf PROPERTIES
         LINK_FLAGS "-specs=${LIBNX}/switch.specs -Wl,-no-as-needed -Wl,-Map,.map")
 
 
-build_switch_binaries(${GUI_APP}.elf ${GUI_TITLE} ${GUI_AUTHOR} ${GUI_ICON} ${APP_VERSION})
-
+build_switch_binaries(
+        ${GUI_APP}.elf
+        ${GUI_TITLE} ${GUI_AUTHOR} ${GUI_ICON} ${APP_VERSION}
+)
 
 
 

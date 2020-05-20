@@ -3,13 +3,13 @@
 #
 
 # Replace this with the name of your application
-set(APP_NAME "SimpleModManager")
-set(HOMEBREW_APP "${APP_NAME}")
+set(HOMEBREW_NAME "SimpleModManager")
+set(HOMEBREW_APP "${HOMEBREW_NAME}")
 
 # Meta information about the app
-set(APP_TITLE ${APP_NAME})
-set(APP_AUTHOR "Nadrino")
-set(APP_ICON "${CMAKE_CURRENT_SOURCE_DIR}/assets/icon.jpg")
+set(HOMEBREW_TITLE ${HOMEBREW_NAME})
+set(HOMEBREW_AUTHOR "Nadrino")
+set(HOMEBREW_ICON "${CMAKE_CURRENT_SOURCE_DIR}/assets/icon.jpg")
 
 set(SOURCE_DIR ${PROJECT_SOURCE_DIR}/source)
 
@@ -22,7 +22,7 @@ if (cmake_VERBOSE)
     cmake_info("Loaded ${SOURCE_FILES_LENGTH} source file(s)")
 endif ()
 
-build_switch_binaries(${HOMEBREW_APP}.elf) # need to be defined before add_executable... CMake works in myterious ways
+build_switch_binaries(${HOMEBREW_APP}.elf ${HOMEBREW_TITLE} ${HOMEBREW_AUTHOR} ${HOMEBREW_ICON} ${APP_VERSION}) # need to be defined before add_executable... CMake works in myterious ways
 
 add_executable(${HOMEBREW_APP}.elf
 #        ${SOURCE_DIR}/main.cpp

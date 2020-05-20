@@ -8,7 +8,6 @@
 #include <SDL2/SDL.h>
 
 // this project
-#include <color.h>
 
 class render_handler {
 
@@ -23,6 +22,9 @@ public:
   void initialize_frame();
   void finalize_frame();
 
+  SDL_Color &get_background_color();
+  SDL_Renderer *get_sdl_renderer() const;
+
 private:
 
   bool _is_initialized_;
@@ -32,7 +34,7 @@ private:
   SDL_Renderer *_sdl_renderer_;
   SDL_Surface *_sdl_surface_;
 
-  draw::color _background_color_;
+  SDL_Color _background_color_;
 
 };
 

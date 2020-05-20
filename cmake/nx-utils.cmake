@@ -124,8 +124,27 @@ function(add_nacp target)
 endfunction()
 
 function(add_nro_target target)
-    set(__NRO_COMMAND
-            ${ELF2NRO} $<TARGET_FILE:${target}.elf> ${CMAKE_CURRENT_BINARY_DIR}/${target}.nro --nacp=${CMAKE_CURRENT_BINARY_DIR}/${target}.nacp --icon=${APP_ICON})
+
+    if (NOT APP_ROMFS)
+        set(__NRO_COMMAND ${ELF2NRO}
+                $<TARGET_FILE:${target}.elf>
+                ${CMAKE_CURRENT_BINARY_DIR}/${target}.nro
+                --nacp=${CMAKE_CURRENT_BINARY_DIR}/${target}.nacp
+                --icon=${APP_ICON}
+                )
+    else()
+        message("Building with ROMFS: ${APP_ROMFS}")
+        set(__NRO_COMMAND ${ELF2NRO}
+                $<TARGET_FILE:${target}.elf>
+                ${CMAKE_CURRENT_BINARY_DIR}/${target}.nro
+                --nacp=${CMAKE_CURRENT_BINARY_DIR}/${target}.nacp
+                --romfsdir=${APP_ROMFS}
+                --icon=${APP_ICON}
+                )
+    endif()
+
+#    set(__NRO_COMMAND
+#            ${ELF2NRO} $<TARGET_FILE:${target}.elf> ${CMAKE_CURRENT_BINARY_DIR}/${target}.nro --nacp=${CMAKE_CURRENT_BINARY_DIR}/${target}.nacp --icon=${APP_ICON})
 
     if (NOT ${CMAKE_CURRENT_BINARY_DIR}/${target}.nacp)
         add_nacp(${target}.nacp)
@@ -144,8 +163,23 @@ function(add_nro_target target)
 endfunction()
 
 function(add_ovl_target target)
-    set(__NRO_COMMAND
-            ${ELF2NRO} $<TARGET_FILE:${target}.elf> ${CMAKE_CURRENT_BINARY_DIR}/${target}.ovl --nacp=${CMAKE_CURRENT_BINARY_DIR}/${target}.nacp --icon=${APP_ICON})
+
+    if (NOT APP_ROMFS)
+        set(__NRO_COMMAND ${ELF2NRO}
+                $<TARGET_FILE:${target}.elf>
+                ${CMAKE_CURRENT_BINARY_DIR}/${target}.ovl
+                --nacp=${CMAKE_CURRENT_BINARY_DIR}/${target}.nacp
+                --icon=${APP_ICON}
+                )
+    else()
+        set(__NRO_COMMAND ${ELF2NRO}
+                $<TARGET_FILE:${target}.elf>
+                ${CMAKE_CURRENT_BINARY_DIR}/${target}.ovl
+                --nacp=${CMAKE_CURRENT_BINARY_DIR}/${target}.nacp
+                --romfs=${APP_ROMFS}
+                --icon=${APP_ICON}
+                )
+    endif()
 
     if (NOT ${CMAKE_CURRENT_BINARY_DIR}/${target}.nacp)
         add_nacp(${target}.nacp)
@@ -198,8 +232,16 @@ function(build_switch_binaries target)
         endif ()
     endif ()
 
+    if (${ARGC} GREATER 5)
+        set(APP_ROMFS ${ARGV5})
+#    else ()
+#        if (NOT APP_VERSION)
+#            set(APP_VERSION "1.0.0")
+#        endif ()
+    endif ()
+
     # Build the binaries
-    add_nso_target(${target_we})
+#    add_nso_target(${target_we})
     add_nro_target(${target_we})
 endfunction()
 
@@ -240,6 +282,6 @@ function(build_switch_ovl_binaries target)
     endif ()
 
     # Build the binaries
-    add_nso_target(${target_we})
+#    add_nso_target(${target_we})
     add_ovl_target(${target_we})
 endfunction()

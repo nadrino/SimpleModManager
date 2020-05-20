@@ -35,10 +35,10 @@ void render_handler::reset() {
   _sdl_window_ = nullptr;
   _sdl_surface_ = nullptr;
 
-  _background_color_.R = 255;
-  _background_color_.G = 255;
-  _background_color_.B = 255;
-  _background_color_.A = 255;
+  _background_color_.r = 255;
+  _background_color_.g = 255;
+  _background_color_.b = 255;
+  _background_color_.a = 255;
 
 }
 
@@ -64,7 +64,7 @@ void render_handler::initialize() {
 
 void render_handler::initialize_frame() {
 
-  SDL_SetRenderDrawColor(_sdl_renderer_, _background_color_.R, _background_color_.G, _background_color_.B, _background_color_.A);
+  SDL_SetRenderDrawColor(_sdl_renderer_, _background_color_.r, _background_color_.g, _background_color_.b, _background_color_.a);
   SDL_RenderClear(_sdl_renderer_);
 
 }
@@ -73,4 +73,12 @@ void render_handler::finalize_frame() {
 
   SDL_RenderPresent(_sdl_renderer_);
 
+}
+
+SDL_Color& render_handler::get_background_color() {
+  return _background_color_;
+}
+
+SDL_Renderer *render_handler::get_sdl_renderer() const {
+  return _sdl_renderer_;
 }

@@ -10,7 +10,7 @@
 // MAIN
 int main(int argc, char **argv){
 
-
+  plInitialize(PlServiceType_System);
 
   application_handler app;
   app.initialize();
