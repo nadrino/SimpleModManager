@@ -28,14 +28,6 @@ void application_handler::reset() {
 
     _is_initialized_ = false;
 
-    appletExit();
-    romfsExit();
-    hidExit();
-    nsExit();
-    setsysExit();
-    setExit();
-    accountExit();
-
   }
 
   for(auto& element : _elements_list_) delete element;
@@ -50,14 +42,6 @@ void application_handler::reset() {
 void application_handler::initialize() {
 
   if(not _is_initialized_){
-
-    appletInitialize();
-    romfsInit();
-    hidInitialize();
-    nsInitialize();
-    setsysInitialize();
-    setInitialize();
-    accountInitialize(AccountServiceType_System);
 
     _app_render_handler_.initialize();
     _app_render_handler_.get_background_color().r = 80;

@@ -6,22 +6,35 @@
 set(GUI_NAME "SimpleModManagerGui")
 set(GUI_APP "${GUI_NAME}")
 
+
+set(GUI_DIR ${PROJECT_SOURCE_DIR}/gui)
+
 # Meta information about the app
 set(GUI_TITLE ${GUI_NAME})
 set(GUI_AUTHOR "Nadrino")
 set(GUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/assets/icon_gui.jpg")
+set(GUI_ROMFS "${GUI_DIR}/romfs")
 
-set(GUI_INC_DIR ${PROJECT_SOURCE_DIR}/gui/include)
-include_directories(${GUI_INC_DIR})
-include_directories(${GUI_INC_DIR}/draw)
+set(PLUTONIUM_DIR ${GUI_DIR}/library/Plutonium/Plutonium)
 
-set(GUI_SOURCE_DIR ${PROJECT_SOURCE_DIR}/gui/source)
+set(GUI_SOURCE_DIR ${GUI_DIR}/source)
 
 file(GLOB GUI_SOURCE_FILES
         "${GUI_SOURCE_DIR}/*.cpp"
         "${GUI_SOURCE_DIR}/draw/*.cpp"
+        "${PLUTONIUM_DIR}/Source/pu/*.cpp"
+        "${PLUTONIUM_DIR}/Source/pu/*/*.cpp"
+        "${PLUTONIUM_DIR}/Source/pu/*/*.c"
+        "${PLUTONIUM_DIR}/Source/pu/*/*/*.cpp"
         )
 
+
+set(GUI_INC_DIR ${GUI_DIR}/include)
+include_directories(
+        ${GUI_INC_DIR}
+        ${GUI_INC_DIR}/draw
+        ${PLUTONIUM_DIR}/Include
+        )
 
 include(nx-utils)
 
@@ -45,11 +58,13 @@ target_link_libraries(
         ${GUI_APP}.elf
         switch::libnx
         -L/opt/devkitpro/portlibs/switch/lib
-#        ${ZLIB_LIBRARIES}
-#        -lSDL2 -march=armv8-a -fPIE -L/opt/devkitpro/libnx/lib -lEGL -lglapi -ldrm_nouveau -lnx
-#        -lnx -lfreetype -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lpng -ljpeg -L/opt/devkitpro/portlibs/switch/lib -lSDL2 -march=armv8-a -fPIE -L/opt/devkitpro/libnx/lib -lEGL -lglapi -ldrm_nouveau -lnx -L/opt/devkitpro/portlibs/switch/lib -lfreetype -lbz2 -lpng16 -lz -lm -lnx -lz -lwebp
+        ${ZLIB_LIBRARIES}
+        -lSDL2 -march=armv8-a -fPIE -L/opt/devkitpro/libnx/lib -lEGL -lglapi -ldrm_nouveau -lnx
+        -lnx -lfreetype -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lpng -ljpeg -L/opt/devkitpro/portlibs/switch/lib -lSDL2 -march=armv8-a -fPIE -L/opt/devkitpro/libnx/lib -lEGL -lglapi -ldrm_nouveau -lnx -L/opt/devkitpro/portlibs/switch/lib -lfreetype -lbz2 -lpng16 -lz -lm -lnx -lz -lwebp
         -lSDL2  -march=armv8-a -fPIE -lEGL -lglapi -ldrm_nouveau -lSDL2_ttf -lfreetype
         -lpng -ljpeg -lnx
+        -lfreetype -lSDL2_mixer -lopusfile -lopus -lmodplug -lmpg123 -lvorbisidec -logg -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lwebp -lpng -ljpeg
+        ${FREETYPE_LIBRARIES}
 )
 
 set_target_properties(${GUI_APP}.elf PROPERTIES
@@ -59,7 +74,7 @@ set_target_properties(${GUI_APP}.elf PROPERTIES
 
 build_switch_binaries(
         ${GUI_APP}.elf
-        ${GUI_TITLE} ${GUI_AUTHOR} ${GUI_ICON} ${APP_VERSION}
+        ${GUI_TITLE} ${GUI_AUTHOR} ${GUI_ICON} ${APP_VERSION} ${GUI_ROMFS}
 )
 
 

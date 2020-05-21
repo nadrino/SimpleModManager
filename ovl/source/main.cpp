@@ -211,7 +211,7 @@ public:
     __mod_browser__.initialize();
 
     tsl::hlp::ScopeGuard dirGuard([&] {
-      toolbox::set_use_embedded_switch_fs(true);
+      toolbox::set_use_embedded_switch_fs(false);
 
     });
 
