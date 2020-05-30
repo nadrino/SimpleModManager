@@ -38,6 +38,7 @@ public:
 
   void scan_inputs(u64 kDown, u64 kHeld);
   void print_menu();
+  void display_conflicts_with_other_mods(std::string selected_mod_);
   void check_mods_status();
   bool change_directory(std::string new_directory_);
   bool go_to_selected_directory();

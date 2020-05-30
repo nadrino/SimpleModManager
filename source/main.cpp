@@ -11,7 +11,7 @@ mod_browser __mod_browser__;
 int main(int argc, char **argv){
 
   consoleInit(nullptr);
-  toolbox::set_use_embedded_switch_fs(true);
+  toolbox::enableEmbeddedSwitchFS();
 
   std::string old_config_path = toolbox::get_working_directory() + "/parameters.ini"; // before 1.5.0
   if(toolbox::do_path_is_file(old_config_path)){
@@ -58,7 +58,7 @@ int main(int argc, char **argv){
 
   } // while
 
-  toolbox::set_use_embedded_switch_fs(false);
+  toolbox::disableEmbeddedSwitchFS();
   consoleExit(nullptr);
   return 0;
 

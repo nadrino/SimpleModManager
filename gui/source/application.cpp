@@ -6,57 +6,87 @@
 
 #include <pu/ui/elm/elm_Rectangle.hpp>
 
-
+#include <toolbox.h>
 
 
 void application::OnLoad()
 {
   // Create the layout (calling the smart constructor above)
-  this->layout = main_layout::New();
+  this->_main_layout_ = main_layout::New();
 
   _mod_browser_.set_only_show_folders(true);
   _mod_browser_.set_max_relative_depth(1);
   _mod_browser_.initialize();
 
   auto items_list = _mod_browser_.get_selector().get_selection_list();
-  layout->load_items(items_list);
+  _main_layout_->load_items(items_list);
 
   // Load the layout. In applications layouts are loaded, not added into a container (you don't select an added layout, just load it from this function)
   // Simply explained: loading layout = the application will render that layout in the very next frame
-  this->LoadLayout(this->layout);
+  this->LoadLayout(this->_main_layout_);
 
   // Set a function when input is caught. This input handling will be the first one to be handled (before Layout or any Elements)
   // Using a lambda function here to simplify things
   // You can use member functions via std::bind() C++ wrapper
   this->SetOnInput([&](u64 Down, u64 Up, u64 Held, pu::ui::Touch Pos)
                    {
-                     if(Down & KEY_X) // If X is pressed, start with our dialog questions!
-                     {
-                       int opt = this->CreateShowDialog("Question", "Do you like apples?", { "Yes!", "No...", "Cancel" }, true); // (using latest option as cancel option)
-                       if((opt == -1) || (opt == -2)) // -1 and -2 are similar, but if the user cancels manually -1 is set, other types or cancel should be -2.
-                       {
-                         this->CreateShowDialog("Cancel", "Last question was canceled.", { "Ok" }, true); // If we will ignore the option, it doesn't matter if this is true or false
+                     if(Down & KEY_A){
+                       if(_current_app_state_ == GAME_BROWSER){
+                         std::string new_path = _mod_browser_.get_current_directory() + "/" + _main_layout_->getMenuItems()->GetSelectedItem()->GetName().AsUTF8();
+                         new_path = toolbox::remove_extra_doubled_characters(new_path, "/");
+                         _mod_browser_.change_directory(new_path);
+                         _mod_browser_.get_mod_manager().set_current_mods_folder(new_path);
+                         _mod_browser_.get_mod_manager().set_use_cache_only_for_status_check(true);
+                         _mod_browser_.get_mods_preseter().read_parameter_file(new_path);
+                         _main_layout_->load_items(_mod_browser_.get_selector().get_selection_list());
+                         _current_app_state_ = MOD_BROWSER;
                        }
-                       else
-                       {
-                         switch(opt)
-                         {
-                           case 0: // "Yes" was selected
-                             this->CreateShowDialog("Answer", "Really? I like apples too!", { "Ok" }, true); // Same here ^
-                             break;
-                           case 1: // "No" was selected
-                             this->CreateShowDialog("Answer", "Oh, bad news then...", { "OK" }, true); // And here ^
-                             break;
-                         }
+                       else if(_current_app_state_ == MOD_BROWSER){
+                         _mod_browser_.get_mod_manager().apply_mod(
+                           _main_layout_->getMenuItems()->GetSelectedItem()->GetName().AsUTF8(),
+                           true
+                           );
+                         _mod_browser_.get_selector().set_tag(
+                           _mod_browser_.get_selector().get_entry(
+                             _main_layout_->getMenuItems()->GetSelectedItem()->GetName().AsUTF8()
+                             ),
+                           _mod_browser_.get_mod_manager().get_mod_status(
+                             _main_layout_->getMenuItems()->GetSelectedItem()->GetName().AsUTF8()
+                             )
+                         );
                        }
+
                      }
-                     else if(Down & KEY_PLUS) // If + is pressed, exit application
+//                     if(Down & KEY_X) // If X is pressed, start with our dialog questions!
+//                     {
+//                       int opt = this->CreateShowDialog("Question", "Do you like apples?", { "Yes!", "No...", "Cancel" }, true); // (using latest option as cancel option)
+//                       if((opt == -1) || (opt == -2)) // -1 and -2 are similar, but if the user cancels manually -1 is set, other types or cancel should be -2.
+//                       {
+//                         this->CreateShowDialog("Cancel", "Last question was canceled.", { "Ok" }, true); // If we will ignore the option, it doesn't matter if this is true or false
+//                       }
+//                       else
+//                       {
+//                         switch(opt)
+//                         {
+//                           case 0: // "Yes" was selected
+//                             this->CreateShowDialog("Answer", "Really? I like apples too!", { "Ok" }, true); // Same here ^
+//                             break;
+//                           case 1: // "No" was selected
+//                             this->CreateShowDialog("Answer", "Oh, bad news then...", { "OK" }, true); // And here ^
+//                             break;
+//                         }
+//                       }
+//                     }
+                     else if(Down & KEY_B)
                      {
-                       this->Close();
-                     }
-                     else if(_current_app_state_ == GAME_BROWSER and Down & KEY_B) // If + is pressed, exit application
-                     {
-                       this->Close();
+                       if(_current_app_state_ == GAME_BROWSER){
+                         this->Close();
+                       }
+                       else if(_current_app_state_ == MOD_BROWSER){
+                         _mod_browser_.go_back();
+                         _main_layout_->load_items(_mod_browser_.get_selector().get_selection_list());
+                         _current_app_state_ = GAME_BROWSER;
+                       }
                      }
                    });
 

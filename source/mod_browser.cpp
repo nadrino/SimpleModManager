@@ -25,10 +25,12 @@ void mod_browser::initialize(){
   _parameters_handler_.initialize();
   set_base_folder(_parameters_handler_.get_parameter("stored-mods-base-folder"));
 
-  _mod_manager_.initialize();
   _mod_manager_.set_install_mods_base_folder(
     _parameters_handler_.get_parameter("install-mods-base-folder")
-    );
+  );
+  _mod_manager_.set_parameters_handler_ptr(&_parameters_handler_);
+  _mod_manager_.initialize();
+
 
   change_directory(_base_folder_);
 
@@ -87,7 +89,7 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
   if(kDown == 0 and kHeld == 0) return;
 
   if(get_current_relative_depth() == get_max_relative_depth()){
-    if(kDown & KEY_A){ // select folder / apply mod
+    if     (kDown & KEY_A){ // select folder / apply mod
       // make mod action (ACTIVATE OR DEACTIVATE)
       _mod_manager_.apply_mod(_selector_.get_selected_string());
 
@@ -114,7 +116,18 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
       }
     }
     else if(kDown & KEY_Y){ // mod detailed infos
-      _mod_manager_.display_mod_files_status(get_current_directory() + "/" + _selector_.get_selected_string());
+      std::string display_mod_files_status_str ="Show the status of each mod files";
+      std::string display_mod_files_conflicts_str = "Show the list of conflicts";
+      auto answer = toolbox::ask_question(
+        "Select your choice:",
+        {display_mod_files_status_str, display_mod_files_conflicts_str}
+        );
+      if(answer == display_mod_files_status_str){
+        _mod_manager_.display_mod_files_status(get_current_directory() + "/" + _selector_.get_selected_string());
+      }
+      else if(answer == display_mod_files_conflicts_str){
+        display_conflicts_with_other_mods(_selector_.get_selected_string());
+      }
     }
     else if(kDown & KEY_ZR){ // disable all mods
       remove_all_mods();
@@ -185,13 +198,13 @@ void mod_browser::print_menu(){
   std::cout << "  Page (" << _selector_.get_current_page() + 1 << "/" << _selector_.get_nb_pages() << ")" << std::endl;
   std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
   toolbox::print_left("Mod preset : " + _mods_preseter_.get_selected_mod_preset());
-  toolbox::print_left("Configuration preset : " + _parameters_handler_.get_selected_preset_name());
+  toolbox::print_left("Configuration preset : " + _parameters_handler_.get_selected_install_preset_name());
   toolbox::print_left("install-mods-base-folder = " + _mod_manager_.get_install_mods_base_folder());
   std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
   if(get_current_relative_depth() == get_max_relative_depth()){
-    toolbox::print_left_right(" A : Apply mod", "X : Disable mod ");
     toolbox::print_left_right(" ZL : Rescan all mods", "ZR : Disable all mods ");
-    toolbox::print_left_right(" - : Select mod preset", "+ : Apply mod preset ");
+    toolbox::print_left_right(" A/X : Apply/Disable mod", "L/R : Previous/Next preset ");
+    toolbox::print_left_right(" -/+ : Select/Apply mod preset", "Y : Mod options ");
   }
   else{
     toolbox::print_left_right(" A : Select folder", "Y : Change config preset ");
@@ -204,6 +217,67 @@ void mod_browser::print_menu(){
 //    toolbox::green_bg
 //    );
   consoleUpdate(nullptr);
+
+}
+void mod_browser::display_conflicts_with_other_mods(std::string selected_mod_){
+
+  consoleClear();
+
+  auto conflicts = _mods_preseter_.get_conflicts_with_other_mods(selected_mod_);
+
+  std::vector<std::string> sel_list;
+  std::vector<std::vector<std::string>> mods_conflict_files_list;
+  for(auto& conflict: conflicts){
+    if(conflict.second.empty()) continue;
+
+    sel_list.emplace_back(conflict.first);
+    mods_conflict_files_list.emplace_back(std::vector<std::string>());
+    for(auto &conflict_file_path : conflict.second){
+      mods_conflict_files_list.back().emplace_back(conflict_file_path);
+    }
+  }
+
+  selector sel;
+  sel.set_selection_list(sel_list);
+  sel.set_description_list(mods_conflict_files_list);
+
+  sel.set_max_items_per_page(toolbox::get_terminal_height()-9);
+
+  // Main loop
+  u64 kDown = 1;
+  u64 kHeld = 1;
+  while(appletMainLoop())
+  {
+
+    if(kDown != 0 or kHeld != 0){
+      consoleClear();
+      toolbox::print_left("Conflicts with " +   selected_mod_, toolbox::red_bg);
+      std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+      sel.print_selector();
+      std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+      toolbox::print_left("Page (" + std::to_string(sel.get_current_page()+1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
+      std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+      toolbox::print_left_right(" B : Go back", "");
+      if(sel.get_nb_pages() > 1) toolbox::print_left_right(" ← : Previous Page", "→ : Next Page ");
+      consoleUpdate(nullptr);
+    }
+
+    //Scan all the inputs. This should be done once for each frame
+    hidScanInput();
+
+    //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
+    kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+    kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
+
+    if (kDown & KEY_B) {
+      break; // break in order to return to hbmenu
+    }
+
+    sel.scan_inputs(kDown, kHeld);
+
+  }
+
+
 
 }
 void mod_browser::check_mods_status(){

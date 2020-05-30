@@ -31,7 +31,7 @@ void parameters_handler::initialize() {
   read_parameters();
   recreate_parameters_file(); // update version + cleanup
 
-  set_selected_preset_id(0); // default preset selected
+  set_selected_preset(_data_handler_["last-preset-used"]);
 
 }
 void parameters_handler::reset() {
@@ -50,6 +50,17 @@ void parameters_handler::set_selected_preset_id(int selected_preset_id_){
   if(selected_preset_id_ < 0 or selected_preset_id_ >= int(_presets_list_.size())) _selected_preset_id_ = 0; // reset;
   else _selected_preset_id_ = selected_preset_id_;
   fill_current_preset_parameters();
+  recreate_parameters_file(); // save last-preset-used
+}
+void parameters_handler::set_selected_preset(std::string preset_name_){
+  int preset_id = -1;
+  for(int i_preset = 0 ; i_preset < int(_presets_list_.size()) ; i_preset++){
+    if(preset_name_ == _presets_list_[i_preset]){
+      preset_id = i_preset;
+      break;
+    }
+  }
+  set_selected_preset_id(preset_id);
 }
 
 std::string parameters_handler::get_parameter(std::string parameter_name_) {
@@ -58,7 +69,7 @@ std::string parameters_handler::get_parameter(std::string parameter_name_) {
 std::string parameters_handler::get_parameters_file_path(){
   return _parameters_file_path_;
 }
-std::string parameters_handler::get_selected_preset_name(){
+std::string parameters_handler::get_selected_install_preset_name(){
   return _presets_list_[_selected_preset_id_];
 }
 
@@ -71,6 +82,8 @@ void parameters_handler::increment_selected_preset_id(){
 void parameters_handler::set_default_parameters() {
 
   _data_handler_["stored-mods-base-folder"] = "/mods/";
+  _data_handler_["use-gui"] = "1";
+  _data_handler_["last-preset-used"] = "default";
 
   // while adding a new preset dependant parameter
   // don't forget to propagate the changes to "fill_current_preset_parameters()"
@@ -78,11 +91,14 @@ void parameters_handler::set_default_parameters() {
   _presets_list_.emplace_back("default");
   _data_handler_[_presets_list_.back() + "-install-mods-base-folder"] = "/atmosphere/";
 
+  _presets_list_.emplace_back("reinx");
+  _data_handler_[_presets_list_.back() + "-install-mods-base-folder"] = "/reinx/";
+
   _presets_list_.emplace_back("sxos");
   _data_handler_[_presets_list_.back() + "-install-mods-base-folder"] = "/sxos/";
 
-  _presets_list_.emplace_back("reinx");
-  _data_handler_[_presets_list_.back() + "-install-mods-base-folder"] = "/reinx/";
+  _presets_list_.emplace_back("root");
+  _data_handler_[_presets_list_.back() + "-install-mods-base-folder"] = "/";
 
 }
 void parameters_handler::recreate_parameters_file() {
@@ -94,6 +110,8 @@ void parameters_handler::recreate_parameters_file() {
   parameter_file << std::endl;
   parameter_file << "# folder where mods are stored" << std::endl;
   parameter_file << "stored-mods-base-folder = " << _data_handler_["stored-mods-base-folder"] << std::endl;
+  parameter_file << "use-gui = " << _data_handler_["use-gui"] << std::endl;
+  parameter_file << "last-preset-used = " << _data_handler_["last-preset-used"] << std::endl;
   parameter_file << std::endl;
   parameter_file << std::endl;
   for(auto const &preset : _presets_list_){
@@ -121,7 +139,7 @@ void parameters_handler::read_parameters() {
 
   // specifying first preset to keep compatibility with older versions
   // where presets were not implemented yet (1.2.0)
-  std::string current_preset = "default";
+  std::string current_preset;
 
   for(auto &line : lines){
 
@@ -140,29 +158,31 @@ void parameters_handler::read_parameters() {
       }
     }
 
+    //
     if(line_elements[0] == "preset"){
       current_preset = line_elements[1];
-      append_to_preset_list(current_preset);
+      if(not toolbox::do_string_in_vector(line_elements[1], _presets_list_) ){
+        _presets_list_.emplace_back(current_preset);
+      }
     } else {
-      _data_handler_[current_preset + "-" + line_elements[0]] = line_elements[1];
+      if(current_preset.empty()){
+        _data_handler_[line_elements[0]] = line_elements[1];
+      }
+      else{
+        _data_handler_[current_preset + "-" + line_elements[0]] = line_elements[1];
+      }
     }
 
   }
 
-}
-
-void parameters_handler::append_to_preset_list(std::string preset_){
-
-  if (toolbox::do_string_in_vector(preset_, _presets_list_)){
-    // preset_ found in _presets_list_
-    return;
-  } else {
-    _presets_list_.emplace_back(preset_);
-  }
+  // getting last-program-version:
+  _data_handler_["last-program-version"] = _data_handler_[_presets_list_.back() + "-last-program-version"];
 
 }
+
 void parameters_handler::fill_current_preset_parameters(){
 
+  _data_handler_["last-preset-used"] = _presets_list_[_selected_preset_id_];
   _data_handler_["install-mods-base-folder"] = _data_handler_[_presets_list_[_selected_preset_id_] + "-install-mods-base-folder"];
 
 }

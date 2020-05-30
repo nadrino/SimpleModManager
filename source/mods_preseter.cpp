@@ -285,6 +285,137 @@ void mods_preseter::edit_preset(std::string preset_name_, std::vector<std::strin
     _data_handler_[preset_name_].emplace_back(selected_mods_list_[i_entry]);
   }
 
+  // Check for conflicts
+  show_conflicted_files(preset_name_);
+
+
+}
+void mods_preseter::show_conflicted_files(std::string &preset_name_) {
+
+  consoleClear();
+
+  toolbox::print_left("Scanning preset files...", toolbox::magenta_bg);
+  consoleUpdate(nullptr);
+
+  std::vector<std::string> complete_files_list;
+  std::map<std::string, long int> files_size_map;
+  std::map<std::string, std::string> conflict_files_map;
+
+  for(int i_entry = 0 ; i_entry < int(_data_handler_[preset_name_].size()) ; i_entry++){
+
+    toolbox::print_left(" > Getting files for the mod: " + _data_handler_[preset_name_][i_entry], toolbox::magenta_bg);
+    consoleUpdate(nullptr);
+
+    std::string mod_folder_path = _mod_folder_ + "/" + _data_handler_[preset_name_][i_entry];
+    auto mod_files_path_list = toolbox::get_list_files_in_subfolders(mod_folder_path);
+    for(auto& mod_file_path: mod_files_path_list){
+      std::string mod_file_full_path = mod_folder_path + "/" + mod_file_path;
+      files_size_map[mod_file_path] = toolbox::get_file_size(mod_file_full_path); // will overwrite when conflict
+      if(not toolbox::do_string_in_vector(mod_file_path,complete_files_list)){
+        complete_files_list.emplace_back(mod_file_path);
+      }
+      else{
+        conflict_files_map[mod_file_path] = _data_handler_[preset_name_][i_entry];
+      }
+    }
+
+  }
+
+  long int total_SD_size = 0;
+  for(auto& file_size : files_size_map){
+    total_SD_size += file_size.second;
+  }
+  std::string total_SD_size_str = toolbox::parse_size_unit(total_SD_size);
+
+  std::vector<std::string> sel_conflict_file_list;
+  std::vector<std::string> tag_mod_used_list;
+  if(conflict_files_map.empty()){
+    sel_conflict_file_list.emplace_back("No conflict has been found.");
+    tag_mod_used_list.emplace_back("");
+  }
+  else{
+    for(auto& conflict: conflict_files_map){
+      sel_conflict_file_list.emplace_back(toolbox::get_filename_from_file_path(conflict.first));
+      tag_mod_used_list.emplace_back("-> \"" + conflict.second + "\" will be used.");
+    }
+  }
+
+
+  selector sel;
+  sel.set_selection_list(sel_conflict_file_list);
+  sel.set_tags_list(tag_mod_used_list);
+  sel.set_max_items_per_page(toolbox::get_terminal_height()-9);
+
+  // Main loop
+  u64 kDown = 1;
+  u64 kHeld = 1;
+  while(appletMainLoop())
+  {
+
+    if(kDown != 0 or kHeld != 0){
+      consoleClear();
+      toolbox::print_right("SimpleModManager v"+toolbox::get_app_version());
+      toolbox::print_left("Conflicted files for the preset \"" + preset_name_ + "\":", toolbox::red_bg);
+      std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+      sel.print_selector();
+      std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+      toolbox::print_left("Total size of the preset:" + total_SD_size_str, toolbox::green_bg);
+      std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+      toolbox::print_left("Page (" + std::to_string(sel.get_current_page()+1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
+      std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+      toolbox::print_left(" A : OK");
+      if(sel.get_nb_pages() > 1) toolbox::print_left_right(" <- : Previous Page", "-> : Next Page ");
+      consoleUpdate(nullptr);
+    }
+
+    //Scan all the inputs. This should be done once for each frame
+    hidScanInput();
+
+    //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
+    kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+    kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
+
+    if (kDown & KEY_A) {
+      break; // break in order to return to hbmenu
+    }
+
+    sel.scan_inputs(kDown, kHeld);
+
+  }
+
+}
+
+std::map<std::string, std::vector<std::string>> mods_preseter::get_conflicts_with_other_mods(const std::string& mod_name_) {
+
+  toolbox::print_left("Searching for conflicts with " + mod_name_, toolbox::magenta_bg);
+  consoleUpdate(nullptr);
+  std::map<std::string, std::vector<std::string>> conflicts_map;
+
+  std::string mod_folder_path = _mod_folder_ + "/" + mod_name_;
+  toolbox::print_left(" > Getting list of files for " + mod_name_, toolbox::magenta_bg);
+  consoleUpdate(nullptr);
+  auto mod_files_path_list = toolbox::get_list_files_in_subfolders(mod_folder_path);
+
+  auto other_mods_list = toolbox::get_list_of_subfolders_in_folder(_mod_folder_);
+
+  for(auto& other_mod_name: other_mods_list){
+
+    if(other_mod_name == mod_name_) continue;
+
+    conflicts_map[other_mod_name] = std::vector<std::string>();
+
+    std::string other_mod_folder_path = _mod_folder_ + "/" + other_mod_name;
+    toolbox::print_left(" > Scanning conflicts with " + other_mod_name, toolbox::magenta_bg);
+    consoleUpdate(nullptr);
+    auto other_mod_files_path_list = toolbox::get_list_files_in_subfolders(other_mod_folder_path);
+    for(auto& other_mod_file_path: other_mod_files_path_list){
+      if(toolbox::do_string_in_vector(other_mod_file_path, mod_files_path_list)){
+        conflicts_map[other_mod_name].emplace_back(other_mod_file_path);
+      }
+    }
+  }
+
+  return conflicts_map;
 
 }
 

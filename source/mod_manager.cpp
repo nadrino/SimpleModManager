@@ -18,13 +18,18 @@ mod_manager::mod_manager() {
   _install_mods_base_folder_ = "/atmosphere/"; // should not be used
   _current_mods_folder_path_ = "";
   _use_cache_only_for_status_check_ = false;
+  _parameters_handler_ptr_ = nullptr;
 
 }
-mod_manager::~mod_manager() = default;
+mod_manager::~mod_manager(){
+//  delete _parameters_handler_ptr_; // NO should be handled by external
+}
 
 void mod_manager::initialize() {
 
-
+  if(_parameters_handler_ptr_ == nullptr){
+    _parameters_handler_ptr_ = new parameters_handler();
+  }
 
 }
 
@@ -42,6 +47,9 @@ std::string & mod_manager::get_current_mods_folder_path(){
   return _current_mods_folder_path_;
 }
 
+void mod_manager::set_parameters_handler_ptr(parameters_handler *parameters_handler_ptr_){
+  _parameters_handler_ptr_ = parameters_handler_ptr_;
+}
 void mod_manager::set_current_mods_folder(std::string folder_path_) {
   _current_mods_folder_path_ = folder_path_;
 //  _relative_file_path_list_cache_.clear();
@@ -53,7 +61,7 @@ void mod_manager::load_mods_status_cache_file() {
 
   _mods_status_cache_.clear();
   _mods_status_cache_fraction_.clear();
-  std::string cache_file_path = _current_mods_folder_path_ + "/mods_status_cache";
+  std::string cache_file_path = _current_mods_folder_path_ + "/mods_status_cache.txt";
   if(toolbox::do_path_is_file(cache_file_path)){
 
     auto lines = toolbox::dump_file_as_vector_string(cache_file_path);
@@ -62,9 +70,8 @@ void mod_manager::load_mods_status_cache_file() {
       if(line_elements.size() < 2) continue; // useless entry
 
       int index_mod_name = 0;
-      if(line_elements.size() == 4){ // 1.5.1 -> added preset parameter (backward compatibility)
+      if(line_elements.size() == 4){ // TO BE SUPPRESSED -> old test
         index_mod_name = 1;
-
       }
       _mods_status_cache_[line_elements[index_mod_name]] = line_elements[index_mod_name+1];
       if(line_elements.size() < 3) continue; // v < 1.5.0
@@ -77,38 +84,43 @@ void mod_manager::load_mods_status_cache_file() {
 }
 void mod_manager::save_mods_status_cache_file() {
 
-  std::string cache_file_path = _current_mods_folder_path_ + "/mods_status_cache";
+  std::string cache_file_path = _current_mods_folder_path_ + "/mods_status_cache.txt";
   std::string data_string;
 
   for(auto const &mod_status : _mods_status_cache_){
     if(not mod_status.second.empty()){
-      data_string += _parameters_handler_.get_selected_preset_name();
-      data_string += "=";
       data_string += mod_status.first;
       data_string += "=" ;
-      data_string += mod_status.second ;
+      data_string += mod_status.second;
       data_string += "=" ;
       data_string += std::to_string(_mods_status_cache_fraction_[mod_status.first]) ;
       data_string += "\n";
     }
   }
+
   toolbox::dump_string_in_file(data_string, cache_file_path);
 
 }
 void mod_manager::reset_mod_cache_status(std::string mod_name_){
-  _mods_status_cache_[mod_name_] = "";
-  _mods_status_cache_fraction_[mod_name_] = -1;
+  _mods_status_cache_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_] = "";
+  _mods_status_cache_fraction_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_] = -1;
 }
 void mod_manager::reset_all_mods_cache_status(){
-  for(auto &mod_status_cache : _mods_status_cache_){
-    _mods_status_cache_[mod_status_cache.first] = "";
-    _mods_status_cache_fraction_[mod_status_cache.first] = -1;
-  }
+
+  toolbox::delete_file(_current_mods_folder_path_ + "/mods_status_cache.txt");
+  load_mods_status_cache_file();
+
+//  for(auto &mod_status_cache : _mods_status_cache_){
+//    if(toolbox::do_string_starts_with_substring(mod_status_cache.first, _parameters_handler_ptr_->get_selected_install_preset_name())){
+//      _mods_status_cache_[mod_status_cache.first] = "";
+//      _mods_status_cache_fraction_[mod_status_cache.first] = -1;
+//    }
+//  }
 }
 
 double mod_manager::get_mod_status_fraction(std::string mod_name_){
   get_mod_status(mod_name_);
-  return _mods_status_cache_fraction_[mod_name_];
+  return _mods_status_cache_fraction_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_];
 }
 std::string mod_manager::get_mod_status(std::string mod_name_){
 
@@ -116,8 +128,8 @@ std::string mod_manager::get_mod_status(std::string mod_name_){
   // ACTIVE
   // INACTIVE
 
-  if(not _mods_status_cache_[mod_name_].empty())
-    return _mods_status_cache_[mod_name_];
+  if(not _mods_status_cache_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_].empty())
+    return _mods_status_cache_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_];
 
   if(_use_cache_only_for_status_check_)
     return "Not Checked";
@@ -158,14 +170,14 @@ std::string mod_manager::get_mod_status(std::string mod_name_){
     )) same_files_count++;
   }
 
-  _mods_status_cache_fraction_[mod_name_] = double(same_files_count)/double(total_files_count);
+  _mods_status_cache_fraction_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_] = double(same_files_count) / double(total_files_count);
 
-  if(same_files_count == total_files_count) _mods_status_cache_[mod_name_] = "ACTIVE";
-  else if(same_files_count == 0) _mods_status_cache_[mod_name_] = "INACTIVE";
-  else _mods_status_cache_[mod_name_] = "PARTIAL (" + std::to_string(same_files_count) + "/" + std::to_string(total_files_count) + ")";
+  if(same_files_count == total_files_count) _mods_status_cache_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_] = "ACTIVE";
+  else if(same_files_count == 0) _mods_status_cache_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_] = "INACTIVE";
+  else _mods_status_cache_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_] = "PARTIAL (" + std::to_string(same_files_count) + "/" + std::to_string(total_files_count) + ")";
 
   save_mods_status_cache_file();
-  return _mods_status_cache_[mod_name_];
+  return _mods_status_cache_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_];
 
 }
 void mod_manager::apply_mod(std::string mod_name_, bool force_) {
@@ -372,7 +384,7 @@ void mod_manager::display_mod_files_status(std::string mod_folder_path_){
       toolbox::print_left("Page (" + std::to_string(sel.get_current_page()+1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
       std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
       toolbox::print_left_right(" B : Go back", "");
-      if(sel.get_nb_pages() > 1) toolbox::print_left_right(" L : Previous Page", "R : Next Page ");
+      if(sel.get_nb_pages() > 1) toolbox::print_left_right(" ← : Previous Page", "→ : Next Page ");
       consoleUpdate(nullptr);
     }
 

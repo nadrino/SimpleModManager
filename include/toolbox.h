@@ -10,6 +10,8 @@
 #include <map>
 #include <ctime>
 
+#include <switch.h>
+
 namespace toolbox{
 
   static std::string empty_str;
@@ -71,7 +73,8 @@ namespace toolbox{
 
 
   //! direct filesystem functions :
-  void set_use_embedded_switch_fs(bool use_embedded_switch_fs_);
+  void enableEmbeddedSwitchFS();
+  void disableEmbeddedSwitchFS();
   void dump_string_in_file(std::string &str_, std::string& path_);
 
   bool do_path_is_valid(std::string &path_);

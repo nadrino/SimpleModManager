@@ -30,6 +30,10 @@ public:
   void select_mod_preset();
   void create_new_preset();
   void edit_preset(std::string preset_name_, std::vector<std::string> selected_mods_list_);
+  void show_conflicted_files(std::string &preset_name_);
+
+  std::map<std::string, std::vector<std::string>> get_conflicts_with_other_mods(const std::string& mod_name_);
+
 
   void select_previous_mod_preset();
   void select_next_mod_preset();

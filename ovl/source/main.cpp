@@ -205,19 +205,18 @@ public:
     auto rc = fsInitialize();
     if (R_FAILED(rc))
       fatalThrow(MAKERESULT(Module_Libnx, LibnxError_InitFail_FS));
-    toolbox::set_use_embedded_switch_fs(true);
+    toolbox::enableEmbeddedSwitchFS();
     __mod_browser__.set_only_show_folders(true);
     __mod_browser__.set_max_relative_depth(1);
     __mod_browser__.initialize();
 
     tsl::hlp::ScopeGuard dirGuard([&] {
-      toolbox::set_use_embedded_switch_fs(false);
-
+      toolbox::disableEmbeddedSwitchFS();
     });
 
   }  // Called at the start to initialize all services necessary for this Overlay
   virtual void exitServices() override {
-//    toolbox::set_use_embedded_switch_fs(false);
+    toolbox::disableEmbeddedSwitchFS();
   }  // Callet at the end to clean up all services previously initialized
 
   virtual void onShow() override {}    // Called before overlay wants to change from invisible to visible state

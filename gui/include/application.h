@@ -34,7 +34,7 @@ public:
 private:
 
   // Layout instance
-  main_layout::Ref layout;
+  main_layout::Ref _main_layout_;
 
   mod_browser _mod_browser_;
 

@@ -27,7 +27,9 @@ public:
   void set_max_items_per_page(int max_items_per_page_);
 
   void set_tag(int entry_, std::string tag_);
+  void set_tags_list(std::vector<std::string>& tags_list_);
   void set_description(int entry_, std::vector<std::string> description_lines_);
+  void set_description_list(std::vector<std::vector<std::string>> descriptions_list_);
 
   int get_nb_pages();
   int get_current_page();

@@ -58,9 +58,18 @@ void selector::set_tag(int entry_, std::string tag_){
   if(entry_ < 0 or entry_ >= int(_tags_list_.size())) return;
   _tags_list_[entry_] = tag_;
 }
+void selector::set_tags_list(std::vector<std::string>& tags_list_){
+  if(tags_list_.size() != _selection_list_.size()) return;
+  _tags_list_ = tags_list_;
+}
 void selector::set_description(int entry_, std::vector<std::string> description_lines_){
   if(entry_ < 0 or entry_ >= int(_descriptions_list_.size())) return;
   _descriptions_list_[entry_] = description_lines_;
+  process_page_numbering();
+}
+void selector::set_description_list(std::vector<std::vector<std::string>> descriptions_list_){
+  if(descriptions_list_.size() != _selection_list_.size()) return;
+  _descriptions_list_ = descriptions_list_;
   process_page_numbering();
 }
 
