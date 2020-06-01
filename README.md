@@ -3,7 +3,7 @@
 # SimpleModManager
 SimpleModManager is an homebrew app for the Nintendo Switch CFW : Atmosphere. It allows to manage your mods (via LayeredFS).
 
-<p align="center"><img src="https://github.com/nadrino/SimpleModManager/blob/master/assets/icon.jpg"></p>
+<p align="center"><img src="https://github.com/nadrino/SimpleModManager/blob/master/assets/icon_gui.jpg"></p>
 
 ## Usage
 - Place the .nro file in the `/switch/` folder of your SDcard.
