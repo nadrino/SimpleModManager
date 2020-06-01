@@ -222,6 +222,8 @@ void mods_preseter::edit_preset(std::string preset_name_, std::vector<std::strin
       new_tag += "#" + std::to_string(selected_mods_list_.size());
       sel.set_tag(sel.get_selected_entry(), new_tag);
     } else if(kDown & KEY_X){
+      int original_size = selected_mods_list_.size();
+      // in decreasing order because we want to remove the last occurrence of the mod first
       for(int i_entry = int(selected_mods_list_.size()) - 1 ; i_entry >= 0 ; i_entry--){
         if(sel.get_selected_string() == selected_mods_list_[i_entry]){
           selected_mods_list_.erase(selected_mods_list_.begin() + i_entry);
@@ -243,6 +245,7 @@ void mods_preseter::edit_preset(std::string preset_name_, std::vector<std::strin
           break; // for loop
         }
       }
+      selected_mods_list_.resize(original_size-1);
     } else if(kDown & KEY_PLUS){
       break;
     } else if(kDown & KEY_B){

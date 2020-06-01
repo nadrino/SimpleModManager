@@ -63,35 +63,49 @@ namespace toolbox{
 
   }
   void print_right(std::string input_, std::string color_, bool flush_){
+    std::string stripped_input_ = toolbox::remove_color_codes_in_string(input_);
     int nb_space_left = get_terminal_width() - input_.size();
     if(nb_space_left <= 0){ // cut the string
-      input_ = input_.substr(0, input_.size() + nb_space_left - 1);
+      input_ = input_.substr(0, input_.size() + nb_space_left - int(flush_)); // remove extra char if flush
+      stripped_input_ = toolbox::remove_color_codes_in_string(input_);
       nb_space_left = get_terminal_width() - input_.size();
     }
-    if(flush_) nb_space_left-=1;
-    if(flush_) std::cout << "\r";
+    if(flush_){
+      nb_space_left-=1;
+      std::cout << "\r";
+    }
     std::cout << color_ << repeat_string(" ", nb_space_left) << input_ << reset_color;
     if(flush_) std::cout << "\r";
     else if(int(input_.size()) > get_terminal_width()) std::cout << std::endl;
   }
   void print_left(std::string input_, std::string color_, bool flush_){
-    int nb_space_left = get_terminal_width() - input_.size();
+    std::string stripped_input_ = toolbox::remove_color_codes_in_string(input_);
+    int nb_space_left = get_terminal_width() - stripped_input_.size();
     if(nb_space_left <= 0){ // cut the string
-      input_ = input_.substr(0, input_.size() + nb_space_left - 1);
-      nb_space_left = get_terminal_width() - input_.size();
+      input_ = input_.substr(0, input_.size() + nb_space_left - int(flush_)); // remove extra char if flush
+//     input_ = input_.substr(-nb_space_left, input_.size() + nb_space_left); // NO because can't display the cursor properly
+      stripped_input_ = toolbox::remove_color_codes_in_string(input_);
+      nb_space_left = get_terminal_width() - stripped_input_.size();
     }
-    if(flush_) nb_space_left-=1;
-    if(flush_) std::cout << "\r";
+    if(flush_){
+      nb_space_left-=1;
+      std::cout << "\r";
+    }
     std::cout << color_ << input_ << repeat_string(" ", nb_space_left) << reset_color;
     if(flush_) std::cout << "\r";
     else if(int(input_.size()) > get_terminal_width()) std::cout << std::endl;
   }
   void print_left_right(std::string input_left_, std::string input_right_, std::string color_){
+    std::string stripped_input_left_ = toolbox::remove_color_codes_in_string(input_left_);
+    std::string stripped_input_right_ = toolbox::remove_color_codes_in_string(input_right_);
 
-    int nb_space_left = get_terminal_width() - input_left_.size() - input_right_.size();
+    int nb_space_left = get_terminal_width() - stripped_input_left_.size() - stripped_input_right_.size();
     if(nb_space_left <= 0){
-      input_left_ = input_left_.substr(0, input_left_.size() + nb_space_left - 1);
-      nb_space_left = get_terminal_width() - input_left_.size() - input_right_.size();
+      input_left_ = input_left_.substr(0, input_left_.size() + nb_space_left);
+//      input_left_ = input_left_.substr(-nb_space_left, input_left_.size() + nb_space_left); // NO because can't display the cursor properly
+      stripped_input_left_ = toolbox::remove_color_codes_in_string(input_left_);
+//      stripped_input_right_ = toolbox::remove_color_codes_in_string(input_right_);
+      nb_space_left = get_terminal_width() - stripped_input_left_.size() - stripped_input_right_.size();
     }
 
     std::cout << color_ << input_left_;
@@ -259,6 +273,13 @@ namespace toolbox{
     return answer;
   }
 
+  std::string remove_color_codes_in_string(std::string &input_string_){
+    std::string stripped_str(input_string_);
+    for(auto &color_code : toolbox::colors_list){
+      stripped_str = toolbox::replace_substring_in_string(stripped_str, color_code, "");
+    }
+    return stripped_str;
+  }
 
   //! toolbox vars management functions :
   void reset_last_displayed_value(){
@@ -356,6 +377,15 @@ namespace toolbox{
       out_str += str_;
     }
     return out_str;
+  }
+  std::string replace_substring_in_string(std::string &input_str_, std::string substr_to_look_for_, std::string substr_to_replace_){
+    std::string stripped_str = input_str_;
+    size_t index = 0;
+    while ((index = stripped_str.find(substr_to_look_for_, index)) != std::string::npos) {
+      stripped_str.replace(index, substr_to_look_for_.length(), substr_to_replace_);
+      index += substr_to_replace_.length();
+    }
+    return stripped_str;
   }
 
   std::vector<std::string> split_string(std::string input_string_, std::string delimiter_){

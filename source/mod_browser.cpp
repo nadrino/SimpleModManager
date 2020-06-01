@@ -257,8 +257,14 @@ void mod_browser::print_menu(){
 
   std::cout << "  Page (" << _selector_.get_current_page() + 1 << "/" << _selector_.get_nb_pages() << ")" << std::endl;
   std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
-  toolbox::print_left("Mod preset : " + _mods_preseter_.get_selected_mod_preset());
-  toolbox::print_left("Configuration preset : " + _parameters_handler_.get_current_config_preset_name());
+  if(get_current_relative_depth() == get_max_relative_depth())
+    toolbox::print_left("Mod preset : " + _mods_preseter_.get_selected_mod_preset());
+  toolbox::print_left(
+    "Configuration preset : "
+    + toolbox::green_bg
+    + _parameters_handler_.get_current_config_preset_name()
+    + toolbox::reset_color
+    );
   toolbox::print_left("install-mods-base-folder = " + _mod_manager_.get_install_mods_base_folder());
   std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
   if(get_current_relative_depth() == get_max_relative_depth()){

@@ -21,6 +21,13 @@ namespace toolbox{
   static std::string green_bg = "\033[1;42m";
   static std::string magenta_bg = "\033[1;45m";
   static std::string reset_color = "\033[0m";
+  static std::vector<std::string> colors_list({
+                                                red_bg,
+                                                grey_bg,
+                                                blue_bg,
+                                                green_bg,
+                                                magenta_bg,
+                                                reset_color});
 
 
   //! printout/printin functions :
@@ -39,7 +46,7 @@ namespace toolbox{
   std::string get_user_string(std::string default_str_ = "");
   std::string ask_question(std::string question_, std::vector<std::string> answers_,
     std::vector<std::vector<std::string>> descriptions_=std::vector<std::vector<std::string>>());
-
+  std::string remove_color_codes_in_string(std::string &input_string_);
 
   //! toolbox vars management functions :
   void reset_last_displayed_value();
@@ -61,6 +68,7 @@ namespace toolbox{
   std::string join_vector_string(std::vector<std::string> string_list_, std::string delimiter_, int begin_index_ = 0, int end_index_ = 0);
   std::string remove_extra_doubled_characters(std::string input_str_, std::string doubled_char_);
   std::string repeat_string(std::string str_, int n_times_);
+  std::string replace_substring_in_string(std::string &input_str_, std::string substr_to_look_for_, std::string substr_to_replace_);
 
   std::vector<std::string> split_string(std::string input_string_, std::string delimiter_);
 
