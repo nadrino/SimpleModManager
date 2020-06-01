@@ -102,8 +102,8 @@ void mod_manager::save_mods_status_cache_file() {
 
 }
 void mod_manager::reset_mod_cache_status(std::string mod_name_){
-  _mods_status_cache_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_] = "";
-  _mods_status_cache_fraction_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_] = -1;
+  _mods_status_cache_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_] = "";
+  _mods_status_cache_fraction_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_] = -1;
 }
 void mod_manager::reset_all_mods_cache_status(){
 
@@ -120,7 +120,7 @@ void mod_manager::reset_all_mods_cache_status(){
 
 double mod_manager::get_mod_status_fraction(std::string mod_name_){
   get_mod_status(mod_name_);
-  return _mods_status_cache_fraction_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_];
+  return _mods_status_cache_fraction_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_];
 }
 std::string mod_manager::get_mod_status(std::string mod_name_){
 
@@ -128,8 +128,8 @@ std::string mod_manager::get_mod_status(std::string mod_name_){
   // ACTIVE
   // INACTIVE
 
-  if(not _mods_status_cache_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_].empty())
-    return _mods_status_cache_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_];
+  if(not _mods_status_cache_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_].empty())
+    return _mods_status_cache_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_];
 
   if(_use_cache_only_for_status_check_)
     return "Not Checked";
@@ -170,14 +170,15 @@ std::string mod_manager::get_mod_status(std::string mod_name_){
     )) same_files_count++;
   }
 
-  _mods_status_cache_fraction_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_] = double(same_files_count) / double(total_files_count);
+  _mods_status_cache_fraction_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_] = double(same_files_count) / double(total_files_count);
 
-  if(same_files_count == total_files_count) _mods_status_cache_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_] = "ACTIVE";
-  else if(same_files_count == 0) _mods_status_cache_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_] = "INACTIVE";
-  else _mods_status_cache_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_] = "PARTIAL (" + std::to_string(same_files_count) + "/" + std::to_string(total_files_count) + ")";
+  if(same_files_count == total_files_count) _mods_status_cache_[
+                                              _parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_] = "ACTIVE";
+  else if(same_files_count == 0) _mods_status_cache_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_] = "INACTIVE";
+  else _mods_status_cache_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_] = "PARTIAL (" + std::to_string(same_files_count) + "/" + std::to_string(total_files_count) + ")";
 
   save_mods_status_cache_file();
-  return _mods_status_cache_[_parameters_handler_ptr_->get_selected_install_preset_name() + ": " + mod_name_];
+  return _mods_status_cache_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_];
 
 }
 void mod_manager::apply_mod(std::string mod_name_, bool force_) {

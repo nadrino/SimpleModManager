@@ -41,6 +41,7 @@ void mod_browser::reset(){
   _base_folder_ = "/";
   _current_directory_ = _base_folder_;
   _only_show_folders_ = false;
+  _main_config_preset_ = _parameters_handler_.get_current_config_preset_name();
 
   _selector_.reset();
   _parameters_handler_.reset();
@@ -107,21 +108,16 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
         _mod_manager_.get_mod_status(_selector_.get_selected_string())
       );
     }
-    else if(kDown & KEY_ZL){ // recheck all mods
-      auto answer = toolbox::ask_question("Do you which to recheck all mods ?",
-        std::vector<std::string>({"Yes","No"}));
-      if(answer == "Yes"){
-        _mod_manager_.reset_all_mods_cache_status();
-        check_mods_status();
-      }
-    }
     else if(kDown & KEY_Y){ // mod detailed infos
       std::string display_mod_files_status_str ="Show the status of each mod files";
       std::string display_mod_files_conflicts_str = "Show the list of conflicts";
       auto answer = toolbox::ask_question(
-        "Select your choice:",
-        {display_mod_files_status_str, display_mod_files_conflicts_str}
-        );
+        "Mod options:",
+        {
+          display_mod_files_status_str,
+          display_mod_files_conflicts_str
+        }
+      );
       if(answer == display_mod_files_status_str){
         _mod_manager_.display_mod_files_status(get_current_directory() + "/" + _selector_.get_selected_string());
       }
@@ -129,9 +125,73 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
         display_conflicts_with_other_mods(_selector_.get_selected_string());
       }
     }
-    else if(kDown & KEY_ZR){ // disable all mods
-      remove_all_mods();
-      check_mods_status();
+    else if(kDown & KEY_ZL or kDown & KEY_ZR){ // recheck all mods
+      std::string recheck_all_mods_answer = "Reset mods status cache and recheck all mods";
+      std::string disable_all_mods_answer = "Disable all mods";
+      std::string set_install_preset_answer = "Attribute a config preset for this folder";
+      auto menu_answer = toolbox::ask_question(
+        "Options for this folder:",
+        {
+          recheck_all_mods_answer,
+          disable_all_mods_answer,
+          set_install_preset_answer
+        }
+      );
+
+      if(menu_answer == recheck_all_mods_answer){
+        auto answer = toolbox::ask_question("Do you which to recheck all mods ?",
+                                            std::vector<std::string>({"Yes", "No"}));
+        if(answer == "Yes"){
+          _mod_manager_.reset_all_mods_cache_status();
+          check_mods_status();
+        }
+      }
+      else if(menu_answer == disable_all_mods_answer){
+        remove_all_mods();
+        check_mods_status();
+      }
+      else if(menu_answer == set_install_preset_answer){
+
+        std::vector<std::string> config_presets_list;
+        std::vector<std::vector<std::string>> config_presets_description_list;
+
+        std::string null_preset="Keep the main menu preset (default).";
+        config_presets_list.emplace_back(null_preset);
+        config_presets_description_list.emplace_back(std::vector<std::string>());
+
+        for(const auto& preset_name: _parameters_handler_.get_presets_list()){
+          config_presets_list.emplace_back(preset_name);
+          config_presets_description_list.emplace_back(std::vector<std::string>());
+          config_presets_description_list.back().emplace_back(
+            "install-mods-base-folder: "+_parameters_handler_.get_parameter(
+              preset_name+"-install-mods-base-folder"
+            )
+          );
+        }
+
+        auto answer = toolbox::ask_question("Please select the config preset you want for this folder:",
+                                            config_presets_list, config_presets_description_list);
+
+        // overwriting
+        std::string this_folder_config_file_path = _current_directory_ + "/this_folder_config.txt";
+        toolbox::delete_file(this_folder_config_file_path);
+        if(answer != null_preset){
+          toolbox::dump_string_in_file(answer, this_folder_config_file_path);
+          _parameters_handler_.set_current_config_preset_name(answer);
+          _mod_manager_.set_install_mods_base_folder(
+            _parameters_handler_.get_parameter("install-mods-base-folder")
+          );
+        }
+        else{
+          // restore the config preset
+          _parameters_handler_.set_current_config_preset_name(_main_config_preset_);
+          _mod_manager_.set_install_mods_base_folder(
+            _parameters_handler_.get_parameter("install-mods-base-folder")
+          );
+        }
+
+      }
+
     }
     else if(kDown & KEY_MINUS){ // Enter the mods preset menu a mods preset
       _mods_preseter_.select_mod_preset();
@@ -139,8 +199,8 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
     else if(kDown & KEY_PLUS){ // Apply a mods preset
       std::string answer = toolbox::ask_question(
         "Do you want to apply " + _mods_preseter_.get_selected_mod_preset() + " ?",
-        std::vector<std::string>({"Yes","No"})
-        );
+        std::vector<std::string>({"Yes", "No"})
+      );
       if(answer == "Yes"){
         remove_all_mods(true);
         std::vector<std::string> mods_list = _mods_preseter_.get_mods_list(
@@ -198,7 +258,7 @@ void mod_browser::print_menu(){
   std::cout << "  Page (" << _selector_.get_current_page() + 1 << "/" << _selector_.get_nb_pages() << ")" << std::endl;
   std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
   toolbox::print_left("Mod preset : " + _mods_preseter_.get_selected_mod_preset());
-  toolbox::print_left("Configuration preset : " + _parameters_handler_.get_selected_install_preset_name());
+  toolbox::print_left("Configuration preset : " + _parameters_handler_.get_current_config_preset_name());
   toolbox::print_left("install-mods-base-folder = " + _mod_manager_.get_install_mods_base_folder());
   std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
   if(get_current_relative_depth() == get_max_relative_depth()){
@@ -300,14 +360,17 @@ void mod_browser::check_mods_status(){
 }
 bool mod_browser::change_directory(std::string new_directory_){
 
-  if(new_directory_[new_directory_.size()-1] == '/'){ // remove '/' tail
+  // removing trailing /
+  if(new_directory_.size() != 1 and new_directory_[new_directory_.size()-1] == '/'){ // remove '/' tail unless "/" is the whole path
     new_directory_ = new_directory_.substr(0, new_directory_.size()-1);
   }
 
+  // sanity check
   if(not toolbox::do_path_is_folder(new_directory_)) return false;
   auto new_path_relative_depth = get_relative_path_depth(new_directory_);
   if(new_path_relative_depth != -1 and new_path_relative_depth > _max_relative_depth_) return false;
 
+  // update objects
   int restored_cursor_position = -1;
   int restored_page = -1;
   if(new_directory_ == _last_directory_){
@@ -317,9 +380,10 @@ bool mod_browser::change_directory(std::string new_directory_){
   _last_directory_ = _current_directory_;
   _last_cursor_position_ = _selector_.get_cursor_position();
   _last_page_ = _selector_.get_current_page();
-
   _current_directory_ = new_directory_;
   _current_relative_depth_ = new_path_relative_depth;
+
+  // update list of entries
   std::vector<std::string> selection_list;
   if(not _only_show_folders_)selection_list = toolbox::get_list_of_entries_in_folder(_current_directory_);
   else selection_list = toolbox::get_list_of_subfolders_in_folder(_current_directory_);
@@ -328,12 +392,44 @@ bool mod_browser::change_directory(std::string new_directory_){
   _selector_.reset_cursor_position();
   _selector_.reset_page();
 
+  // restoring cursor position
   if(restored_page != -1){
     while(_selector_.get_current_page() != restored_page){
       _selector_.next_page();
     }
     _selector_.set_cursor_position(restored_cursor_position);
   }
+
+  if(new_path_relative_depth == _max_relative_depth_){
+    std::string this_folder_config_file_path = _current_directory_ + "/this_folder_config.txt";
+    if(toolbox::do_path_is_file(this_folder_config_file_path)){
+      _main_config_preset_ = _parameters_handler_.get_current_config_preset_name(); // backup
+      auto vector_this_folder_config = toolbox::dump_file_as_vector_string(this_folder_config_file_path);
+      if(not vector_this_folder_config.empty()){
+        std::string this_folder_config = toolbox::dump_file_as_vector_string(this_folder_config_file_path)[0];
+        _parameters_handler_.set_current_config_preset_name(this_folder_config);
+        _mod_manager_.set_install_mods_base_folder(
+          _parameters_handler_.get_parameter("install-mods-base-folder")
+        );
+//        toolbox::print_left(std::to_string(toolbox::do_path_is_file(this_folder_config_file_path)));
+//        toolbox::print_left(_main_config_preset_);
+//        toolbox::print_left(this_folder_config);
+//        toolbox::print_left(_parameters_handler_.get_current_config_preset_name());
+//        toolbox::print_left(_parameters_handler_.get_parameter("install-mods-base-folder"));
+//        toolbox::make_pause();
+      }
+    }
+  }
+  else{
+    // restore initial config preset
+    if(_main_config_preset_ != _parameters_handler_.get_current_config_preset_name()){
+      _parameters_handler_.set_current_config_preset_name(_main_config_preset_);
+      _mod_manager_.set_install_mods_base_folder(
+        _parameters_handler_.get_parameter("install-mods-base-folder")
+      );
+    }
+  }
+
 
   return true;
 
@@ -377,7 +473,7 @@ void mod_browser::remove_all_mods(bool force_){
   if(not force_){
     answer = toolbox::ask_question(
       "Do you want to disable all mods ?",
-      std::vector<std::string>({"Yes","No"})
+      std::vector<std::string>({"Yes", "No"})
     );
   } else{
     answer = "Yes";

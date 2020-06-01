@@ -202,43 +202,61 @@ namespace toolbox{
 
     return std::string(tmpoutstr);
   }
-  std::string ask_question(std::string question_, std::vector<std::string> answers_, bool erase_lines_before_){
+  std::string ask_question(std::string question_, std::vector<std::string> answers_,
+    std::vector<std::vector<std::string>> descriptions_) {
 
-    if(erase_lines_before_) consoleClear();
-    std::cout << question_ << std::endl;
-
+    std::string answer;
     auto sel = selector();
-    sel.set_selection_list(answers_);
-    sel.print_selector();
 
+    int nb_lines_layout = 0;
+    nb_lines_layout++; // toolbox::print_right("SimpleModManager v"+toolbox::get_app_version());
+    nb_lines_layout++; // std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+    nb_lines_layout += int(question_.size()) / toolbox::get_terminal_width();
+    nb_lines_layout++; // std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+    nb_lines_layout++; // std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+    nb_lines_layout++; // toolbox::print_left_right(" A: Select", "B: Back ");
+    sel.set_max_items_per_page(toolbox::get_terminal_height() - nb_lines_layout);
+
+    sel.set_selection_list(answers_);
+    if(not descriptions_.empty() and descriptions_.size() == answers_.size()){
+      sel.set_description_list(descriptions_);
+    }
+
+    u64 kDown = 1;
     while(appletMainLoop()){
+
+      if(kDown != 0) {
+        consoleClear();
+        toolbox::print_right("SimpleModManager v"+toolbox::get_app_version());
+        std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+        std::cout << question_ << std::endl;
+        std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+        sel.print_selector();
+        std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+        toolbox::print_left_right(" A: Select", "B: Back ");
+        consoleUpdate(nullptr);
+      }
+
       //Scan all the inputs. This should be done once for each frame
       hidScanInput();
 
       //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
-      u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+      kDown = hidKeysDown(CONTROLLER_P1_AUTO);
 
       if(kDown & KEY_DOWN){
         sel.increment_cursor_position();
-        consoleClear();
-        std::cout << question_ << std::endl;
-        sel.print_selector();
       } else if(kDown & KEY_UP){
         sel.decrement_cursor_position();
-        consoleClear();
-        std::cout << question_ << std::endl;
-        sel.print_selector();
       } else if(kDown & KEY_A){
-        consoleClear();
-        return sel.get_selected_string();
+        answer = sel.get_selected_string();
+        break;
       } else if(kDown & KEY_B){
-        consoleClear();
-        return "";
+        break;
       }
-      consoleUpdate(nullptr);
-    }
 
-    return "";
+    }
+    consoleClear();
+    return answer;
   }
 
 
@@ -446,7 +464,7 @@ namespace toolbox{
       __native_switch_FS_is_enabled__ = false;
     }
   }
-  void dump_string_in_file(std::string &str_, std::string& path_){
+  void dump_string_in_file(std::string str_, std::string& path_){ // don't use ref for str_ : str_ is modified
 
     if(toolbox::do_path_is_file(path_)){
       toolbox::delete_file(path_);
@@ -459,6 +477,7 @@ namespace toolbox{
       out_file_stream.close();
     }
     else{
+      str_ += "\n";
       char path_buffer[FS_MAX_PATH];
       snprintf(path_buffer, FS_MAX_PATH, "%s", path_.c_str());
 
@@ -566,7 +585,8 @@ namespace toolbox{
               if(size_file1 == size_file2){
                 if(__CRC_check_is_enabled__){
 
-                  size_t copy_buffer_size = 0x10000;
+//                  size_t copy_buffer_size = 0x10000; // 65 kB (65536 B)
+                  size_t copy_buffer_size = 0x1000; // 4,096 B
                   u8 data_buffer_file1[copy_buffer_size];
                   u8 data_buffer_file2[copy_buffer_size];
                   u64 bytes_read_counter_file1 = 0;
@@ -575,7 +595,10 @@ namespace toolbox{
                   unsigned long  last_crc1 = crc32(0L, Z_NULL, 0);
                   unsigned long  last_crc2 = crc32(0L, Z_NULL, 0);
                   file_are_same = true; // true by default -> change if not
+                  int counts = 0;
                   do {
+
+                    counts++;
 
                     // buffering file1
                     if(R_FAILED(fsFileRead(&fs_file1, read_offset, &data_buffer_file1[0], copy_buffer_size, FsReadOption_None, &bytes_read_counter_file1))){
@@ -608,6 +631,9 @@ namespace toolbox{
 
                   }
                   while(s64(read_offset) < size_file1);
+
+//                  print_left(std::to_string(counts));
+//                  make_pause();
 
                 } // CRC ? yes
                 else {
@@ -703,13 +729,15 @@ namespace toolbox{
 
           // create destination file
           char path_buffer_destination[FS_MAX_PATH];
-          FsFile fs_file_destination;
           snprintf(path_buffer_destination, FS_MAX_PATH, "%s", destination_file_path_.c_str());
           if(R_SUCCEEDED(fsFsCreateFile(&__FileSystemBuffer__, &path_buffer_destination[0], source_size, 0))){
+
             // open destination file
+            FsFile fs_file_destination;
             if(R_SUCCEEDED(fsFsOpenFile(&__FileSystemBuffer__, &path_buffer_destination[0], FsOpenMode_Write, &fs_file_destination))){
 
-              size_t copy_buffer_size = 0x10000;
+              size_t copy_buffer_size = 0x10000; // 65 kB
+//              size_t copy_buffer_size = 0x1000; // 4 kB
               u8 data_buffer[copy_buffer_size];
               u64 bytes_read_counter = 0;
               u64 read_offset = 0;

@@ -31,7 +31,7 @@ void parameters_handler::initialize() {
   read_parameters();
   recreate_parameters_file(); // update version + cleanup
 
-  set_selected_preset(_data_handler_["last-preset-used"]);
+  set_current_config_preset_name(_data_handler_["last-preset-used"]);
 
 }
 void parameters_handler::reset() {
@@ -46,13 +46,13 @@ void parameters_handler::reset() {
 void parameters_handler::set_parameters_file_path(std::string parameters_file_path_) {
   _parameters_file_path_ = parameters_file_path_;
 }
-void parameters_handler::set_selected_preset_id(int selected_preset_id_){
-  if(selected_preset_id_ < 0 or selected_preset_id_ >= int(_presets_list_.size())) _selected_preset_id_ = 0; // reset;
-  else _selected_preset_id_ = selected_preset_id_;
+void parameters_handler::set_current_config_preset_id(int selected_preset_id_){
+  if(selected_preset_id_ < 0 or selected_preset_id_ >= int(_presets_list_.size())) _current_config_preset_id_ = 0; // reset;
+  else _current_config_preset_id_ = selected_preset_id_;
   fill_current_preset_parameters();
   recreate_parameters_file(); // save last-preset-used
 }
-void parameters_handler::set_selected_preset(std::string preset_name_){
+void parameters_handler::set_current_config_preset_name(std::string preset_name_){
   int preset_id = -1;
   for(int i_preset = 0 ; i_preset < int(_presets_list_.size()) ; i_preset++){
     if(preset_name_ == _presets_list_[i_preset]){
@@ -60,7 +60,7 @@ void parameters_handler::set_selected_preset(std::string preset_name_){
       break;
     }
   }
-  set_selected_preset_id(preset_id);
+  set_current_config_preset_id(preset_id);
 }
 
 std::string parameters_handler::get_parameter(std::string parameter_name_) {
@@ -69,14 +69,18 @@ std::string parameters_handler::get_parameter(std::string parameter_name_) {
 std::string parameters_handler::get_parameters_file_path(){
   return _parameters_file_path_;
 }
-std::string parameters_handler::get_selected_install_preset_name(){
-  return _presets_list_[_selected_preset_id_];
+std::string parameters_handler::get_current_config_preset_name(){
+  return _presets_list_[_current_config_preset_id_];
+}
+
+std::vector<std::string> & parameters_handler::get_presets_list(){
+  return _presets_list_;
 }
 
 void parameters_handler::increment_selected_preset_id(){
-  int next_preset_id = _selected_preset_id_+1;
-  if(next_preset_id >= int(_presets_list_.size())) set_selected_preset_id(0);
-  else set_selected_preset_id(next_preset_id);
+  int next_preset_id = _current_config_preset_id_ + 1;
+  if(next_preset_id >= int(_presets_list_.size())) set_current_config_preset_id(0);
+  else set_current_config_preset_id(next_preset_id);
 }
 
 void parameters_handler::set_default_parameters() {
@@ -182,8 +186,8 @@ void parameters_handler::read_parameters() {
 
 void parameters_handler::fill_current_preset_parameters(){
 
-  _data_handler_["last-preset-used"] = _presets_list_[_selected_preset_id_];
-  _data_handler_["install-mods-base-folder"] = _data_handler_[_presets_list_[_selected_preset_id_] + "-install-mods-base-folder"];
+  _data_handler_["last-preset-used"] = _presets_list_[_current_config_preset_id_];
+  _data_handler_["install-mods-base-folder"] = _data_handler_[_presets_list_[_current_config_preset_id_] + "-install-mods-base-folder"];
 
 }
 

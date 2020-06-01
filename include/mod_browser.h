@@ -63,6 +63,7 @@ private:
   std::string _current_directory_;
   std::string _last_directory_;
   std::string _base_folder_;
+  std::string _main_config_preset_;
 
   selector _selector_;
   mod_manager _mod_manager_;

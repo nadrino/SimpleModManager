@@ -37,7 +37,8 @@ namespace toolbox{
   std::string get_file_size_string(std::string& file_path_);
   std::string parse_size_unit(unsigned int size_);
   std::string get_user_string(std::string default_str_ = "");
-  std::string ask_question(std::string question_, std::vector<std::string> answers_, bool erase_lines_before_=true);
+  std::string ask_question(std::string question_, std::vector<std::string> answers_,
+    std::vector<std::vector<std::string>> descriptions_=std::vector<std::vector<std::string>>());
 
 
   //! toolbox vars management functions :
@@ -75,7 +76,7 @@ namespace toolbox{
   //! direct filesystem functions :
   void enableEmbeddedSwitchFS();
   void disableEmbeddedSwitchFS();
-  void dump_string_in_file(std::string &str_, std::string& path_);
+  void dump_string_in_file(std::string str_, std::string& path_);
 
   bool do_path_is_valid(std::string &path_);
   bool do_path_is_folder(std::string &folder_path_);

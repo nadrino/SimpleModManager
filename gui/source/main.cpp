@@ -97,7 +97,7 @@ void run_console(){
     toolbox::print_left(" > The application have successfully been upgraded.");
     toolbox::print_left("");
     toolbox::print_left("");
-    toolbox::ask_question("To continue, press A.", {"Ok"}, false);
+    toolbox::ask_question("To continue, press A.", {"Ok"});
   }
 
   __mod_browser__.print_menu();

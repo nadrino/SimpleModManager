@@ -29,7 +29,7 @@ int main(int argc, char **argv){
     toolbox::print_left(" > The old file will be moved to this location.");
     toolbox::print_left("");
     toolbox::print_left("");
-    toolbox::ask_question("Confirm by pressing A.", {"Ok"}, false);
+    toolbox::ask_question("Confirm by pressing A.", {"Ok"});
     toolbox::mv_file(old_config_path, new_param_file);
   }
 

@@ -133,8 +133,8 @@ void mods_preseter::select_mod_preset() {
     else if(kDown & KEY_X and not _presets_list_.empty()){
       std::string answer = toolbox::ask_question(
         "Are you sure you want to remove this preset ?",
-        std::vector<std::string>({"Yes","No"})
-        );
+        std::vector<std::string>({"Yes", "No"})
+      );
       if(answer == "No") continue;
       _data_handler_[_presets_list_[sel.get_selected_entry()]].resize(0);
       _presets_list_.erase(_presets_list_.begin() + sel.get_selected_entry());
