@@ -9,6 +9,7 @@
 #include <switch.h>
 #include <algorithm>
 #include <iomanip>
+#include <utility>
 
 
 mod_browser::mod_browser(){
@@ -16,21 +17,17 @@ mod_browser::mod_browser(){
   reset();
 
 }
-mod_browser::~mod_browser()= default;
+mod_browser::~mod_browser() { reset(); }
 
 void mod_browser::initialize(){
 
   _selector_.initialize();
-
   _parameters_handler_.initialize();
-  set_base_folder(_parameters_handler_.get_parameter("stored-mods-base-folder"));
 
-  _mod_manager_.set_install_mods_base_folder(
-    _parameters_handler_.get_parameter("install-mods-base-folder")
-  );
+  set_base_folder(_parameters_handler_.get_parameter("stored-mods-base-folder"));
+  _mod_manager_.set_install_mods_base_folder(_base_folder_);
   _mod_manager_.set_parameters_handler_ptr(&_parameters_handler_);
   _mod_manager_.initialize();
-
 
   change_directory(_base_folder_);
 
@@ -43,13 +40,14 @@ void mod_browser::reset(){
   _only_show_folders_ = false;
   _main_config_preset_ = _parameters_handler_.get_current_config_preset_name();
 
-  _selector_.reset();
+  _mod_manager_.reset();
   _parameters_handler_.reset();
+  _selector_.reset();
 
 }
 
 void mod_browser::set_base_folder(std::string base_folder_){
-  _base_folder_ = base_folder_;
+  _base_folder_ = std::move(base_folder_);
 }
 void mod_browser::set_max_relative_depth(int max_relative_depth_){
   _max_relative_depth_ = max_relative_depth_;

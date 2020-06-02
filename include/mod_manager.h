@@ -19,6 +19,7 @@ public:
   ~mod_manager();
 
   void initialize();
+  void reset();
 
   void set_install_mods_base_folder(std::string install_mods_base_folder_);
   void set_use_cache_only_for_status_check(bool use_cache_only_for_status_check_);
@@ -48,6 +49,7 @@ protected:
 private:
 
   bool _use_cache_only_for_status_check_;
+  bool _internal_parameters_handler_;
 
   std::string _install_mods_base_folder_;
   std::string _current_mods_folder_path_;
@@ -57,6 +59,7 @@ private:
   std::map<std::string, double> _mods_status_cache_fraction_;
 
   parameters_handler* _parameters_handler_ptr_;
+
 
 
 

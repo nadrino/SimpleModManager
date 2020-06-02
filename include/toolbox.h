@@ -82,6 +82,7 @@ namespace toolbox{
 
 
   //! direct filesystem functions :
+  void setFileSystemBuffer(FsFileSystem* FileSystemBuffer_); // will enable native switch FS
   void enableEmbeddedSwitchFS();
   void disableEmbeddedSwitchFS();
   void dump_string_in_file(std::string str_, std::string& path_);

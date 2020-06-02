@@ -11,30 +11,42 @@
 #include <switch.h>
 #include <sstream>
 #include <fstream>
+#include <utility>
 
 mod_manager::mod_manager() {
 
-//  _relative_file_path_list_cache_.clear();
-  _install_mods_base_folder_ = "/atmosphere/"; // should not be used
-  _current_mods_folder_path_ = "";
-  _use_cache_only_for_status_check_ = false;
-  _parameters_handler_ptr_ = nullptr;
+  _internal_parameters_handler_ = false;
+  reset();
 
 }
 mod_manager::~mod_manager(){
-//  delete _parameters_handler_ptr_; // NO should be handled by external
+
+  reset();
+
 }
 
 void mod_manager::initialize() {
 
   if(_parameters_handler_ptr_ == nullptr){
+    _internal_parameters_handler_ = true;
     _parameters_handler_ptr_ = new parameters_handler();
   }
 
 }
+void mod_manager::reset(){
+
+  _install_mods_base_folder_ = "/atmosphere/"; // should not be used
+  _current_mods_folder_path_ = "";
+  _use_cache_only_for_status_check_ = false;
+
+  if(_internal_parameters_handler_ and _parameters_handler_ptr_ != nullptr) delete _parameters_handler_ptr_;
+  _parameters_handler_ptr_ = nullptr;
+  _internal_parameters_handler_ = false;
+
+}
 
 void mod_manager::set_install_mods_base_folder(std::string install_mods_base_folder_){
-  _install_mods_base_folder_ = install_mods_base_folder_;
+  _install_mods_base_folder_ = std::move(install_mods_base_folder_);
 }
 void mod_manager::set_use_cache_only_for_status_check(bool use_cache_only_for_status_check_){
   _use_cache_only_for_status_check_ = use_cache_only_for_status_check_;

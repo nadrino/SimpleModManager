@@ -14,7 +14,9 @@ selector::selector() {
   reset();
 
 }
-selector::~selector() = default;
+selector::~selector(){
+  reset();
+}
 
 void selector::initialize(){
 
