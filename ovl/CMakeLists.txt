@@ -7,7 +7,7 @@ set(OVL_NAME "SimpleModManagerOverlay")
 set(OVL_APP "${OVL_NAME}")
 
 # Meta information about the app
-set(OVL_TITLE ${OVL_NAME})
+set(OVL_TITLE "SimpleModManager")
 set(OVL_AUTHOR "Nadrino")
 set(OVL_ICON "${CMAKE_CURRENT_SOURCE_DIR}/assets/icon.jpg")
 

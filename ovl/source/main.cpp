@@ -2,7 +2,7 @@
 #include <tesla.hpp>    // The Tesla Header
 #include <toolbox.h>
 #include <mod_browser.h>
-
+#include <sstream>
 
 mod_browser __mod_browser__;
 
@@ -46,6 +46,7 @@ public:
 
     std::string new_path = __mod_browser__.get_current_directory() + "/" + _current_sub_folder_;
     new_path = toolbox::remove_extra_doubled_characters(new_path, "/");
+
     __mod_browser__.change_directory(new_path);
     __mod_browser__.get_mod_manager().set_current_mods_folder(new_path);
     __mod_browser__.get_mod_manager().set_use_cache_only_for_status_check(true);
@@ -53,6 +54,10 @@ public:
 
     // A list that can contain sub elements and handles scrolling
     auto* list = new tsl::elm::List();
+
+//    std::stringstream ss_debug;
+//    ss_debug << new_path << ": " << toolbox::do_path_is_folder(new_path);
+//    list->addItem(new tsl::elm::CategoryHeader(ss_debug.str()));
 
     // List Items
     list->addItem(new tsl::elm::CategoryHeader(_current_sub_folder_));
@@ -128,11 +133,10 @@ private:
 
 class FirstLevelGui : public tsl::Gui {
 public:
-  FirstLevelGui(u8 arg1, u8 arg2, bool arg3) { }
 
   // Called when this Gui gets loaded to create the UI
   // Allocate all elements on the heap. libtesla will make sure to clean them up when not needed anymore
-  virtual tsl::elm::Element* createUI() override {
+  tsl::elm::Element* createUI() override {
     // A OverlayFrame is the base element every overlay consists of. This will draw the default Title and Subtitle.
     // If you need more information in the header or want to change it's look, use a HeaderOverlayFrame.
     auto frame = new tsl::elm::OverlayFrame("SimpleModManager", toolbox::get_app_version());
@@ -185,12 +189,12 @@ public:
   }
 
   // Called once every frame to update values
-  virtual void update() override {
+  void update() override {
 
   }
 
   // Called once every frame to handle inputs not handled by other UI elements
-  virtual bool handleInput(u64 keysDown, u64 keysHeld, touchPosition touchInput, JoystickPosition leftJoyStick, JoystickPosition rightJoyStick) override {
+  bool handleInput(u64 keysDown, u64 keysHeld, touchPosition touchInput, JoystickPosition leftJoyStick, JoystickPosition rightJoyStick) override {
     return false;   // Return true here to singal the inputs have been consumed
   }
 
@@ -201,34 +205,35 @@ class SimpleModManagerOverlay : public tsl::Overlay {
 public:
 
   // libtesla already initialized fs, hid, pl, pmdmnt, hid:sys and set:sys
-  virtual void initServices() override {
+  void initServices() override {
     auto rc = fsInitialize();
     if (R_FAILED(rc))
       fatalThrow(MAKERESULT(Module_Libnx, LibnxError_InitFail_FS));
+    fsdevMountSdmc();
     toolbox::enableEmbeddedSwitchFS();
+
     __mod_browser__.set_only_show_folders(true);
     __mod_browser__.set_max_relative_depth(1);
     __mod_browser__.initialize();
 
     tsl::hlp::ScopeGuard dirGuard([&] {
-      toolbox::disableEmbeddedSwitchFS();
     });
 
   }  // Called at the start to initialize all services necessary for this Overlay
-  virtual void exitServices() override {
+  void exitServices() override {
     toolbox::disableEmbeddedSwitchFS();
+    fsdevUnmountDevice("sdmc");
   }  // Callet at the end to clean up all services previously initialized
 
-  virtual void onShow() override {}    // Called before overlay wants to change from invisible to visible state
-  virtual void onHide() override {}    // Called before overlay wants to change from visible to invisible state
+  void onShow() override {}    // Called before overlay wants to change from invisible to visible state
+  void onHide() override {}    // Called before overlay wants to change from visible to invisible state
 
-  virtual std::unique_ptr<tsl::Gui> loadInitialGui() override {
-    return initially<FirstLevelGui>(1, 2, true);  // Initial Gui to load. It's possible to pass arguments to it's constructor like this
+  std::unique_ptr<tsl::Gui> loadInitialGui() override {
+    return initially<FirstLevelGui>();  // Initial Gui to load. It's possible to pass arguments to it's constructor like this
   }
 };
 
 
 int main(int argc, char **argv) {
-  tsl::loop<SimpleModManagerOverlay>(argc, argv);
-  return EXIT_SUCCESS;
+  return tsl::loop<SimpleModManagerOverlay>(argc, argv);
 }
