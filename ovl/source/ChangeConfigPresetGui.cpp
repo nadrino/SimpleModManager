@@ -36,9 +36,17 @@ tsl::elm::Element* ChangeConfigPresetGui::createUI() {
       return false;
     });
     list->addItem(clickableListItem);
+
+    std::string install_path_display = "install-mods-base-folder: "+ GlobalObjects::get_mod_browser().get_parameters_handler().get_parameter(
+      _answers_[i_answer] + "-install-mods-base-folder"
+    );
+    list->addItem(new tsl::elm::CustomDrawer([install_path_display](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
+      renderer->drawString(install_path_display.c_str(), false, x + 5, y + 21, 16, {255,255,255,255});
+    }), 30);
   }
 
   rootFrame->setContent(list);
+
   return rootFrame;
 
 }

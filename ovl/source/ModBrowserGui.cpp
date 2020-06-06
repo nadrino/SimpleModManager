@@ -104,6 +104,7 @@ void ModBrowserGui::fill_item_list() {
 
   // Add the list to the frame for it to be drawn
   _frame_->setContent(_list_); // will delete previous list
+  _frame_->setFooterTitle("\uE0E1  Back     \uE0E0  Apply     \uE0E2  Disable");
 
 }
 
