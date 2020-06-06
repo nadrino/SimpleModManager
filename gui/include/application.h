@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 21/05/2020.
+// Created by Nadrino on 21/05/2020.
 //
 
 #ifndef SIMPLEMODMANAGER_APPLICATION_H
@@ -36,7 +36,7 @@ private:
   // Layout instance
   main_layout::Ref _main_layout_;
 
-  mod_browser _mod_browser_;
+//  mod_browser _mod_browser_;
 
   app_state _current_app_state_;
 

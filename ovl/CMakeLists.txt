@@ -11,12 +11,18 @@ set(OVL_TITLE "SimpleModManager")
 set(OVL_AUTHOR "Nadrino")
 set(OVL_ICON "${CMAKE_CURRENT_SOURCE_DIR}/assets/icon.jpg")
 
-set(OVL_SOURCE_DIR ${PROJECT_SOURCE_DIR}/ovl/source)
+set(OVL_DIR ${PROJECT_SOURCE_DIR}/ovl)
+set(OVL_LIBTESLA_DIR ${OVL_DIR}/libs/libtesla)
+set(OVL_SOURCE_DIR ${OVL_DIR}/source)
+set(OVL_INCLUDE_DIR ${OVL_DIR}/include)
 
+# sources
 file(GLOB OVL_SOURCE_FILES "${OVL_SOURCE_DIR}/*.cpp")
-file(GLOB OVL_TESLA_FILES "${PROJECT_SOURCE_DIR}/ovl/libs/libtesla/include/*.hpp" "${PROJECT_SOURCE_DIR}/ovl/libs/libtesla/include/*.h")
+file(GLOB OVL_TESLA_FILES "${OVL_LIBTESLA_DIR}/include/*.hpp" "${OVL_LIBTESLA_DIR}/include/*.h")
 
-include_directories("${PROJECT_SOURCE_DIR}/ovl/libs/libtesla/include/")
+# include
+include_directories("${OVL_INCLUDE_DIR}")
+include_directories("${OVL_LIBTESLA_DIR}/include")
 include(nx-utils)
 
 cmake_info("Source Dir : ${OVL_SOURCE_DIR}")

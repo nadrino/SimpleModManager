@@ -1,5 +1,5 @@
 //
-// Created by Adrien Blanchet on 03/09/2019.
+// Created by Nadrino on 03/09/2019.
 //
 
 #include <mod_browser.h>
@@ -21,18 +21,24 @@ mod_browser::~mod_browser() { reset(); }
 
 void mod_browser::initialize(){
 
+  _selector_.set_max_items_per_page(30);
   _selector_.initialize();
+
   _parameters_handler_.initialize();
 
   set_base_folder(_parameters_handler_.get_parameter("stored-mods-base-folder"));
-  _mod_manager_.set_install_mods_base_folder(_base_folder_);
+  _mod_manager_.set_install_mods_base_folder(_parameters_handler_.get_parameter("install-mods-base-folder"));
   _mod_manager_.set_parameters_handler_ptr(&_parameters_handler_);
   _mod_manager_.initialize();
 
   change_directory(_base_folder_);
 
+  _is_initialized_ = true;
+
 }
 void mod_browser::reset(){
+
+  _is_initialized_ = false;
 
   _max_relative_depth_ = -1;
   _base_folder_ = "/";
@@ -56,6 +62,9 @@ void mod_browser::set_only_show_folders(bool only_show_folders_){
   _only_show_folders_ = only_show_folders_;
 }
 
+bool mod_browser::is_initialized(){
+  return _is_initialized_;
+}
 int mod_browser::get_current_relative_depth(){
   return _current_relative_depth_;
 }
@@ -175,17 +184,11 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
         toolbox::delete_file(this_folder_config_file_path);
         if(answer != null_preset){
           toolbox::dump_string_in_file(answer, this_folder_config_file_path);
-          _parameters_handler_.set_current_config_preset_name(answer);
-          _mod_manager_.set_install_mods_base_folder(
-            _parameters_handler_.get_parameter("install-mods-base-folder")
-          );
+          change_config_preset(answer);
         }
         else{
           // restore the config preset
-          _parameters_handler_.set_current_config_preset_name(_main_config_preset_);
-          _mod_manager_.set_install_mods_base_folder(
-            _parameters_handler_.get_parameter("install-mods-base-folder")
-          );
+          change_config_preset(_main_config_preset_);
         }
 
       }
@@ -297,7 +300,7 @@ void mod_browser::display_conflicts_with_other_mods(std::string selected_mod_){
     sel_list.emplace_back(conflict.first);
     mods_conflict_files_list.emplace_back(std::vector<std::string>());
     for(auto &conflict_file_path : conflict.second){
-      mods_conflict_files_list.back().emplace_back(conflict_file_path);
+      mods_conflict_files_list.back().emplace_back("  | " + conflict_file_path);
     }
   }
 
@@ -322,7 +325,7 @@ void mod_browser::display_conflicts_with_other_mods(std::string selected_mod_){
       toolbox::print_left("Page (" + std::to_string(sel.get_current_page()+1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
       std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
       toolbox::print_left_right(" B : Go back", "");
-      if(sel.get_nb_pages() > 1) toolbox::print_left_right(" ← : Previous Page", "→ : Next Page ");
+      if(sel.get_nb_pages() > 1) toolbox::print_left_right(" <- : Previous Page", "-> : Next Page ");
       consoleUpdate(nullptr);
     }
 
@@ -411,31 +414,27 @@ bool mod_browser::change_directory(std::string new_directory_){
       auto vector_this_folder_config = toolbox::dump_file_as_vector_string(this_folder_config_file_path);
       if(not vector_this_folder_config.empty()){
         std::string this_folder_config = toolbox::dump_file_as_vector_string(this_folder_config_file_path)[0];
-        _parameters_handler_.set_current_config_preset_name(this_folder_config);
-        _mod_manager_.set_install_mods_base_folder(
-          _parameters_handler_.get_parameter("install-mods-base-folder")
-        );
-//        toolbox::print_left(std::to_string(toolbox::do_path_is_file(this_folder_config_file_path)));
-//        toolbox::print_left(_main_config_preset_);
-//        toolbox::print_left(this_folder_config);
-//        toolbox::print_left(_parameters_handler_.get_current_config_preset_name());
-//        toolbox::print_left(_parameters_handler_.get_parameter("install-mods-base-folder"));
-//        toolbox::make_pause();
+        change_config_preset(this_folder_config);
       }
     }
   }
   else{
     // restore initial config preset
     if(_main_config_preset_ != _parameters_handler_.get_current_config_preset_name()){
-      _parameters_handler_.set_current_config_preset_name(_main_config_preset_);
-      _mod_manager_.set_install_mods_base_folder(
-        _parameters_handler_.get_parameter("install-mods-base-folder")
-      );
+      change_config_preset(_main_config_preset_);
     }
   }
 
 
   return true;
+
+}
+void mod_browser::change_config_preset(std::string new_config_preset_){
+
+  _parameters_handler_.set_current_config_preset_name(new_config_preset_);
+  _mod_manager_.set_install_mods_base_folder(
+    _parameters_handler_.get_parameter("install-mods-base-folder")
+  );
 
 }
 bool mod_browser::go_to_selected_directory(){

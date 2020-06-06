@@ -1,5 +1,5 @@
 //
-// Created by Adrien Blanchet on 12/09/2019.
+// Created by Nadrino on 12/09/2019.
 //
 
 #include "selector.h"
@@ -28,7 +28,7 @@ void selector::reset(){
   set_cursor_marker(">");
   set_default_cursor_position(0);
   reset_cursor_position();
-  _max_items_per_page_ = 27;
+  _max_items_per_page_ = 30;
   _nb_pages_ = 0;
   _current_page_ = 0;
 

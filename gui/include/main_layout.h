@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 21/05/2020.
+// Created by Nadrino on 21/05/2020.
 //
 
 #ifndef SIMPLEMODMANAGER_MAIN_LAYOUT_H

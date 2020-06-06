@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 20/05/2020.
+// Created by Nadrino on 20/05/2020.
 //
 
 #ifndef SIMPLEMODMANAGER_TEST_BLOCK_H

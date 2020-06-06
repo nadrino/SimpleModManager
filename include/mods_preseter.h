@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 13/02/2020.
+// Created by Nadrino on 13/02/2020.
 //
 
 #ifndef SIMPLEMODMANAGER_MODS_PRESETER_H

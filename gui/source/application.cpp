@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 21/05/2020.
+// Created by Nadrino on 21/05/2020.
 //
 
 #include "application.h"
@@ -7,6 +7,7 @@
 #include <pu/ui/elm/elm_Rectangle.hpp>
 
 #include <toolbox.h>
+#include <GlobalObjects.h>
 
 
 void application::OnLoad()
@@ -14,11 +15,12 @@ void application::OnLoad()
   // Create the layout (calling the smart constructor above)
   this->_main_layout_ = main_layout::New();
 
-  _mod_browser_.set_only_show_folders(true);
-  _mod_browser_.set_max_relative_depth(1);
-  _mod_browser_.initialize();
+  int max_depth = 1; // could be a parameter in the future
+  GlobalObjects::get_mod_browser().set_only_show_folders(true);
+  GlobalObjects::get_mod_browser().set_max_relative_depth(max_depth);
+  GlobalObjects::get_mod_browser().initialize();
 
-  auto items_list = _mod_browser_.get_selector().get_selection_list();
+  auto items_list = GlobalObjects::get_mod_browser().get_selector().get_selection_list();
   _main_layout_->load_items(items_list);
 
   // Load the layout. In applications layouts are loaded, not added into a container (you don't select an added layout, just load it from this function)
@@ -32,25 +34,25 @@ void application::OnLoad()
                    {
                      if(Down & KEY_A){
                        if(_current_app_state_ == GAME_BROWSER){
-                         std::string new_path = _mod_browser_.get_current_directory() + "/" + _main_layout_->getMenuItems()->GetSelectedItem()->GetName().AsUTF8();
+                         std::string new_path = GlobalObjects::get_mod_browser().get_current_directory() + "/" + _main_layout_->getMenuItems()->GetSelectedItem()->GetName().AsUTF8();
                          new_path = toolbox::remove_extra_doubled_characters(new_path, "/");
-                         _mod_browser_.change_directory(new_path);
-                         _mod_browser_.get_mod_manager().set_current_mods_folder(new_path);
-                         _mod_browser_.get_mod_manager().set_use_cache_only_for_status_check(true);
-                         _mod_browser_.get_mods_preseter().read_parameter_file(new_path);
-                         _main_layout_->load_items(_mod_browser_.get_selector().get_selection_list());
+                         GlobalObjects::get_mod_browser().change_directory(new_path);
+                         GlobalObjects::get_mod_browser().get_mod_manager().set_current_mods_folder(new_path);
+                         GlobalObjects::get_mod_browser().get_mod_manager().set_use_cache_only_for_status_check(true);
+                         GlobalObjects::get_mod_browser().get_mods_preseter().read_parameter_file(new_path);
+                         _main_layout_->load_items(GlobalObjects::get_mod_browser().get_selector().get_selection_list());
                          _current_app_state_ = MOD_BROWSER;
                        }
                        else if(_current_app_state_ == MOD_BROWSER){
-                         _mod_browser_.get_mod_manager().apply_mod(
+                         GlobalObjects::get_mod_browser().get_mod_manager().apply_mod(
                            _main_layout_->getMenuItems()->GetSelectedItem()->GetName().AsUTF8(),
                            true
                            );
-                         _mod_browser_.get_selector().set_tag(
-                           _mod_browser_.get_selector().get_entry(
+                         GlobalObjects::get_mod_browser().get_selector().set_tag(
+                           GlobalObjects::get_mod_browser().get_selector().get_entry(
                              _main_layout_->getMenuItems()->GetSelectedItem()->GetName().AsUTF8()
                              ),
-                           _mod_browser_.get_mod_manager().get_mod_status(
+                           GlobalObjects::get_mod_browser().get_mod_manager().get_mod_status(
                              _main_layout_->getMenuItems()->GetSelectedItem()->GetName().AsUTF8()
                              )
                          );
@@ -83,8 +85,8 @@ void application::OnLoad()
                          this->Close();
                        }
                        else if(_current_app_state_ == MOD_BROWSER){
-                         _mod_browser_.go_back();
-                         _main_layout_->load_items(_mod_browser_.get_selector().get_selection_list());
+                         GlobalObjects::get_mod_browser().go_back();
+                         _main_layout_->load_items(GlobalObjects::get_mod_browser().get_selector().get_selection_list());
                          _current_app_state_ = GAME_BROWSER;
                        }
                      }
@@ -96,7 +98,7 @@ void application::OnLoad()
 
 void application::reset() {
 
-  _mod_browser_.reset();
+  GlobalObjects::get_mod_browser().reset();
   _current_app_state_ = GAME_BROWSER;
 
 }

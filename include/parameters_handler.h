@@ -1,5 +1,5 @@
 //
-// Created by Adrien Blanchet on 16/10/2019.
+// Created by Nadrino on 16/10/2019.
 //
 
 #ifndef SIMPLEMODMANAGER_PARAMETERS_HANDLER_H

@@ -1,5 +1,5 @@
 //
-// Created by Adrien Blanchet on 12/09/2019.
+// Created by Nadrino on 12/09/2019.
 //
 
 #ifndef MODAPPLIER_SELECTOR_H

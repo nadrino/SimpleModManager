@@ -1,11 +1,11 @@
 //
-// Created by Adrien BLANCHET on 16/05/2020.
+// Created by Nadrino on 16/05/2020.
 //
 
 #ifndef SIMPLEMODMANAGER_APPLICATION_HANDLER_H
 #define SIMPLEMODMANAGER_APPLICATION_HANDLER_H
 
-#include <render_handler.h>
+#include <off/render_handler.h>
 #include <display_element.h>
 #include <rectangle.h>
 #include <vector>

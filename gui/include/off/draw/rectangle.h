@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 18/05/2020.
+// Created by Nadrino on 18/05/2020.
 //
 
 #ifndef SIMPLEMODMANAGER_RECTANGLE_H

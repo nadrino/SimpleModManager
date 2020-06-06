@@ -1,14 +1,12 @@
 //
-// Created by Adrien BLANCHET on 13/02/2020.
+// Created by Nadrino on 13/02/2020.
 //
 
 #include <toolbox.h>
 #include <mods_preseter.h>
 #include <fstream>
-//#include <switch/services/applet.h>
 #include <switch.h>
 #include <selector.h>
-#include <sstream>
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
@@ -413,7 +411,13 @@ std::map<std::string, std::vector<std::string>> mods_preseter::get_conflicts_wit
     auto other_mod_files_path_list = toolbox::get_list_files_in_subfolders(other_mod_folder_path);
     for(auto& other_mod_file_path: other_mod_files_path_list){
       if(toolbox::do_string_in_vector(other_mod_file_path, mod_files_path_list)){
-        conflicts_map[other_mod_name].emplace_back(other_mod_file_path);
+        // if the two files are the same, no need to consider them as conflict
+        if(not toolbox::do_files_are_the_same(
+          other_mod_folder_path + "/" + other_mod_file_path,
+          mod_folder_path + "/" + other_mod_file_path
+          )){
+          conflicts_map[other_mod_name].emplace_back(other_mod_file_path);
+        }
       }
     }
   }

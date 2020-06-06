@@ -14,8 +14,14 @@ function setup_devkitpro()
 
     source $DEVKITPRO/switchvars.sh
     return;
-}
-export -f setup_devkitpro
+}; export -f setup_devkitpro
+
+function send_file(){
+
+  HOST='192.168.1.70:5000'
+  lftp -e "cd $1; put $2; bye" $HOST
+
+}; export -f send_file
 
 
 setup_devkitpro

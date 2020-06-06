@@ -1,5 +1,5 @@
 //
-// Created by Adrien Blanchet on 04/09/2019.
+// Created by Nadrino on 04/09/2019.
 //
 
 #include <toolbox.h>
@@ -474,8 +474,9 @@ namespace toolbox{
   }
   void enableEmbeddedSwitchFS(){
     if(not __native_switch_FS_is_enabled__){
-//      __FileSystemBuffer__ = *fsdevGetDeviceFileSystem("sdmc");
-      fsOpenSdCardFileSystem(__FileSystemBuffer__);
+      fsdevMountSdmc();
+      __FileSystemBuffer__ = fsdevGetDeviceFileSystem("sdmc");
+//      fsOpenSdCardFileSystem(__FileSystemBuffer__);
       __native_switch_FS_is_enabled__ = true;
     }
   }

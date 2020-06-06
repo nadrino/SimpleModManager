@@ -1,5 +1,5 @@
 //
-// Created by Adrien Blanchet on 04/09/2019.
+// Created by Nadrino on 04/09/2019.
 //
 
 #ifndef SIMPLEMODMANAGER_TOOLBOX_H

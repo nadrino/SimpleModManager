@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 20/05/2020.
+// Created by Nadrino on 20/05/2020.
 //
 
 #include "test_block.h"

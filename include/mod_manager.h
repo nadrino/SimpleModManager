@@ -1,5 +1,5 @@
 //
-// Created by Adrien Blanchet on 06/09/2019.
+// Created by Nadrino on 06/09/2019.
 //
 
 #ifndef MODAPPLIER_MOD_MANAGER_H

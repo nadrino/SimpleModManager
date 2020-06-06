@@ -1,5 +1,5 @@
 //
-// Created by Adrien Blanchet on 06/09/2019.
+// Created by Nadrino on 06/09/2019.
 //
 
 #include "mod_manager.h"
@@ -397,7 +397,7 @@ void mod_manager::display_mod_files_status(std::string mod_folder_path_){
       toolbox::print_left("Page (" + std::to_string(sel.get_current_page()+1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
       std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
       toolbox::print_left_right(" B : Go back", "");
-      if(sel.get_nb_pages() > 1) toolbox::print_left_right(" ← : Previous Page", "→ : Next Page ");
+      if(sel.get_nb_pages() > 1) toolbox::print_left_right(" <- : Previous Page", "-> : Next Page ");
       consoleUpdate(nullptr);
     }
 

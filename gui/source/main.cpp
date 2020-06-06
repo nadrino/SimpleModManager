@@ -2,15 +2,12 @@
 
 #include <toolbox.h> // keep it for debug
 
-#include <application_handler.h>
 #include <pu/Plutonium>
-#include <application.h>
 
-#include <mod_browser.h>
+#include <application.h>
+#include <GlobalObjects.h>
 
 bool __is_new_version__;
-mod_browser __mod_browser__;
-
 void run_gui();
 void run_console();
 
@@ -21,22 +18,20 @@ int main(int argc, char **argv){
   toolbox::enableEmbeddedSwitchFS();
 
   int max_depth = 1; // could be a parameter in the future
-
-  __mod_browser__.set_only_show_folders(true);
-  __mod_browser__.set_max_relative_depth(max_depth);
-  __mod_browser__.initialize();
+  GlobalObjects::get_mod_browser().set_only_show_folders(true);
+  GlobalObjects::get_mod_browser().set_max_relative_depth(max_depth);
+  GlobalObjects::get_mod_browser().initialize();
 
   __is_new_version__ = false;
   int last_version = std::stoi(
     toolbox::join_vector_string(
       toolbox::split_string(
-        __mod_browser__.get_parameters_handler().get_parameter("last-program-version"),
+        GlobalObjects::get_mod_browser().get_parameters_handler().get_parameter("last-program-version"),
         "."
         ),
       ""
     )
   );
-  toolbox::make_pause();
   int this_version = std::stoi(
     toolbox::join_vector_string(
       toolbox::split_string(
@@ -50,7 +45,7 @@ int main(int argc, char **argv){
   }
 
 
-  if(bool(std::stoi(__mod_browser__.get_parameters_handler().get_parameter("use-gui")))){
+  if(bool(std::stoi(GlobalObjects::get_mod_browser().get_parameters_handler().get_parameter("use-gui")))){
     run_gui();
   }
   else{
@@ -100,7 +95,7 @@ void run_console(){
     toolbox::ask_question("To continue, press A.", {"Ok"});
   }
 
-  __mod_browser__.print_menu();
+  GlobalObjects::get_mod_browser().print_menu();
 
   // Main loop
   while(appletMainLoop())
@@ -112,11 +107,11 @@ void run_console(){
     u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
     u64 kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
 
-    if(kDown & KEY_B and __mod_browser__.get_current_relative_depth() == 0){ // back
+    if(kDown & KEY_B and GlobalObjects::get_mod_browser().get_current_relative_depth() == 0){ // back
       break;
     }
 
-    __mod_browser__.scan_inputs(kDown, kHeld);
+    GlobalObjects::get_mod_browser().scan_inputs(kDown, kHeld);
 
   } // while
 
