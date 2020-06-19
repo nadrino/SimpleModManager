@@ -26,6 +26,8 @@ tsl::elm::Element *ModBrowserGui::createUI() {
   GlobalObjects::get_mod_browser().get_mod_manager().set_current_mods_folder(new_path);
   GlobalObjects::get_mod_browser().get_mods_preseter().read_parameter_file(new_path);
 
+  _list_ = new tsl::elm::List();
+
   // A list that can contain sub elements and handles scrolling
   fill_item_list();
 
@@ -35,7 +37,25 @@ tsl::elm::Element *ModBrowserGui::createUI() {
 
 void ModBrowserGui::fill_item_list() {
 
-  _list_ = new tsl::elm::List();
+  tsl::elm::Element* last_focused_element = this->getFocusedElement();
+  int last_focus_index = 0;
+  tsl::elm::Element* last_element;
+  int element_index = 0;
+  do{
+
+    last_element = _list_->getItemAtIndex(element_index);
+    if(last_focused_element == last_element){
+      last_focus_index = element_index;
+      break;
+    }
+    element_index++;
+
+  } while(last_element != nullptr);
+
+  this->removeFocus();
+  _list_->clear();
+
+  toolbox::make_pause();
 
   // List Items
   _list_->addItem(new tsl::elm::CategoryHeader(_current_sub_folder_));
@@ -106,14 +126,15 @@ void ModBrowserGui::fill_item_list() {
   _frame_->setContent(_list_); // will delete previous list
   _frame_->setFooterTitle("\uE0E1  Back     \uE0E0  Apply     \uE0E2  Disable");
 
+  this->restoreFocus();
+//  this->requestFocus(_list_->getItemAtIndex(last_focus_index), tsl::FocusDirection::None, true);
+
 }
 
 void ModBrowserGui::update() {
 
   if (_trigger_item_list_update_) {
     _trigger_item_list_update_ = false;
-    this->removeFocus();
-    this->_list_->clear();
     fill_item_list();
   }
 

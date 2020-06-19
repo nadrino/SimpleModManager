@@ -59,8 +59,8 @@ include_directories("${ZLIB_INCLUDE_DIRS}")
 include_directories("${FREETYPE_INCLUDE_DIRS}")
 #include_directories("${SDL2_INCLUDE_DIRS}")
 
-set(VERSION_MAJOR 1)
-set(VERSION_MINOR 6)
+set(VERSION_MAJOR 2)
+set(VERSION_MINOR 0)
 set(VERSION_MICRO 0)
 set(APP_VERSION
     "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}")

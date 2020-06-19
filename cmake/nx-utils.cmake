@@ -234,10 +234,6 @@ function(build_switch_binaries target)
 
     if (${ARGC} GREATER 5)
         set(APP_ROMFS ${ARGV5})
-#    else ()
-#        if (NOT APP_VERSION)
-#            set(APP_VERSION "1.0.0")
-#        endif ()
     endif ()
 
     # Build the binaries

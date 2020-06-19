@@ -2,9 +2,7 @@
 
 #include <toolbox.h> // keep it for debug
 
-#include <pu/Plutonium>
-
-#include <application.h>
+#include <borealis.hpp>
 #include <GlobalObjects.h>
 
 bool __is_new_version__;
@@ -58,25 +56,46 @@ int main(int argc, char **argv){
 
 }
 
+static void errorCallback(int errorCode, const char* description)
+{
+  brls::Logger::error("[GLFW:%d] %s", errorCode, description);
+}
+
 void run_gui(){
 
-  auto renderer = pu::ui::render::Renderer::New(
-    pu::ui::render::RendererInitOptions( SDL_INIT_EVERYTHING, pu::ui::render::RendererHardwareFlags )
-      .WithIMG(pu::ui::render::IMGAllFlags)
-      .WithMixer(pu::ui::render::MixerAllFlags)
-      .WithTTF()
-  );
+  // Init the app
+  brls::Logger::setLogLevel(brls::LogLevel::DEBUG);
 
-  // Create our main application from the renderer
-  auto app = application::New(renderer);
-  app->reset();
+  glfwSetErrorCallback(errorCallback);
+  glfwInitHint(GLFW_JOYSTICK_HAT_BUTTONS, GLFW_FALSE);
+  if (!glfwInit())
+  {
+//    Logger::error("Failed to initialize glfw");
+//    return false;
+  }
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwInitHint(GLFW_JOYSTICK_HAT_BUTTONS, GLFW_FALSE);
+  glfwCreateWindow(1280, 720, "SimpleModManager", nullptr, nullptr);
+  exit(EXIT_SUCCESS);
+//
+//  if (!brls::Application::init("SimpleModManager")){
+//    brls::Logger::error("Unable to init Borealis application");
+//    exit(EXIT_FAILURE);
+//  }
 
-  // Prepare out application. This MUST be called or Show() will exit and nothing will be rendered.
-  app->Prepare();
+  // Create a sample view
+//  auto* rootFrame = new brls::TabFrame();
+//  rootFrame->setTitle("SimpleModManager");
+//  rootFrame->setIcon(BOREALIS_ASSET("icon/borealis.jpg"));
 
-  // Show -> start rendering in an "infinite" loop
-  // If wou would like to show with a "fade in" from black-screen to the UI, use instead ->ShowWithFadeIn();
-  app->ShowWithFadeIn();
+  // Add the root view to the stack
+//  brls::Application::pushView(rootFrame);
+
+//  while (brls::Application::mainLoop()){
+    // do something ?
+//  }
 
 }
 

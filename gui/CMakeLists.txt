@@ -15,26 +15,32 @@ set(GUI_AUTHOR "Nadrino")
 set(GUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/assets/icon_gui.jpg")
 set(GUI_ROMFS "${GUI_DIR}/romfs")
 
-set(PLUTONIUM_DIR ${GUI_DIR}/library/Plutonium/Plutonium)
+set(BOREALIS_DIR ${GUI_DIR}/library/borealis)
+add_compile_definitions(BOREALIS_RESOURCES=\"romfs:/borealis/\")
+
+cmake_info("BOREALIS_DIR is ${BOREALIS_DIR}")
 
 set(GUI_SOURCE_DIR ${GUI_DIR}/source)
 
 file(GLOB GUI_SOURCE_FILES
         "${GUI_SOURCE_DIR}/*.cpp"
         "${GUI_SOURCE_DIR}/draw/*.cpp"
-        "${PLUTONIUM_DIR}/Source/pu/*.cpp"
-        "${PLUTONIUM_DIR}/Source/pu/*/*.cpp"
-        "${PLUTONIUM_DIR}/Source/pu/*/*.c"
-        "${PLUTONIUM_DIR}/Source/pu/*/*/*.cpp"
+        "${BOREALIS_DIR}/library/lib/*.cpp"
+        "${BOREALIS_DIR}/library/lib/extern/*/*.c"
+        "${BOREALIS_DIR}/library/lib/extern/*/*/*.c"
+        "${BOREALIS_DIR}/library/lib/*.cpp"
+        "${BOREALIS_DIR}/library/lib/*.c"
+        "${BOREALIS_DIR}/library/lib/extern/glad/*.c"
+        "${BOREALIS_DIR}/library/lib/extern/nanovg/*.c"
+        "${BOREALIS_DIR}/library/lib/extern/libretro-common/compat/*.c"
+        "${BOREALIS_DIR}/library/lib/extern/libretro-common/encodings/*.c"
+        "${BOREALIS_DIR}/library/lib/extern/libretro-common/features/*.c"
         )
 
 
-set(GUI_INC_DIR ${GUI_DIR}/include)
-include_directories(
-        ${GUI_INC_DIR}
-        ${GUI_INC_DIR}/draw
-        ${PLUTONIUM_DIR}/Include
-        )
+#set(GUI_INC_DIR ${GUI_DIR}/include)
+set(BOREALIS_INC_DIR ${BOREALIS_DIR}/library/include)
+#set(PLUTONIUM_INC_DIR ${PLUTONIUM_DIR}/Include)
 
 include(nx-utils)
 
@@ -54,17 +60,29 @@ add_executable(${GUI_APP}.elf
         ${SMM_SOURCES}
         )
 
+target_include_directories(${GUI_APP}.elf PUBLIC
+        ${GUI_INC_DIR}
+        ${BOREALIS_INC_DIR}
+        ${BOREALIS_INC_DIR}/borealis
+        ${BOREALIS_INC_DIR}/borealis/extern/glad
+        ${BOREALIS_INC_DIR}/borealis/extern/nanovg
+        ${BOREALIS_INC_DIR}/borealis/extern/libretro-common
+        #        ${GUI_INC_DIR}/draw
+)
+
 target_link_libraries(
         ${GUI_APP}.elf
         switch::libnx
         -L/opt/devkitpro/portlibs/switch/lib
+        -L/opt/devkitpro/libnx/lib
         ${ZLIB_LIBRARIES}
-        -lSDL2 -march=armv8-a -fPIE -L/opt/devkitpro/libnx/lib -lEGL -lglapi -ldrm_nouveau -lnx
-        -lnx -lfreetype -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lpng -ljpeg -L/opt/devkitpro/portlibs/switch/lib -lSDL2 -march=armv8-a -fPIE -L/opt/devkitpro/libnx/lib -lEGL -lglapi -ldrm_nouveau -lnx -L/opt/devkitpro/portlibs/switch/lib -lfreetype -lbz2 -lpng16 -lz -lm -lnx -lz -lwebp
-        -lSDL2  -march=armv8-a -fPIE -lEGL -lglapi -ldrm_nouveau -lSDL2_ttf -lfreetype
-        -lpng -ljpeg -lnx
-        -lfreetype -lSDL2_mixer -lopusfile -lopus -lmodplug -lmpg123 -lvorbisidec -logg -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lwebp -lpng -ljpeg
         ${FREETYPE_LIBRARIES}
+        -lglfw3 -lEGL -lglapi -ldrm_nouveau -lm -lnx
+#        -lSDL2 -march=armv8-a -fPIE -lEGL -lglapi -ldrm_nouveau -lnx
+#        -lnx -lfreetype -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lpng -ljpeg -L/opt/devkitpro/portlibs/switch/lib -lSDL2 -march=armv8-a -fPIE -L/opt/devkitpro/libnx/lib -lEGL -lglapi -ldrm_nouveau -lnx -L/opt/devkitpro/portlibs/switch/lib -lfreetype -lbz2 -lpng16 -lz -lm -lnx -lz -lwebp
+#        -lSDL2  -march=armv8-a -fPIE -lEGL -lglapi -ldrm_nouveau -lSDL2_ttf -lfreetype
+#        -lpng -ljpeg -lnx
+#        -lfreetype -lSDL2_mixer -lopusfile -lopus -lmodplug -lmpg123 -lvorbisidec -logg -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lwebp -lpng -ljpeg
 )
 
 set_target_properties(${GUI_APP}.elf PROPERTIES
@@ -72,10 +90,26 @@ set_target_properties(${GUI_APP}.elf PROPERTIES
         LINK_FLAGS "-specs=${LIBNX}/switch.specs -Wl,-no-as-needed -Wl,-Map,.map")
 
 
-build_switch_binaries(
-        ${GUI_APP}.elf
-        ${GUI_TITLE} ${GUI_AUTHOR} ${GUI_ICON} ${APP_VERSION} ${GUI_ROMFS}
+set(CMAKE_BUILD_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${GUI_APP}.elf.dir)
+set(BUILD_ROMFS ${CMAKE_BUILD_DIRECTORY}/Resources)
+cmake_info("Resources will be gathered in: ${BUILD_ROMFS}")
+#add_custom_target(
+#        build-time-make-directory ALL
+#
+#        )
+add_custom_command(
+        TARGET ${GUI_APP}.elf
+        PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "Gathering resources..."
+        COMMAND ${CMAKE_COMMAND} -E remove_directory ${BUILD_ROMFS}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${BUILD_ROMFS}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${BUILD_ROMFS}/borealis
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${GUI_ROMFS}/. ${BUILD_ROMFS}/.
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${BOREALIS_DIR}/resources/. ${BUILD_ROMFS}/borealis/.
 )
 
-
+build_switch_binaries(
+        ${GUI_APP}.elf
+        ${GUI_TITLE} ${GUI_AUTHOR} ${GUI_ICON} ${APP_VERSION} ${BUILD_ROMFS}
+)
 

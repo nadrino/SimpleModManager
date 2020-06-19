@@ -21,8 +21,8 @@ file(GLOB OVL_SOURCE_FILES "${OVL_SOURCE_DIR}/*.cpp")
 file(GLOB OVL_TESLA_FILES "${OVL_LIBTESLA_DIR}/include/*.hpp" "${OVL_LIBTESLA_DIR}/include/*.h")
 
 # include
-include_directories("${OVL_INCLUDE_DIR}")
-include_directories("${OVL_LIBTESLA_DIR}/include")
+#include_directories("${OVL_INCLUDE_DIR}")
+#include_directories("${OVL_LIBTESLA_DIR}/include")
 include(nx-utils)
 
 cmake_info("Source Dir : ${OVL_SOURCE_DIR}")
@@ -43,6 +43,13 @@ add_executable(${OVL_APP}.elf
         ${OVL_TESLA_FILES}
         ${SMM_SOURCES}
         )
+
+target_include_directories(
+        ${OVL_APP}.elf
+        PRIVATE
+        ${OVL_INCLUDE_DIR}
+        ${OVL_LIBTESLA_DIR}/include
+)
 
 target_link_libraries(
         ${OVL_APP}.elf
