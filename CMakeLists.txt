@@ -95,6 +95,7 @@ include_directories( ${CMAKE_BINARY_DIR}/generated/ )
 #add_subdirectory(source)
 #add_subdirectory(ovl)
 
-include(source/CMakeLists.txt) # needs to be called before ovl -> defined mod manager classes
-include(ovl/CMakeLists.txt)
-include(gui/CMakeLists.txt)
+#include(source/CMakeLists.txt) # needs to be called before ovl -> defined mod manager classes
+#include(ovl/CMakeLists.txt)
+#include(gui/CMakeLists.txt)
+include(test/CMakeLists.txt)
