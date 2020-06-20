@@ -1262,6 +1262,43 @@ namespace toolbox{
 
   }
 
+  std::string to_lower_case(std::string& input_str_){
+    std::string output_str(input_str_);
+    std::transform(output_str.begin(), output_str.end(), output_str.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+    return output_str;
+  }
+
+  std::string recursive_search_for_subfolder_name_like_tid(std::string &folder_path_){
+
+    std::string tid_example = "0100626011656000";
+
+    // WARNING : Recursive function
+    std::vector<std::string> subfolder_names = get_list_of_subfolders_in_folder(folder_path_);
+
+    for(auto &subfolder_name : subfolder_names){
+      if( subfolder_name.size() == tid_example.size() and subfolder_name[0] == tid_example[0] ){
+        return subfolder_name;
+      }
+    }
+
+    // if not found
+    std::string output;
+    std::string path;
+    for(auto &subfolder_name : subfolder_names){
+      path = folder_path_;
+      path += "/";
+      path += subfolder_name;
+      output = recursive_search_for_subfolder_name_like_tid(path);
+      if(not output.empty()){
+        return output;
+      }
+    }
+
+    return "";
+
+  }
+
 
   //! External function
   std::string get_app_version(){

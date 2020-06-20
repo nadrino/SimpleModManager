@@ -2,9 +2,6 @@
 	path = ovl/libs/libtesla
 #	url = https://github.com/WerWolv/libtesla.git
         url = https://github.com/nadrino/libtesla.git
-[submodule "gui/library/Plutonium"]
-	path = gui/library/Plutonium
-	url = https://github.com/XorTroll/Plutonium.git
 [submodule "gui/library/borealis"]
 	path = gui/library/borealis
 	url = https://github.com/natinusala/borealis.git

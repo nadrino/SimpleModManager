@@ -10,7 +10,9 @@
 #include <algorithm>
 #include <iomanip>
 #include <utility>
-
+#include <cstring>
+#include <borealis.hpp>
+#include <stdio.h>
 
 mod_browser::mod_browser(){
 
@@ -467,6 +469,40 @@ int mod_browser::get_path_depth(std::string& path_){
   if(toolbox::do_string_starts_with_substring(path_, "/")) path_depth--;
   if(toolbox::do_string_ends_with_substring(path_, "/")) path_depth--;
   return path_depth;
+}
+
+uint8_t* mod_browser::get_folder_icon(std::string game_folder_){
+
+  uint8_t* icon = nullptr;
+
+  if(get_current_relative_depth() == get_max_relative_depth()-1){
+
+    std::string game_folder_path = get_current_directory() + "/" + game_folder_;
+    std::string tid_str = toolbox::recursive_search_for_subfolder_name_like_tid(game_folder_path);
+    if(not tid_str.empty()){
+
+      NsApplicationControlData controlData;
+      size_t controlSize  = 0;
+      uint64_t tid;
+
+      std::istringstream buffer(tid_str);
+      buffer >> std::hex >> tid;
+
+      Result rc;
+      rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, tid, &controlData, sizeof(controlData), &controlSize);
+      if (R_FAILED(rc)){
+        return nullptr;
+      }
+
+      icon = new uint8_t[0x20000];
+      memcpy(icon, controlData.icon, 0x20000);
+
+    }
+
+  }
+
+  return icon;
+
 }
 
 void mod_browser::remove_all_mods(bool force_){

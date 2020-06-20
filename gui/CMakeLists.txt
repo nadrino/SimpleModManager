@@ -38,9 +38,8 @@ file(GLOB GUI_SOURCE_FILES
         )
 
 
-#set(GUI_INC_DIR ${GUI_DIR}/include)
+set(GUI_INC_DIR ${GUI_DIR}/include)
 set(BOREALIS_INC_DIR ${BOREALIS_DIR}/library/include)
-#set(PLUTONIUM_INC_DIR ${PLUTONIUM_DIR}/Include)
 
 include(nx-utils)
 
