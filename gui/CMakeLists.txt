@@ -51,7 +51,7 @@ if (cmake_VERBOSE)
     cmake_info("Loaded ${GUI_SOURCE_FILES_LENGTH} source file(s)")
 endif ()
 
-#set(SMM_SOURCES ${SOURCE_FILES} source/Application.cc include/Application.h)
+set(SMM_SOURCES ${SOURCE_FILES})
 list(REMOVE_ITEM SMM_SOURCES ${PROJECT_SOURCE_DIR}/source/main.cpp)
 
 add_executable(${GUI_APP}.elf
@@ -106,6 +106,7 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E make_directory ${BUILD_ROMFS}/borealis
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${GUI_ROMFS}/. ${BUILD_ROMFS}/.
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${BOREALIS_DIR}/resources/. ${BUILD_ROMFS}/borealis/.
+        COMMAND ${CMAKE_COMMAND} -E echo "Resources have been gathered."
 )
 
 build_switch_binaries(
