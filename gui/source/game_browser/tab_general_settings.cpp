@@ -7,13 +7,32 @@
 
 tab_general_settings::tab_general_settings() {
 
-  auto* itemCurrentInstallPreset = new brls::ListItem(
+  itemCurrentInstallPreset = new brls::ListItem(
     "Current Install Preset:",
     "Specify on which base folder mods will be installed.\n If you are using Atmosphere, mods have to be installed in /atmosphere/. You need to take this path into account in your mod tree structure.",
     GlobalObjects::get_mod_browser().get_mod_manager().get_install_mods_base_folder()
   );
   itemCurrentInstallPreset->setValue(GlobalObjects::get_mod_browser().get_parameters_handler().get_current_config_preset_name());
+  itemCurrentInstallPreset->getClickEvent()->subscribe([this](View* view) {
+     brls::ValueSelectedEvent::Callback valueCallback = [this](int result) {
+       if (result == -1)
+         return;
+
+       GlobalObjects::get_mod_browser().get_parameters_handler().set_current_config_preset_id(result);
+       this->itemCurrentInstallPreset->setValue(GlobalObjects::get_mod_browser().get_parameters_handler().get_current_config_preset_name());
+
+//       this->valueEvent.fire(result); // not now
+     };
+     brls::Dropdown::open(
+       "Current Install Preset:",
+       GlobalObjects::get_mod_browser().get_parameters_handler().get_presets_list(),
+       valueCallback,
+       GlobalObjects::get_mod_browser().get_parameters_handler().get_current_config_preset_id()
+       );
+    });
   this->addView(itemCurrentInstallPreset);
+
+  GlobalObjects::get_mod_browser().get_parameters_handler().get_presets_list();
 
   auto* itemStoredModsBaseFolder = new brls::ListItem(
     "stored-mods-base-folder:",

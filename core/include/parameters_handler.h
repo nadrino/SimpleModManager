@@ -23,6 +23,7 @@ public:
   void set_current_config_preset_id(int selected_preset_id_);
   void set_current_config_preset_name(std::string preset_name_);
 
+  int get_current_config_preset_id();
   std::string get_parameter(std::string parameter_name_);
   std::string get_parameters_file_path();
   std::string get_current_config_preset_name();
