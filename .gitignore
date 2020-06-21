@@ -2,4 +2,3 @@
 external
 cmake-build-release
 build
-submodules/*
