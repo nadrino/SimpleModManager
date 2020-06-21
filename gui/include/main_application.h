@@ -27,7 +27,6 @@ public:
   void setCurrentState(BrowserState currentState);
 
   void start_loop();
-  void fill_browser_list();
 
 private:
   bool _is_initialized_{};

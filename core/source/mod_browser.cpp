@@ -11,8 +11,6 @@
 #include <iomanip>
 #include <utility>
 #include <cstring>
-#include <borealis.hpp>
-#include <stdio.h>
 
 mod_browser::mod_browser(){
 

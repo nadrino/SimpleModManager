@@ -23,6 +23,7 @@
 
 #include <version_config.h>
 #include <selector.h>
+#include <numeric>
 
 namespace toolbox{
 
@@ -1268,6 +1269,8 @@ namespace toolbox{
                    [](unsigned char c) { return std::tolower(c); });
     return output_str;
   }
+
+
 
   std::string recursive_search_for_subfolder_name_like_tid(std::string &folder_path_){
 

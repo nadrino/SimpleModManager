@@ -8,6 +8,8 @@
 #include <toolbox.h>
 
 #include <cstring>
+#include <tab_about.h>
+#include <tab_browser.h>
 
 main_application::main_application() {
 
@@ -52,10 +54,8 @@ void main_application::initialize() {
 void main_application::initialize_layout(){
 
   _rootFrame_->setTitle("SimpleModManager");
-  _rootFrame_->setFooterText(toolbox::get_app_version());
+  _rootFrame_->setFooterText(GlobalObjects::_version_str_);
   _rootFrame_->setIcon("romfs:/images/icon.jpg");
-
-  fill_browser_list();
 
   brls::List* testList = new brls::List();
 
@@ -137,11 +137,11 @@ void main_application::initialize_layout(){
 
   testList->addView(layerSelectItem);
 
-  _rootFrame_->addTab("Mods Browser", _browser_list_);
+  _rootFrame_->addTab("Game Browser", new tab_browser());
   _rootFrame_->addSeparator();
   _rootFrame_->addTab("Example", testList);
   _rootFrame_->addTab("Settings", testLayers);
-  _rootFrame_->addTab("About", new brls::Rectangle(nvgRGB(255, 0, 0)));
+  _rootFrame_->addTab("About", new tab_about());
 
 }
 
@@ -166,37 +166,6 @@ void main_application::start_loop() {
 //    }
 
 //    brls::Application::getCurrentFocus() == brls::Application::get
-  }
-
-}
-
-void main_application::fill_browser_list() {
-
-  if(_browser_list_ != nullptr){
-    _browser_list_->willDisappear(true);
-    delete _browser_list_;
-  }
-
-  _browser_list_ = new brls::List();
-
-  auto mod_folders_list = GlobalObjects::get_mod_browser().get_selector().get_selection_list();
-  for (int i_folder = 0; i_folder < int(mod_folders_list.size()); i_folder++) {
-
-    std::string selected_folder = mod_folders_list[i_folder];
-    auto mods_list = toolbox::get_list_of_subfolders_in_folder( GlobalObjects::get_mod_browser().get_current_directory() + "/" + selected_folder);
-    int nb_mods = mods_list.size();
-    auto* item = new brls::ListItem(selected_folder, "", std::to_string(nb_mods) + " mod(s) available.");
-    item->setValue(GlobalObjects::get_mod_browser().get_selector().get_tag(i_folder));
-    auto* icon = GlobalObjects::get_mod_browser().get_folder_icon(selected_folder);
-    if(icon != nullptr){
-      item->setThumbnail(icon, 0x20000);
-    }
-    item->registerAction("Open", brls::Key::A, [this, selected_folder]{
-      brls::Logger::debug("Openning %s", selected_folder.c_str());
-      return true;
-    });
-    _browser_list_->addView(item);
-
   }
 
 }

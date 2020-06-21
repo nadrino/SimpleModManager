@@ -11,11 +11,7 @@ set(HOMEBREW_TITLE ${HOMEBREW_NAME})
 set(HOMEBREW_AUTHOR "Nadrino")
 set(HOMEBREW_ICON "${CMAKE_CURRENT_SOURCE_DIR}/assets/icon_gui.jpg")
 
-set(SOURCE_DIR ${PROJECT_SOURCE_DIR}/source)
-
-file(GLOB SOURCE_FILES "${SOURCE_DIR}/*.cpp")
-
-cmake_info("Source Dir : ${SOURCE_DIR}")
+file(GLOB SOURCE_FILES "${SMM_CORE_SOURCE_DIR}/*.cpp")
 
 if (cmake_VERBOSE)
     list(LENGTH SOURCE_FILES SOURCE_FILES_LENGTH)
@@ -25,7 +21,6 @@ endif ()
 build_switch_binaries(${HOMEBREW_APP}.elf ${HOMEBREW_TITLE} ${HOMEBREW_AUTHOR} ${HOMEBREW_ICON} ${APP_VERSION}) # need to be defined before add_executable... CMake works in myterious ways
 
 add_executable(${HOMEBREW_APP}.elf
-#        ${SOURCE_DIR}/main.cpp
         ${SOURCE_FILES}
         )
 
@@ -39,4 +34,5 @@ target_link_libraries(
 
 set_target_properties(${HOMEBREW_APP}.elf PROPERTIES
         LINKER_LANGUAGE CXX # Replace this with C if you have C source files
-        LINK_FLAGS "-specs=${LIBNX}/switch.specs -Wl,-no-as-needed -Wl,-Map,.map")
+        LINK_FLAGS "-specs=${LIBNX}/switch.specs -Wl,-no-as-needed -Wl,-Map,.map"
+        )

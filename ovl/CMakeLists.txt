@@ -12,7 +12,7 @@ set(OVL_AUTHOR "Nadrino")
 set(OVL_ICON "${CMAKE_CURRENT_SOURCE_DIR}/assets/icon.jpg")
 
 set(OVL_DIR ${PROJECT_SOURCE_DIR}/ovl)
-set(OVL_LIBTESLA_DIR ${OVL_DIR}/libs/libtesla)
+set(OVL_LIBTESLA_DIR ${SUBMODULES_DIR}/libtesla)
 set(OVL_SOURCE_DIR ${OVL_DIR}/source)
 set(OVL_INCLUDE_DIR ${OVL_DIR}/include)
 
@@ -32,8 +32,8 @@ if (cmake_VERBOSE)
     cmake_info("Loaded ${OVL_SOURCE_FILES_LENGTH} source file(s)")
 endif ()
 
-set(SMM_SOURCES ${SOURCE_FILES})
-list(REMOVE_ITEM SMM_SOURCES ${PROJECT_SOURCE_DIR}/source/main.cpp)
+file(GLOB SMM_SOURCE_FILES "${SMM_CORE_SOURCE_DIR}/*.cpp")
+list(REMOVE_ITEM SMM_SOURCE_FILES ${SMM_CORE_SOURCE_DIR}/main.cpp)
 
 build_switch_ovl_binaries(${OVL_APP}.elf ${OVL_TITLE} ${OVL_AUTHOR} ${OVL_ICON} ${APP_VERSION})
 
@@ -41,7 +41,7 @@ add_executable(${OVL_APP}.elf
         #        ${SOURCE_DIR}/main.cpp
         ${OVL_SOURCE_FILES}
         ${OVL_TESLA_FILES}
-        ${SMM_SOURCES}
+        ${SMM_SOURCE_FILES}
         )
 
 target_include_directories(

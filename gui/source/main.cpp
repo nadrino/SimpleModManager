@@ -61,6 +61,8 @@ int main(int argc, char* argv[])
 
 void run_gui(){
 
+  GlobalObjects::redirect_cout();
+
   Result rc;
   rc = nsInitialize();
   if (R_FAILED(rc)){
@@ -76,6 +78,8 @@ void run_gui(){
 }
 
 void run_console(){
+
+  consoleInit(nullptr);
 
   if(__is_new_version__){
     toolbox::print_left("");
@@ -109,5 +113,7 @@ void run_console(){
     GlobalObjects::get_mod_browser().scan_inputs(kDown, kHeld);
 
   } // while
+
+  consoleExit(nullptr);
 
 }

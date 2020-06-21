@@ -1,0 +1,5 @@
+# Ignored files
+external
+cmake-build-release
+build
+submodules/*

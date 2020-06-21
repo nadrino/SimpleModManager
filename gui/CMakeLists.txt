@@ -15,7 +15,7 @@ set(GUI_AUTHOR "Nadrino")
 set(GUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/assets/icon_gui.jpg")
 set(GUI_ROMFS "${GUI_DIR}/romfs")
 
-set(BOREALIS_DIR ${GUI_DIR}/library/borealis)
+set(BOREALIS_DIR ${SUBMODULES_DIR}/borealis)
 add_compile_definitions(BOREALIS_RESOURCES=\"romfs:/borealis/\")
 
 cmake_info("BOREALIS_DIR is ${BOREALIS_DIR}")
@@ -50,13 +50,13 @@ if (cmake_VERBOSE)
     cmake_info("Loaded ${GUI_SOURCE_FILES_LENGTH} source file(s)")
 endif ()
 
-set(SMM_SOURCES ${SOURCE_FILES})
-list(REMOVE_ITEM SMM_SOURCES ${PROJECT_SOURCE_DIR}/source/main.cpp)
+file(GLOB SMM_SOURCE_FILES "${SMM_CORE_SOURCE_DIR}/*.cpp")
+list(REMOVE_ITEM SMM_SOURCE_FILES ${SMM_CORE_SOURCE_DIR}/main.cpp)
 
 add_executable(${GUI_APP}.elf
         #        ${SOURCE_DIR}/main.cpp
         ${GUI_SOURCE_FILES}
-        ${SMM_SOURCES}
+        ${SMM_SOURCE_FILES}
         )
 
 target_include_directories(${GUI_APP}.elf PUBLIC

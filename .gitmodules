@@ -1,7 +1,7 @@
-[submodule "ovl/libs/libtesla"]
-	path = ovl/libs/libtesla
+[submodule "submodules/libtesla"]
+	path = submodules/libtesla
 #	url = https://github.com/WerWolv/libtesla.git
         url = https://github.com/nadrino/libtesla.git
-[submodule "gui/library/borealis"]
-	path = gui/library/borealis
+[submodule "submodules/borealis"]
+	path = submodules/borealis
 	url = https://github.com/natinusala/borealis.git

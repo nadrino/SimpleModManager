@@ -89,13 +89,22 @@ include(nx-utils)
 
 cmake_info("Building ${APP_TITLE} version ${APP_VERSION}.")
 
+
+# SimpleModManager Core
+set(SMM_CORE_DIR ${PROJECT_SOURCE_DIR}/core)
+set(SMM_CORE_SOURCE_DIR ${SMM_CORE_DIR}/source)
+set(SMM_CORE_INCLUDE_DIR ${SMM_CORE_DIR}/include)
+
+include_directories(${SMM_CORE_INCLUDE_DIR})
+
+# Submodules
+set(SUBMODULES_DIR ${PROJECT_SOURCE_DIR}/submodules)
+
+
 configure_file(version_config.h.in ${CMAKE_BINARY_DIR}/generated/version_config.h)
 include_directories( ${CMAKE_BINARY_DIR}/generated/ )
 
-#add_subdirectory(source)
-#add_subdirectory(ovl)
-
-include(source/CMakeLists.txt) # needs to be called before ovl -> defined mod manager classes
+include(core/CMakeLists.txt)
 include(gui/CMakeLists.txt)
-#include(ovl/CMakeLists.txt)
-#include(test/CMakeLists.txt)
+include(ovl/CMakeLists.txt)
+include(external/sys-clk/manager/CMakeLists.txt)

@@ -109,6 +109,7 @@ namespace toolbox{
   std::vector<std::string> get_list_of_files_in_folder(std::string folder_path_);
   std::vector<std::string> get_list_files_in_subfolders(std::string &folder_path_);
   std::string to_lower_case(std::string& input_str_);
+
   std::string recursive_search_for_subfolder_name_like_tid(std::string &folder_path_);
 
 
@@ -127,8 +128,14 @@ namespace toolbox{
   //! External function
   std::string get_app_version();
 
-
+  //! Templates functions : defined in toolbox_impl.h
+  template <typename T, typename Compare>
+  std::vector<size_t> sort_permutation(std::vector<T>& vec, Compare& compare );
+  template <typename T>
+  std::vector<T> apply_permutation( const std::vector<T>& vec, const std::vector<std::size_t>& p );
 
 }
+
+#include <toolbox_impl.h>
 
 #endif //SIMPLEMODMANAGER_TOOLBOX_H
