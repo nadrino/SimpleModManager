@@ -24,7 +24,8 @@ set(GUI_SOURCE_DIR ${GUI_DIR}/source)
 
 file(GLOB GUI_SOURCE_FILES
         "${GUI_SOURCE_DIR}/*.cpp"
-        "${GUI_SOURCE_DIR}/draw/*.cpp"
+        "${GUI_SOURCE_DIR}/game_browser/*.cpp"
+        "${GUI_SOURCE_DIR}/mod_browser/*.cpp"
         "${BOREALIS_DIR}/library/lib/*.cpp"
         "${BOREALIS_DIR}/library/lib/extern/*/*.c"
         "${BOREALIS_DIR}/library/lib/extern/*/*/*.c"
@@ -61,6 +62,8 @@ add_executable(${GUI_APP}.elf
 
 target_include_directories(${GUI_APP}.elf PUBLIC
         ${GUI_INC_DIR}
+        ${GUI_INC_DIR}/game_browser
+        ${GUI_INC_DIR}/mod_browser
         ${BOREALIS_INC_DIR}
         ${BOREALIS_INC_DIR}/borealis
         ${BOREALIS_INC_DIR}/borealis/extern/glad

@@ -40,7 +40,7 @@ tab_about::tab_about() {
   portrait->setHeight(200);
   portrait->setParent(rightBox);
   rightBox->addView(portrait);
-  auto* portraitText = new brls::Label(brls::LabelStyle::SMALL, "Author: Nadrino\n A parisian neutrino physicist", true);
+  auto* portraitText = new brls::Label(brls::LabelStyle::SMALL, "Author: Nadrino", true);
   portraitText->setHorizontalAlign(NVG_ALIGN_CENTER);
   rightBox->addView(portraitText);
 

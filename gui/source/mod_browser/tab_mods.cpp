@@ -2,10 +2,10 @@
 // Created by Adrien BLANCHET on 21/06/2020.
 //
 
-#include "thumbnail_mod_browser.h"
+#include "tab_mods.h"
 #include <GlobalObjects.h>
 
-thumbnail_mod_browser::thumbnail_mod_browser(std::string folder_) {
+tab_mods::tab_mods(std::string folder_) {
 
   auto* modsBrowserTabList = new brls::List();
 
@@ -27,7 +27,27 @@ thumbnail_mod_browser::thumbnail_mod_browser(std::string folder_) {
       std::string selected_folder = mod_folders_list[i_folder];
       auto* item = new brls::ListItem(selected_folder, "", "");
       item->setValue(GlobalObjects::get_mod_browser().get_mod_manager().get_mod_status(selected_folder));
+      item->getClickEvent()->subscribe([this, item, selected_folder](View* view) {
+        brls::Logger::debug("Applying mod: %s", selected_folder.c_str());
+        // apply mode
+        std::string dialogTitle = "Applying: " + selected_folder + "\n";
+
+        auto* frame = new brls::AppletFrame(false, false);
+        frame->setHeight(600);
+
+        auto* progressBar = new brls::ProgressDisplay();
+        frame->setContentView(progressBar);
+
+        brls::PopupFrame::open("Popup title", BOREALIS_ASSET("icon/borealis.jpg"), frame, "Subtitle left", "Subtitle right");
+
+
+        item->setValue(GlobalObjects::get_mod_browser().get_mod_manager().get_mod_status(selected_folder));
+      });
+      item->updateActionHint(brls::Key::A, "Apply");
+
       modsBrowserTabList->addView(item);
+      _mods_list_.emplace_back(item);
+
     }
   }
   else{
@@ -52,7 +72,7 @@ thumbnail_mod_browser::thumbnail_mod_browser(std::string folder_) {
 
 }
 
-bool thumbnail_mod_browser::onCancel() {
+bool tab_mods::onCancel() {
 
   GlobalObjects::get_mod_browser().go_back();
   brls::Application::popView(brls::ViewAnimation::SLIDE_RIGHT);

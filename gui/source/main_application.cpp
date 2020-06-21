@@ -9,7 +9,8 @@
 
 #include <cstring>
 #include <tab_about.h>
-#include <tab_browser.h>
+#include <tab_games.h>
+#include <game_browser/tab_general_settings.h>
 
 main_application::main_application() {
 
@@ -137,10 +138,11 @@ void main_application::initialize_layout(){
 
   testList->addView(layerSelectItem);
 
-  _rootFrame_->addTab("Game Browser", new tab_browser());
+  _rootFrame_->addTab("Game Browser", new tab_games());
   _rootFrame_->addSeparator();
   _rootFrame_->addTab("Example", testList);
-  _rootFrame_->addTab("Settings", testLayers);
+  _rootFrame_->addTab("Layers", testLayers);
+  _rootFrame_->addTab("Settings", new tab_general_settings());
   _rootFrame_->addTab("About", new tab_about());
 
 }

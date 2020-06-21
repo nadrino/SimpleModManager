@@ -2,11 +2,11 @@
 // Created by Adrien BLANCHET on 21/06/2020.
 //
 
-#include <tab_browser.h>
+#include <tab_games.h>
 #include <GlobalObjects.h>
-#include <thumbnail_mod_browser.h>
+#include <tab_mods.h>
 
-tab_browser::tab_browser() {
+tab_games::tab_games() {
 
   auto mod_folders_list = GlobalObjects::get_mod_browser().get_selector().get_selection_list();
   for (int i_folder = 0; i_folder < int(mod_folders_list.size()); i_folder++) {
@@ -21,13 +21,13 @@ tab_browser::tab_browser() {
     }
     item->getClickEvent()->subscribe([this, selected_folder](View* view) {
       brls::Logger::debug("Openning %s", selected_folder.c_str());
-      auto* mods_browser = new thumbnail_mod_browser(selected_folder);
+      auto* mods_browser = new tab_mods(selected_folder);
       brls::Application::pushView(mods_browser, brls::ViewAnimation::SLIDE_LEFT);
     });
     item->updateActionHint(brls::Key::A, "Open");
+
     _games_list_.emplace_back(item);
     _nb_mods_list_.emplace_back(nb_mods);
-
   }
 
   std::function<bool(int&, int&)> lambda = [](int & a, int & b){ return a > b; };
