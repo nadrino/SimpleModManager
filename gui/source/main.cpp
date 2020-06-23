@@ -6,7 +6,9 @@
 #include <borealis.hpp>
 #include <string>
 #include <GlobalObjects.h>
-#include <main_application.h>
+#include <frame_root.h>
+
+//#include "yaml-cpp/yaml.h"
 
 bool __is_new_version__;
 void run_gui();
@@ -15,6 +17,14 @@ void run_console();
 
 int main(int argc, char* argv[])
 {
+
+  // https://github.com/jbeder/yaml-cpp/wiki/Tutorial
+//  YAML::Node config = YAML::LoadFile("config.yaml");
+//  if (config["lastLogin"]) {
+//    std::cout << "Last logged in: " << config["lastLogin"].as<std::string>() << "\n";
+//  }
+//  const auto username = config["username"].as<std::string>();
+//  const auto password = config["password"].as<std::string>();
 
   toolbox::enableEmbeddedSwitchFS();
 
@@ -69,9 +79,19 @@ void run_gui(){
     brls::Logger::debug("nsInitialize Failed");
   }
 
-  main_application app;
-  app.initialize();
-  app.start_loop();
+  brls::Logger::setLogLevel(brls::LogLevel::DEBUG);
+  if (not brls::Application::init("SimpleModManager")){
+    brls::Logger::error("Unable to init Borealis application");
+    nsExit();
+    exit(EXIT_FAILURE);
+  }
+
+  auto* main_frame = new frame_root();
+  brls::Application::pushView(main_frame);
+  main_frame->registerAction("", brls::Key::PLUS, []{return true;}, true);
+  main_frame->updateActionHint(brls::Key::PLUS, ""); // make the change visible
+
+  while(brls::Application::mainLoop());
 
   nsExit();
 

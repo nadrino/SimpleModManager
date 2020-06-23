@@ -4,7 +4,7 @@
 
 #include <tab_games.h>
 #include <GlobalObjects.h>
-#include <tab_mods.h>
+#include <frame_mods_browser.h>
 
 tab_games::tab_games() {
 
@@ -21,8 +21,10 @@ tab_games::tab_games() {
     }
     item->getClickEvent()->subscribe([this, selected_folder](View* view) {
       brls::Logger::debug("Openning %s", selected_folder.c_str());
-      auto* mods_browser = new tab_mods(selected_folder);
+      auto* mods_browser = new frame_mods_browser(selected_folder);
       brls::Application::pushView(mods_browser, brls::ViewAnimation::SLIDE_LEFT);
+      mods_browser->registerAction("", brls::Key::PLUS, []{return true;}, true);
+      mods_browser->updateActionHint(brls::Key::PLUS, ""); // make the change visible
     });
     item->updateActionHint(brls::Key::A, "Open");
 

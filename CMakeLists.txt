@@ -89,7 +89,6 @@ include(nx-utils)
 
 cmake_info("Building ${APP_TITLE} version ${APP_VERSION}.")
 
-
 # SimpleModManager Core
 set(SMM_CORE_DIR ${PROJECT_SOURCE_DIR}/core)
 set(SMM_CORE_SOURCE_DIR ${SMM_CORE_DIR}/source)

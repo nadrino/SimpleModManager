@@ -32,6 +32,7 @@ public:
   int get_max_relative_depth();
   std::string get_current_directory();
   std::string get_base_folder();
+  std::string get_main_config_preset();
   parameters_handler &get_parameters_handler();
   selector &get_selector();
   mods_preseter &get_mods_preseter();

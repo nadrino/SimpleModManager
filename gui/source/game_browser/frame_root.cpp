@@ -1,62 +1,19 @@
 //
-// Created by Adrien BLANCHET on 20/06/2020.
+// Created by Adrien BLANCHET on 22/06/2020.
 //
 
-#include <main_application.h>
-#include <borealis.hpp>
+#include "frame_root.h"
 #include <GlobalObjects.h>
-#include <toolbox.h>
-
-#include <cstring>
-#include <tab_about.h>
 #include <tab_games.h>
-#include <game_browser/tab_general_settings.h>
+#include <tab_general_settings.h>
+#include <tab_about.h>
+#include <game_browser/tab_test.h>
 
-main_application::main_application() {
+frame_root::frame_root() {
 
-  _current_state_ = GAME_BROWSER;
-  _rootFrame_ = nullptr;
-  _browser_list_ = nullptr;
-  brls::Logger::setLogLevel(brls::LogLevel::DEBUG);
-  if (not brls::Application::init("SimpleModManager")){
-    brls::Logger::error("Unable to init Borealis application");
-    exit(EXIT_FAILURE);
-  }
-  reset();
-
-}
-
-main_application::~main_application() {
-
-  reset();
-
-}
-
-void main_application::reset() {
-
-  _is_initialized_ = false;
-  if(_rootFrame_ == nullptr) _rootFrame_ = new brls::TabFrame(); // memory is handled by brls
-
-}
-
-void main_application::initialize() {
-
-  if(not _is_initialized_){
-    initialize_layout();
-
-    // Add the root view to the stack
-    brls::Application::pushView(_rootFrame_);
-
-    _is_initialized_ = true;
-  }
-
-}
-
-void main_application::initialize_layout(){
-
-  _rootFrame_->setTitle("SimpleModManager");
-  _rootFrame_->setFooterText(GlobalObjects::_version_str_);
-  _rootFrame_->setIcon("romfs:/images/icon.jpg");
+  this->setTitle("SimpleModManager");
+  this->setFooterText(GlobalObjects::_version_str_);
+  this->setIcon("romfs:/images/icon.jpg");
 
   brls::List* testList = new brls::List();
 
@@ -138,44 +95,27 @@ void main_application::initialize_layout(){
 
   testList->addView(layerSelectItem);
 
-  _rootFrame_->addTab("Game Browser", new tab_games());
-  _rootFrame_->addSeparator();
-  _rootFrame_->addTab("Example", testList);
-  _rootFrame_->addTab("Layers", testLayers);
-  _rootFrame_->addTab("Settings", new tab_general_settings());
-  _rootFrame_->addTab("About", new tab_about());
+  this->addTab("Game Browser", new tab_games());
+  this->addSeparator();
+  this->addTab("Settings", new tab_general_settings());
+  this->addTab("About", new tab_about());
+  this->addSeparator();
+  this->addTab("Example", testList);
+  this->addTab("Layers", testLayers);
+  this->addTab("Test0", new tab_test(0));
+  this->addTab("Test1", new tab_test(1));
 
 }
 
-void main_application::start_loop() {
+bool frame_root::onCancel() {
 
-  if(not _is_initialized_){
-    return;
+  auto* lastFocus = brls::Application::getCurrentFocus();
+
+  bool onCancel = TabFrame::onCancel();
+
+  if(lastFocus == brls::Application::getCurrentFocus()){
+    brls::Application::quit();
   }
 
-  // Run the app
-//  u64 kDown, kHeld;
-  while (brls::Application::mainLoop()){
-
-//    kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-
-//    if(kDown & KEY_B){
-//      if(_rootFrame_->getSidebar()->isFocused()){
-//
-//        break;
-//      }
-//      brls::Logger::debug("KEY_B");
-//    }
-
-//    brls::Application::getCurrentFocus() == brls::Application::get
-  }
-
-}
-
-main_application::BrowserState main_application::getCurrentState() const {
-  return _current_state_;
-}
-
-void main_application::setCurrentState(main_application::BrowserState currentState) {
-  _current_state_ = currentState;
+  return onCancel;
 }

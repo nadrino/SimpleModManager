@@ -77,6 +77,9 @@ std::string mod_browser::get_current_directory(){
 std::string mod_browser::get_base_folder(){
   return _base_folder_;
 }
+std::string mod_browser::get_main_config_preset(){
+  return _main_config_preset_;
+}
 parameters_handler &mod_browser::get_parameters_handler(){
   return _parameters_handler_;
 }

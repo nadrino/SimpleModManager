@@ -56,12 +56,6 @@ tab_about::tab_about() {
          "\uE017  Special thanks to the RetroNX team for their support with Borealis\n",
     true
   );
-  // "uE010" -> rectangle with !
-  // "uE017" -> heart
-  // "uE019" -> right arrow
-  // "uE020" to 27 -> tinfoil style squares
-  // "uE040" -> power then some buttons (official icons start at something like 70)
-  // "uE105" is the last
   this->addView(links);
 
 
