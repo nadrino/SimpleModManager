@@ -15,7 +15,9 @@ public:
 
   void initialize();
 
-  void buildFolderInstallPreset();
+  void buildFolderInstallPresetItem();
+  void buildResetModsCacheItem();
+  void buildDisableAllMods();
 
   // User set
   tab_mod_browser* _tabModBrowser_;
@@ -23,7 +25,11 @@ public:
   // FolderInstallPreset
   int _preSelection_;
   std::string _inheritedTitle_;
+
+  // menu items
   brls::ListItem* _itemFolderInstallPreset_;
+  brls::ListItem* _itemResetModsCache_;
+  brls::ListItem* _itemDisableAllMods_;
 
 };
 

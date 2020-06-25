@@ -19,8 +19,9 @@ tab_mod_presets::tab_mod_presets() {
     auto* item = new brls::ListItem(
       preset_name,
       "",
-      std::to_string(mods_list.size()) + " mods in this set."
+      ""
       );
+    item->setValue(std::to_string(mods_list.size()) + " mods in this set.");
     this->addView(item);
   }
 

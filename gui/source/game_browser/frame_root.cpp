@@ -99,11 +99,11 @@ frame_root::frame_root() {
   this->addSeparator();
   this->addTab("Settings", new tab_general_settings());
   this->addTab("About", new tab_about());
-  this->addSeparator();
-  this->addTab("Example", testList);
-  this->addTab("Layers", testLayers);
-  this->addTab("Test0", new tab_test(0));
-  this->addTab("Test1", new tab_test(1));
+//  this->addSeparator();
+//  this->addTab("Example", testList);
+//  this->addTab("Layers", testLayers);
+//  this->addTab("Test0", new tab_test(0));
+//  this->addTab("Test1", new tab_test(1));
 
 }
 

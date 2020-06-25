@@ -18,4 +18,10 @@ namespace GlobalObjects{
 
   }
 
+  void threadApplyMod(void* arg) {
+//    brls::Logger::debug("inside");
+  GlobalObjects::get_mod_browser().get_mod_manager().apply_mod(GlobalObjects::_str_buffer_, true);
+
+  }
+
 }

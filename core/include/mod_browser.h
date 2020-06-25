@@ -51,8 +51,6 @@ public:
 
   uint8_t* get_folder_icon(std::string game_folder_);
 
-protected:
-
   void remove_all_mods(bool force_ = false);
 
 private:

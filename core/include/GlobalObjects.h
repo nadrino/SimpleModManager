@@ -14,9 +14,11 @@ namespace GlobalObjects {
   static mod_browser _mod_browser_;
   static std::string _version_str_ = "v" + toolbox::get_app_version();
   static std::stringstream _cout_redirect_;
+  static std::string _str_buffer_ = "";
 
   mod_browser& get_mod_browser();
   void redirect_cout();
+  void threadApplyMod(void* arg);
 
 };
 

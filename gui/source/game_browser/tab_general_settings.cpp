@@ -16,7 +16,6 @@ void tab_general_settings::rebuild_layout() {
   itemCurrentInstallPreset = new brls::ListItem(
     "Current Install Preset:",
     "Specify on which base folder mods will be installed.\n If you are using Atmosphere, mods have to be installed in /atmosphere/. You need to take this path into account in your mod tree structure.",
-//    GlobalObjects::get_mod_browser().get_mod_manager().get_install_mods_base_folder()
     ""
   );
   itemCurrentInstallPreset->setValue(GlobalObjects::get_mod_browser().get_parameters_handler().get_current_config_preset_name());
