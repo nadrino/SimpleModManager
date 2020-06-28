@@ -58,6 +58,9 @@ std::string mod_manager::get_install_mods_base_folder() {
 std::string & mod_manager::get_current_mods_folder_path(){
   return _current_mods_folder_path_;
 }
+std::vector<std::string>& mod_manager::get_ignored_file_list(){
+  return _ignored_file_list_;
+}
 
 void mod_manager::set_parameters_handler_ptr(parameters_handler *parameters_handler_ptr_){
   _parameters_handler_ptr_ = parameters_handler_ptr_;
@@ -428,5 +431,21 @@ std::string mod_manager::ask_to_replace(std::string path_) {
   options.emplace_back("No to all");
   return toolbox::ask_question(path_ + " already exists. Replace ?", options);
 
+}
+
+std::map<std::string, std::string> & mod_manager::get_mods_status_cache() {
+  return _mods_status_cache_;
+}
+
+bool mod_manager::isUseCacheOnlyForStatusCheck() {
+  return _use_cache_only_for_status_check_;
+}
+
+std::map<std::string, double> &mod_manager::getModsStatusCacheFraction() {
+  return _mods_status_cache_fraction_;
+}
+
+parameters_handler *mod_manager::getParametersHandlerPtr() {
+  return _parameters_handler_ptr_;
 }
 

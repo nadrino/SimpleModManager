@@ -4,9 +4,12 @@
 
 #include "tab_mod_options.h"
 #include <GlobalObjects.h>
+#include <ext_GlobalObjects.h>
 
 tab_mod_options::tab_mod_options() {
 
+  frameSkipCount = 0;
+  doUpdateModsStatus = false;
   _tabModBrowser_ = nullptr;
   _preSelection_ = 0;
   _inheritedTitle_ = "Inherited from the main menu";
@@ -68,7 +71,9 @@ void tab_mod_options::buildFolderInstallPresetItem() {
         );
         this->_itemFolderInstallPreset_->setValue(_inheritedTitle_);
       }
-      if(this->_tabModBrowser_ != nullptr) this->_tabModBrowser_->updateModsStatus();
+      if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
+        ext_GlobalObjects::getCurrentTabModBrowserPtr()->setIsAlreadyChecked(false);
+      }
 
     }; // Callback sequence
 
@@ -99,9 +104,10 @@ void tab_mod_options::buildResetModsCacheItem() {
 
     dialog->addButton("Yes", [this, dialog](brls::View* view) {
       dialog->close();
-      brls::Application::notify("Resetting mods cache status...");
+//      brls::Application::notify("Resetting mods cache status...");
       GlobalObjects::get_mod_browser().get_mod_manager().reset_all_mods_cache_status();
-      if(this->_tabModBrowser_ != nullptr) this->_tabModBrowser_->updateModsStatus();
+      if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr) ext_GlobalObjects::getCurrentTabModBrowserPtr()->setIsAlreadyChecked(false);
+//      if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr) ext_GlobalObjects::getCurrentTabModBrowserPtr()->updateModsStatus();
     });
     dialog->addButton("No", [dialog](brls::View* view) {
       dialog->close();
@@ -132,7 +138,6 @@ void tab_mod_options::buildDisableAllMods() {
       brls::Application::notify("Disabling all mods of this folder...");
       GlobalObjects::get_mod_browser().remove_all_mods(true);
       GlobalObjects::get_mod_browser().get_mod_manager().reset_all_mods_cache_status();
-      if(this->_tabModBrowser_ != nullptr) this->_tabModBrowser_->updateModsStatus();
     });
     dialog->addButton("No", [dialog](brls::View* view) {
       dialog->close();
@@ -155,6 +160,12 @@ void tab_mod_options::initialize() {
   this->addView(_itemDisableAllMods_);
   this->addView(_itemFolderInstallPreset_);
   this->addView(_itemResetModsCache_);
+
+}
+
+void tab_mod_options::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
+                           brls::FrameContext *ctx) {
+  ScrollView::draw(vg, x, y, width, height, style, ctx);
 
 }
 

@@ -19,6 +19,8 @@ public:
   void buildResetModsCacheItem();
   void buildDisableAllMods();
 
+  void draw(NVGcontext* vg, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* ctx) override;
+
   // User set
   tab_mod_browser* _tabModBrowser_;
 
@@ -30,6 +32,9 @@ public:
   brls::ListItem* _itemFolderInstallPreset_;
   brls::ListItem* _itemResetModsCache_;
   brls::ListItem* _itemDisableAllMods_;
+
+  bool doUpdateModsStatus;
+  int frameSkipCount;
 
 };
 

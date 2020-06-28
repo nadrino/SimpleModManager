@@ -26,6 +26,11 @@ public:
 
   std::string get_install_mods_base_folder();
   std::string & get_current_mods_folder_path();
+  std::vector<std::string>& get_ignored_file_list();
+  std::map<std::string, std::string> & get_mods_status_cache();
+  bool isUseCacheOnlyForStatusCheck();
+  std::map<std::string, double> &getModsStatusCacheFraction();
+  parameters_handler *getParametersHandlerPtr();
 
   void set_parameters_handler_ptr(parameters_handler *parameters_handler_ptr_);
   void set_current_mods_folder(std::string folder_path_);

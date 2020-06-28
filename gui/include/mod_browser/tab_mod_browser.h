@@ -6,16 +6,27 @@
 #define SIMPLEMODMANAGER_TAB_MOD_BROWSER_H
 
 #include <borealis.hpp>
+#include <ext_mod_manager.h>
 
 class tab_mod_browser : public brls::List {
 
 public:
   tab_mod_browser();
 
+  ext_mod_manager &getExtModManager();
+  std::map<std::string, brls::ListItem *> &getModsListItems();
+
+  void setIsAlreadyChecked(bool isAlreadyChecked);
   void updateModsStatus();
 
+  void draw(NVGcontext* vg, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* ctx) override;
+
+
 private:
-  std::vector<brls::ListItem*> _mods_list_;
+  brls::Dialog* dialog;
+  std::map<std::string, brls::ListItem*> _modsListItems_;
+  ext_mod_manager _extModManager_;
+  bool isAlreadyChecked;
 
 
 };

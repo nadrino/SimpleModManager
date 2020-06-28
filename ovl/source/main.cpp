@@ -21,7 +21,7 @@ public:
     tsl::hlp::ScopeGuard dirGuard([&] {
     });
 
-  }  // Called at the start to initialize all services necessary for this Overlay
+  }  // Called at the start_apply_mod to initialize all services necessary for this Overlay
   void exitServices() override {
 
     toolbox::disableEmbeddedSwitchFS();
