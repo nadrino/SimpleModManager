@@ -52,7 +52,9 @@ namespace toolbox{
   void reset_last_displayed_value();
   void set_last_timestamp();
   void set_CRC_check_is_enabled(bool CRC_check_is_enabled_);
+  void fill_progress_map(std::string key_, double value_);
 
+  double & get_progress(std::string key_);
   bool get_CRC_check_is_enabled();
 
 

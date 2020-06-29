@@ -51,6 +51,9 @@ void mod_manager::set_install_mods_base_folder(std::string install_mods_base_fol
 void mod_manager::set_use_cache_only_for_status_check(bool use_cache_only_for_status_check_){
   _use_cache_only_for_status_check_ = use_cache_only_for_status_check_;
 }
+void mod_manager::set_ignored_file_list(std::vector<std::string>& ignored_file_list_){
+  _ignored_file_list_ = ignored_file_list_;
+}
 
 std::string mod_manager::get_install_mods_base_folder() {
   return _install_mods_base_folder_;

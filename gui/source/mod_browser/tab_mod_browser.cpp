@@ -52,9 +52,7 @@ tab_mod_browser::tab_mod_browser() {
 void tab_mod_browser::updateModsStatus() {
 
   brls::Logger::debug("updateModsStatus");
-  this->getExtModManager().start_check_mods_list(
-    GlobalObjects::get_mod_browser().get_selector().get_selection_list()
-    );
+  this->getExtModManager().start_check_all_mods();
 
 //  for(auto& modItem : _modsListItems_){
 //    modItem.second->setValue(

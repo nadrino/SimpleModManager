@@ -23,6 +23,7 @@ public:
 
   void set_install_mods_base_folder(std::string install_mods_base_folder_);
   void set_use_cache_only_for_status_check(bool use_cache_only_for_status_check_);
+  void set_ignored_file_list(std::vector<std::string>& ignored_file_list_);
 
   std::string get_install_mods_base_folder();
   std::string & get_current_mods_folder_path();

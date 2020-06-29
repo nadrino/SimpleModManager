@@ -5,6 +5,8 @@
 #include "tab_mod_presets.h"
 #include <borealis.hpp>
 #include <GlobalObjects.h>
+#include <ext_GlobalObjects.h>
+#include <ext_mod_manager.h>
 
 tab_mod_presets::tab_mod_presets() {
 
@@ -21,7 +23,13 @@ tab_mod_presets::tab_mod_presets() {
       "",
       ""
       );
-    item->setValue(std::to_string(mods_list.size()) + " mods in this set.");
+    item->setValue(std::to_string(mods_list.size()) + " mods in this set");
+    item->getClickEvent()->subscribe([preset_name](brls::View* view){
+      if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
+        ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_apply_mod_preset(preset_name);
+      }
+      return true;
+    });
     this->addView(item);
   }
 

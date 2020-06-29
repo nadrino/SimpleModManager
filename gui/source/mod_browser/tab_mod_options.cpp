@@ -44,7 +44,7 @@ void tab_mod_options::buildFolderInstallPresetItem() {
     }
 
     // function that will set the config preset from the Dropdown menu selection (int result)
-    brls::ValueSelectedEvent::Callback valueCallback = [this](int result) {
+    brls::ValueSelectedEvent::Callback valueCallback = [this, valueCallback](int result) {
       if (result == -1)
         return;
 
@@ -71,8 +71,11 @@ void tab_mod_options::buildFolderInstallPresetItem() {
         );
         this->_itemFolderInstallPreset_->setValue(_inheritedTitle_);
       }
+
       if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
-        ext_GlobalObjects::getCurrentTabModBrowserPtr()->setIsAlreadyChecked(false);
+        ext_mod_manager::setOnCallBackFunction([](){brls::Application::popView(brls::ViewAnimation::FADE);});
+        GlobalObjects::get_mod_browser().get_mod_manager().reset_all_mods_cache_status();
+        ext_GlobalObjects::getCurrentTabModBrowserPtr()->updateModsStatus();
       }
 
     }; // Callback sequence
@@ -81,7 +84,8 @@ void tab_mod_options::buildFolderInstallPresetItem() {
       "Please select the config preset you want for this folder",
       config_presets_list,
       valueCallback,
-      this->_preSelection_
+      this->_preSelection_,
+      true
     );
 
   });
@@ -103,11 +107,11 @@ void tab_mod_options::buildResetModsCacheItem() {
     auto* dialog = new brls::Dialog("Do you want to reset mods cache status and recheck all mod files ?");
 
     dialog->addButton("Yes", [this, dialog](brls::View* view) {
-      dialog->close();
-//      brls::Application::notify("Resetting mods cache status...");
-      GlobalObjects::get_mod_browser().get_mod_manager().reset_all_mods_cache_status();
-      if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr) ext_GlobalObjects::getCurrentTabModBrowserPtr()->setIsAlreadyChecked(false);
-//      if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr) ext_GlobalObjects::getCurrentTabModBrowserPtr()->updateModsStatus();
+      if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
+        ext_mod_manager::setOnCallBackFunction([dialog](){dialog->close();});
+        GlobalObjects::get_mod_browser().get_mod_manager().reset_all_mods_cache_status();
+        ext_GlobalObjects::getCurrentTabModBrowserPtr()->updateModsStatus();
+      }
     });
     dialog->addButton("No", [dialog](brls::View* view) {
       dialog->close();
@@ -125,7 +129,7 @@ void tab_mod_options::buildDisableAllMods() {
   _itemDisableAllMods_ = new brls::ListItem(
     "Disable All Mods",
     "This option will remove all installed mods files.\n"
-              "Note that each installed mod file need to be identical to the one present in this folder.",
+              "Note: to be deleted, installed mod files need to be identical to the one present in this folder.",
     ""
   );
 
@@ -133,11 +137,11 @@ void tab_mod_options::buildDisableAllMods() {
 
     auto* dialog = new brls::Dialog("Do you want to disable all mods ?");
 
-    dialog->addButton("Yes", [this, dialog](brls::View* view) {
-      dialog->close();
-      brls::Application::notify("Disabling all mods of this folder...");
-      GlobalObjects::get_mod_browser().remove_all_mods(true);
-      GlobalObjects::get_mod_browser().get_mod_manager().reset_all_mods_cache_status();
+    dialog->addButton("Yes", [dialog](brls::View* view) {
+      if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
+        ext_mod_manager::setOnCallBackFunction([dialog](){dialog->close();});
+        ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_remove_all_mods();
+      }
     });
     dialog->addButton("No", [dialog](brls::View* view) {
       dialog->close();

@@ -27,32 +27,34 @@
 
 namespace toolbox{
 
-  static std::time_t __last_timestamp__;
-  static double __last_displayed_value__ = -1;
-  static bool __CRC_check_is_enabled__ = true;
+  static std::time_t _last_timestamp_;
+  static double _last_displayed_value_ = -1;
+  static bool _CRC_check_is_enabled_ = true;
 
-  static bool __native_switch_FS_is_enabled__ = false;
+  static bool _native_switch_FS_is_enabled_ = false;
 //  static void *addr;
-  static FsFileSystem* __FileSystemBuffer__;
+  static FsFileSystem* _fileSystemBuffer_;
 
-  static std::string __buffer_string__;
+  static std::string _bufferString_;
+
+  static std::map<std::string, double> _progress_map_;
 
 
   //! printout functions :
   void display_loading(int current_index_, int end_index_, std::string title_, std::string prefix_, std::string &color_str_, bool force_display_) {
 
     int percent = int(round(double(current_index_) / end_index_ * 100.));
-    if(__last_displayed_value__ == -1) {
+    if(_last_displayed_value_ == -1) {
       set_last_timestamp();
     }
     if(
-      __last_displayed_value__ == -1 or std::time(nullptr) - __last_timestamp__ >= 1 // every second
+      _last_displayed_value_ == -1 or std::time(nullptr) - _last_timestamp_ >= 1 // every second
       or current_index_ == 0 // first call
       or force_display_ // display every calls
       or current_index_ >= end_index_-1 // last entry
       ){
       set_last_timestamp();
-      __last_displayed_value__ = percent;
+      _last_displayed_value_ = percent;
       std::stringstream ss;
       ss << prefix_ << percent << "% / " << title_;
       print_left(ss.str(), color_str_, true);
@@ -139,12 +141,12 @@ namespace toolbox{
 
   }
   void set_buffer_string(std::string str_){
-    __buffer_string__ = str_;
+    _bufferString_ = str_;
   }
 
   std::string debug_string(std::string str_){
 
-    if(not __native_switch_FS_is_enabled__){
+    if(not _native_switch_FS_is_enabled_){
       enableEmbeddedSwitchFS();
     }
 
@@ -157,7 +159,7 @@ namespace toolbox{
     Result rc;
 
     strcpy(pathBuffer, str_.c_str());
-    fsFsOpenDirectory(__FileSystemBuffer__, &pathBuffer[0], FsDirOpenMode_ReadDirs, &DirBuffer);
+    fsFsOpenDirectory(_fileSystemBuffer_, &pathBuffer[0], FsDirOpenMode_ReadDirs, &DirBuffer);
 //    fsDirGetEntryCount(&DirBuffer, &counter);
 //    ss << counter+1 << "-> ";
 //    counter = 0;
@@ -284,17 +286,26 @@ namespace toolbox{
 
   //! toolbox vars management functions :
   void reset_last_displayed_value(){
-    __last_displayed_value__ = -1;
+    _last_displayed_value_ = -1;
   }
   void set_last_timestamp(){
-    __last_timestamp__ = std::time(nullptr);
+    _last_timestamp_ = std::time(nullptr);
   }
   void set_CRC_check_is_enabled(bool CRC_check_is_enabled_){
-    __CRC_check_is_enabled__ = CRC_check_is_enabled_;
+    _CRC_check_is_enabled_ = CRC_check_is_enabled_;
+  }
+  void fill_progress_map(std::string key_, double value_){
+    _progress_map_[key_] = value_;
   }
 
+  double & get_progress(std::string key_){
+    if(_progress_map_.find(key_) == _progress_map_.end()){
+      _progress_map_[key_] = -1;
+    }
+    return _progress_map_[key_];
+  }
   bool get_CRC_check_is_enabled(){
-    return __CRC_check_is_enabled__;
+    return _CRC_check_is_enabled_;
   }
 
 
@@ -470,22 +481,22 @@ namespace toolbox{
 
   //! direct filesystem functions :
   void setFileSystemBuffer(FsFileSystem* FileSystemBuffer_){
-    __FileSystemBuffer__ = FileSystemBuffer_;
-    __native_switch_FS_is_enabled__ = true;
+    _fileSystemBuffer_ = FileSystemBuffer_;
+    _native_switch_FS_is_enabled_ = true;
   }
   void enableEmbeddedSwitchFS(){
-    if(not __native_switch_FS_is_enabled__){
+    if(not _native_switch_FS_is_enabled_){
       fsdevMountSdmc();
-      __FileSystemBuffer__ = fsdevGetDeviceFileSystem("sdmc");
+      _fileSystemBuffer_ = fsdevGetDeviceFileSystem("sdmc");
 //      fsOpenSdCardFileSystem(__FileSystemBuffer__);
-      __native_switch_FS_is_enabled__ = true;
+      _native_switch_FS_is_enabled_ = true;
     }
   }
   void disableEmbeddedSwitchFS(){
-    if(__native_switch_FS_is_enabled__){
-      fsFsCommit(__FileSystemBuffer__);
-      fsFsClose(__FileSystemBuffer__);
-      __native_switch_FS_is_enabled__ = false;
+    if(_native_switch_FS_is_enabled_){
+      fsFsCommit(_fileSystemBuffer_);
+      fsFsClose(_fileSystemBuffer_);
+      _native_switch_FS_is_enabled_ = false;
     }
   }
 
@@ -497,7 +508,7 @@ namespace toolbox{
       toolbox::delete_file(path_);
     }
 
-    if(not __native_switch_FS_is_enabled__){
+    if(not _native_switch_FS_is_enabled_){
       std::ofstream out_file_stream;
       out_file_stream.open(path_.c_str());
       out_file_stream << str_ << std::endl;
@@ -516,9 +527,9 @@ namespace toolbox{
 
       appletLockExit(); // prevent app to exit while writting
 
-      if(R_SUCCEEDED(fsFsCreateFile(__FileSystemBuffer__, path_buffer, size+length, 0))){
+      if(R_SUCCEEDED(fsFsCreateFile(_fileSystemBuffer_, path_buffer, size + length, 0))){
         FsFile fs_file;
-        if(R_SUCCEEDED(fsFsOpenFile(__FileSystemBuffer__, path_buffer, FsOpenMode_Write, &fs_file))){
+        if(R_SUCCEEDED(fsFsOpenFile(_fileSystemBuffer_, path_buffer, FsOpenMode_Write, &fs_file))){
           if(R_SUCCEEDED(fsFileWrite(&fs_file, 0, str_.c_str(), size+length, FsWriteOption_Flush))){
             fsFileFlush(&fs_file);
           }
@@ -532,7 +543,7 @@ namespace toolbox{
   }
 
   bool do_path_is_valid(std::string &path_){
-    if(not __native_switch_FS_is_enabled__){
+    if(not _native_switch_FS_is_enabled_){
       struct stat buffer{};
       return (stat (path_.c_str(), &buffer) == 0);
     }
@@ -544,7 +555,7 @@ namespace toolbox{
     }
   }
   bool do_path_is_folder(std::string &folder_path_){
-    if(not __native_switch_FS_is_enabled__){
+    if(not _native_switch_FS_is_enabled_){
       struct stat info{};
       stat( folder_path_.c_str(), &info );
       return bool(S_ISDIR(info.st_mode));
@@ -554,7 +565,7 @@ namespace toolbox{
       FsDir fs_DirBuffer;
       char fs_pathBuffer[FS_MAX_PATH];
       strcpy(fs_pathBuffer, folder_path_.c_str());
-      if(R_SUCCEEDED(fsFsOpenDirectory(__FileSystemBuffer__, fs_pathBuffer, FsDirOpenMode_ReadDirs, &fs_DirBuffer))){
+      if(R_SUCCEEDED(fsFsOpenDirectory(_fileSystemBuffer_, fs_pathBuffer, FsDirOpenMode_ReadDirs, &fs_DirBuffer))){
         result = true;
       }
       fsDirClose(&fs_DirBuffer);
@@ -562,7 +573,7 @@ namespace toolbox{
     }
   }
   bool do_path_is_file(std::string &file_path_) {
-    if(not __native_switch_FS_is_enabled__){
+    if(not _native_switch_FS_is_enabled_){
       if(not do_path_is_valid(file_path_)) return false;
       return (not do_path_is_folder(file_path_));
     }
@@ -571,7 +582,7 @@ namespace toolbox{
       FsFile fs_FileBuffer;
       char fs_pathBuffer[FS_MAX_PATH];
       snprintf(fs_pathBuffer, FS_MAX_PATH, "%s", file_path_.c_str());
-      if(R_SUCCEEDED(fsFsOpenFile(__FileSystemBuffer__, &fs_pathBuffer[0], FsOpenMode_Read, &fs_FileBuffer))) {
+      if(R_SUCCEEDED(fsFsOpenFile(_fileSystemBuffer_, &fs_pathBuffer[0], FsOpenMode_Read, &fs_FileBuffer))) {
         result = true;
       }
       fsFileClose(&fs_FileBuffer);
@@ -580,12 +591,13 @@ namespace toolbox{
   }
   bool do_files_are_the_same(std::string file1_path_, std::string file2_path_) {
     bool file_are_same = false;
+    toolbox::fill_progress_map("do_files_are_the_same", 0.);
 
-    if(not __native_switch_FS_is_enabled__){
+    if(not _native_switch_FS_is_enabled_){
       if(not do_path_is_file(file1_path_)) return false;
       if(not do_path_is_file(file2_path_)) return false;
       if(toolbox::get_file_size(file1_path_) != toolbox::get_file_size(file2_path_)) return false; // very fast
-      if(__CRC_check_is_enabled__){
+      if(_CRC_check_is_enabled_){
         if(toolbox::get_hash_CRC32(file1_path_) != toolbox::get_hash_CRC32(file2_path_)) return false;
       }
       file_are_same = true;
@@ -596,12 +608,12 @@ namespace toolbox{
       char path_buffer_file1[FS_MAX_PATH];
       FsFile fs_file1;
       snprintf(path_buffer_file1, FS_MAX_PATH, "%s", file1_path_.c_str());
-      if(R_SUCCEEDED(fsFsOpenFile(__FileSystemBuffer__, path_buffer_file1, FsOpenMode_Read, &fs_file1))){
+      if(R_SUCCEEDED(fsFsOpenFile(_fileSystemBuffer_, path_buffer_file1, FsOpenMode_Read, &fs_file1))){
         // opening file2
         char path_buffer_file2[FS_MAX_PATH];
         FsFile fs_file2;
         snprintf(path_buffer_file2, FS_MAX_PATH, "%s", file2_path_.c_str());
-        if(R_SUCCEEDED(fsFsOpenFile(__FileSystemBuffer__, path_buffer_file2, FsOpenMode_Read, &fs_file2))){
+        if(R_SUCCEEDED(fsFsOpenFile(_fileSystemBuffer_, path_buffer_file2, FsOpenMode_Read, &fs_file2))){
 
           // get size of file1
           s64 size_file1 = 0;
@@ -610,10 +622,11 @@ namespace toolbox{
             s64 size_file2 = 0;
             if(R_SUCCEEDED(fsFileGetSize(&fs_file2, &size_file2))){
               if(size_file1 == size_file2){
-                if(__CRC_check_is_enabled__){
+                if(_CRC_check_is_enabled_){
 
 //                  size_t copy_buffer_size = 0x10000; // 65 kB (65536 B)
                   size_t copy_buffer_size = 0x1000; // 4,096 B
+                  s64 copy_buffer_size_s64 = s64(copy_buffer_size);
                   u8 data_buffer_file1[copy_buffer_size];
                   u8 data_buffer_file2[copy_buffer_size];
                   u64 bytes_read_counter_file1 = 0;
@@ -622,9 +635,11 @@ namespace toolbox{
                   unsigned long  last_crc1 = crc32(0L, Z_NULL, 0);
                   unsigned long  last_crc2 = crc32(0L, Z_NULL, 0);
                   file_are_same = true; // true by default -> change if not
-                  int counts = 0;
+                  s64 counts = 0;
+                  s64 expected_total_count = s64(size_file1 / copy_buffer_size_s64);
                   do {
 
+                    toolbox::fill_progress_map("do_files_are_the_same", double(counts)/double(expected_total_count));
                     counts++;
 
                     // buffering file1
@@ -677,12 +692,15 @@ namespace toolbox{
 
     } // switch fs
 
+    toolbox::fill_progress_map("do_files_are_the_same", 1.);
     return file_are_same;
 
   }
 
   bool copy_file(std::string &source_file_path_, std::string &destination_file_path_){
     bool do_copy_is_success = false;
+
+    toolbox::fill_progress_map("copy_file", 0);
 
     if(do_path_is_file(destination_file_path_)){
       if(not delete_file(destination_file_path_)){
@@ -696,7 +714,7 @@ namespace toolbox{
       }
     }
 
-    if(not __native_switch_FS_is_enabled__){
+    if(not _native_switch_FS_is_enabled_){
 
       if(not do_path_is_file(source_file_path_)){
         return false;
@@ -749,7 +767,7 @@ namespace toolbox{
       char path_buffer_source[FS_MAX_PATH];
       FsFile fs_file_source;
       snprintf(path_buffer_source, FS_MAX_PATH, "%s", source_file_path_.c_str());
-      if(R_SUCCEEDED(fsFsOpenFile(__FileSystemBuffer__, &path_buffer_source[0], FsOpenMode_Read, &fs_file_source))){
+      if(R_SUCCEEDED(fsFsOpenFile(_fileSystemBuffer_, &path_buffer_source[0], FsOpenMode_Read, &fs_file_source))){
         // get size of source file
         s64 source_size = 0;
         if(R_SUCCEEDED(fsFileGetSize(&fs_file_source, &source_size))){
@@ -757,19 +775,26 @@ namespace toolbox{
           // create destination file
           char path_buffer_destination[FS_MAX_PATH];
           snprintf(path_buffer_destination, FS_MAX_PATH, "%s", destination_file_path_.c_str());
-          if(R_SUCCEEDED(fsFsCreateFile(__FileSystemBuffer__, &path_buffer_destination[0], source_size, 0))){
+          if(R_SUCCEEDED(fsFsCreateFile(_fileSystemBuffer_, &path_buffer_destination[0], source_size, 0))){
 
             // open destination file
             FsFile fs_file_destination;
-            if(R_SUCCEEDED(fsFsOpenFile(__FileSystemBuffer__, &path_buffer_destination[0], FsOpenMode_Write, &fs_file_destination))){
+            if(R_SUCCEEDED(fsFsOpenFile(_fileSystemBuffer_, &path_buffer_destination[0], FsOpenMode_Write, &fs_file_destination))){
 
               size_t copy_buffer_size = 0x10000; // 65 kB
 //              size_t copy_buffer_size = 0x1000; // 4 kB
+              s64 copy_buffer_size_s64 = s64(copy_buffer_size);
               u8 data_buffer[copy_buffer_size];
               u64 bytes_read_counter = 0;
               u64 read_offset = 0;
               do_copy_is_success = true; // consider it worked by default -> will change if not
+
+              s64 counts = 0;
+              s64 expected_total_count = s64(source_size/copy_buffer_size_s64) + 1;
               do {
+
+                toolbox::fill_progress_map("copy_file", double(counts)/double(expected_total_count));
+                counts+=1;
 
                 // buffering source file
                 if(R_FAILED(fsFileRead(&fs_file_source, read_offset, &data_buffer[0], copy_buffer_size, FsReadOption_None, &bytes_read_counter))){
@@ -799,6 +824,7 @@ namespace toolbox{
 
     }
 
+    toolbox::fill_progress_map("copy_file", 1.);
     return do_copy_is_success;
   }
   bool mv_file(std::string &source_file_path_, std::string &destination_file_path_){
@@ -817,7 +843,7 @@ namespace toolbox{
       }
     }
 
-    if(not __native_switch_FS_is_enabled__){
+    if(not _native_switch_FS_is_enabled_){
       std::rename(source_file_path_.c_str(), destination_file_path_.c_str());
       if(not toolbox::do_path_is_file(destination_file_path_) or toolbox::do_path_is_file(source_file_path_)){
         return false;
@@ -828,7 +854,7 @@ namespace toolbox{
       char dest_char[FS_MAX_PATH];
       snprintf(source_char, FS_MAX_PATH, "%s", source_file_path_.c_str());
       snprintf(dest_char, FS_MAX_PATH, "%s", destination_file_path_.c_str());
-      if(R_FAILED(fsFsRenameFile(__FileSystemBuffer__, &source_char[0], &dest_char[0]))){
+      if(R_FAILED(fsFsRenameFile(_fileSystemBuffer_, &source_char[0], &dest_char[0]))){
         return false;
       }
     }
@@ -837,13 +863,13 @@ namespace toolbox{
   }
   bool delete_file(std::string file_path_){
     if(not do_path_is_file(file_path_)) return true;
-    if(not __native_switch_FS_is_enabled__){
+    if(not _native_switch_FS_is_enabled_){
       std::remove(file_path_.c_str());
     }
     else{
       char fs_path_buffer[FS_MAX_PATH];
       snprintf(fs_path_buffer, FS_MAX_PATH, "%s", file_path_.c_str());
-      fsFsDeleteFile(__FileSystemBuffer__, fs_path_buffer);
+      fsFsDeleteFile(_fileSystemBuffer_, fs_path_buffer);
     }
     return not do_path_is_file(file_path_);
   }
@@ -864,14 +890,14 @@ namespace toolbox{
       current_level = toolbox::remove_extra_doubled_characters(current_level, "/");
       // create current level
       if(not do_path_is_folder(current_level)){
-        if(not __native_switch_FS_is_enabled__) {
+        if(not _native_switch_FS_is_enabled_) {
           ::mkdir(current_level.c_str(), 0777);
           result = true;
         }
         else{
           char fs_pathBuffer[FS_MAX_PATH];
           snprintf(fs_pathBuffer, FS_MAX_PATH, "%s", current_level.c_str());
-          if(R_SUCCEEDED(fsFsCreateDirectory(__FileSystemBuffer__, fs_pathBuffer))){
+          if(R_SUCCEEDED(fsFsCreateDirectory(_fileSystemBuffer_, fs_pathBuffer))){
             result = true;
           }
         }
@@ -885,13 +911,13 @@ namespace toolbox{
   }
   bool delete_directory(std::string folder_path_){
     if(not do_folder_is_empty(folder_path_)) return false;
-    if(not __native_switch_FS_is_enabled__){
+    if(not _native_switch_FS_is_enabled_){
       rmdir(folder_path_.c_str());
     }
     else{
       char fs_pathBuffer[FS_MAX_PATH];
       snprintf(fs_pathBuffer, FS_MAX_PATH, "%s", folder_path_.c_str());
-      if(R_FAILED(fsFsDeleteDirectory(__FileSystemBuffer__, fs_pathBuffer))){
+      if(R_FAILED(fsFsDeleteDirectory(_fileSystemBuffer_, fs_pathBuffer))){
         return false;
       }
     }
@@ -900,7 +926,7 @@ namespace toolbox{
 
   long int get_file_size(std::string &file_path_) {
     long int output_size = 0;
-    if(not __native_switch_FS_is_enabled__){
+    if(not _native_switch_FS_is_enabled_){
       if(do_path_is_file(file_path_)){
         std::ifstream testFile(file_path_.c_str(), std::ios::binary);
         const auto begin = testFile.tellg();
@@ -915,7 +941,7 @@ namespace toolbox{
       char fs_pathBuffer[FS_MAX_PATH];
       snprintf(fs_pathBuffer, FS_MAX_PATH, "%s", file_path_.c_str());
       FsFile fs_FileBuffer;
-      if(R_SUCCEEDED(fsFsOpenFile(__FileSystemBuffer__, fs_pathBuffer, FsOpenMode_Read, &fs_FileBuffer))){
+      if(R_SUCCEEDED(fsFsOpenFile(_fileSystemBuffer_, fs_pathBuffer, FsOpenMode_Read, &fs_FileBuffer))){
         if(R_SUCCEEDED(fsFileGetSize(&fs_FileBuffer, &file_size))){
           output_size = (long int)(file_size);
         }
@@ -927,7 +953,7 @@ namespace toolbox{
   unsigned long get_hash_CRC32(std::string file_path_){
 
     unsigned long output_crc = crc32(0L, Z_NULL, 0);
-    if(not __native_switch_FS_is_enabled__){
+    if(not _native_switch_FS_is_enabled_){
       if(toolbox::do_path_is_file(file_path_)){
         std::string data = toolbox::dump_file_as_string(file_path_);
         if(not data.empty()){
@@ -942,7 +968,7 @@ namespace toolbox{
       char fs_pathBuffer[FS_MAX_PATH];
       snprintf(fs_pathBuffer, FS_MAX_PATH, "%s", file_path_.c_str());
       FsFile fs_FileBuffer;
-      if(R_SUCCEEDED(fsFsOpenFile(__FileSystemBuffer__, fs_pathBuffer, FsOpenMode_Read, &fs_FileBuffer))){
+      if(R_SUCCEEDED(fsFsOpenFile(_fileSystemBuffer_, fs_pathBuffer, FsOpenMode_Read, &fs_FileBuffer))){
 
         // get size of source file
         s64 source_size = 0;
@@ -979,7 +1005,7 @@ namespace toolbox{
 
   std::string dump_file_as_string(std::string file_path_){
     std::string data;
-    if(not __native_switch_FS_is_enabled__){
+    if(not _native_switch_FS_is_enabled_){
       if(do_path_is_file(file_path_)){
         std::ifstream input_file( file_path_.c_str(), std::ios::binary | std::ios::in );
         std::ostringstream ss;
@@ -992,7 +1018,7 @@ namespace toolbox{
       char fs_pathBuffer[FS_MAX_PATH];
       snprintf(fs_pathBuffer, FS_MAX_PATH, "%s", file_path_.c_str());
       FsFile fs_FileBuffer;
-      if(R_FAILED(fsFsOpenFile(__FileSystemBuffer__, fs_pathBuffer, FsOpenMode_Read, &fs_FileBuffer))){
+      if(R_FAILED(fsFsOpenFile(_fileSystemBuffer_, fs_pathBuffer, FsOpenMode_Read, &fs_FileBuffer))){
         fsFileClose(&fs_FileBuffer);
         return "";
       }
@@ -1034,7 +1060,7 @@ namespace toolbox{
   std::vector<std::string> get_list_of_entries_in_folder(std::string folder_path_) {
 
     std::vector<std::string> entries_list;
-    if(not __native_switch_FS_is_enabled__){
+    if(not _native_switch_FS_is_enabled_){
       if(not do_path_is_folder(folder_path_)) return entries_list;
       DIR* directory;
       directory = opendir(folder_path_.c_str()); //Open current-working-directory.
@@ -1055,7 +1081,7 @@ namespace toolbox{
       char fs_pathBuffer[FS_MAX_PATH];
       snprintf(fs_pathBuffer, FS_MAX_PATH, "%s", folder_path_.c_str());
       FsDir fs_DirBuffer;
-      if(R_FAILED(fsFsOpenDirectory(__FileSystemBuffer__, fs_pathBuffer, FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &fs_DirBuffer))){
+      if(R_FAILED(fsFsOpenDirectory(_fileSystemBuffer_, fs_pathBuffer, FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &fs_DirBuffer))){
         fsDirClose(&fs_DirBuffer);
         return entries_list;
       }
@@ -1085,7 +1111,7 @@ namespace toolbox{
   }
   std::vector<std::string> get_list_of_subfolders_in_folder(std::string folder_path_) {
     std::vector<std::string> subfolders_list;
-    if(not __native_switch_FS_is_enabled__){
+    if(not _native_switch_FS_is_enabled_){
       if(not do_path_is_folder(folder_path_)) return subfolders_list;
       DIR* directory;
       directory = opendir(folder_path_.c_str()); //Open current-working-directory.
@@ -1108,7 +1134,7 @@ namespace toolbox{
       char fs_pathBuffer[FS_MAX_PATH];
       snprintf(fs_pathBuffer, FS_MAX_PATH, "%s", folder_path_.c_str());
       FsDir fs_DirBuffer;
-      if(R_FAILED(fsFsOpenDirectory(__FileSystemBuffer__, fs_pathBuffer, FsDirOpenMode_ReadDirs, &fs_DirBuffer))){
+      if(R_FAILED(fsFsOpenDirectory(_fileSystemBuffer_, fs_pathBuffer, FsDirOpenMode_ReadDirs, &fs_DirBuffer))){
         fsDirClose(&fs_DirBuffer);
         return subfolders_list;
       }
@@ -1140,7 +1166,7 @@ namespace toolbox{
   }
   std::vector<std::string> get_list_of_files_in_folder(std::string folder_path_){
     std::vector<std::string> files_list;
-    if(not __native_switch_FS_is_enabled__){
+    if(not _native_switch_FS_is_enabled_){
       if(not do_path_is_folder(folder_path_)) return files_list;
       DIR* directory;
       directory = opendir(folder_path_.c_str()); //Open current-working-directory.
@@ -1163,7 +1189,7 @@ namespace toolbox{
       char fs_pathBuffer[FS_MAX_PATH];
       snprintf(fs_pathBuffer, FS_MAX_PATH, "%s", folder_path_.c_str());
       FsDir fs_DirBuffer;
-      if(R_FAILED(fsFsOpenDirectory(__FileSystemBuffer__, fs_pathBuffer, FsDirOpenMode_ReadFiles, &fs_DirBuffer))){
+      if(R_FAILED(fsFsOpenDirectory(_fileSystemBuffer_, fs_pathBuffer, FsDirOpenMode_ReadFiles, &fs_DirBuffer))){
         fsDirClose(&fs_DirBuffer);
         return files_list;
       }

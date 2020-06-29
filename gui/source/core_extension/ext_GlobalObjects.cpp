@@ -6,6 +6,8 @@
 
 namespace ext_GlobalObjects {
 
+  static tab_mod_browser* _currentTabModBrowserPtr_;
+
   void setCurrentTabModBrowserPtr(tab_mod_browser* currentTabModBrowserPtr_){
     ext_GlobalObjects::_currentTabModBrowserPtr_ = currentTabModBrowserPtr_;
   }
