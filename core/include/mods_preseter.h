@@ -20,15 +20,19 @@ public:
   void initialize();
   void reset();
 
+  void setSelector(selector selector);
+
   int get_selected_mod_preset_index();
   std::string get_selected_mod_preset();
-  std::vector<std::string> get_mods_list(std::string preset_);
+  std::vector<std::string> get_mods_list(std::string preset_); // Leave the output as a copy
+  std::map<std::string, std::vector<std::string>> &get_data_handler();
   std::vector<std::string>& get_presets_list();
 
-  void read_parameter_file(std::string mod_folder_);
+  void read_parameter_file(std::string mod_folder_ = "");
   void recreate_preset_file();
   void select_mod_preset();
   void create_new_preset();
+  void delete_mod_preset(std::string preset_name_);
   void edit_preset(std::string preset_name_, std::vector<std::string> selected_mods_list_);
   void show_conflicted_files(std::string &preset_name_);
 
@@ -38,9 +42,7 @@ public:
   void select_previous_mod_preset();
   void select_next_mod_preset();
 
-protected:
-
-  selector fill_selector();
+  void fill_selector();
 
 private:
 
@@ -49,6 +51,7 @@ private:
   std::string _mod_folder_;
   std::map<std::string, std::vector<std::string>> _data_handler_;
   std::vector<std::string> _presets_list_;
+  selector _selector_;
 
 };
 

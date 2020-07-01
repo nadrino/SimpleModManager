@@ -48,6 +48,11 @@ void tab_mod_options::buildFolderInstallPresetItem() {
       if (result == -1)
         return;
 
+      if(result == this->_preSelection_){
+        brls::Application::popView();
+        return;
+      }
+
       this->_preSelection_ = result;
 
       // overwriting
@@ -127,7 +132,7 @@ void tab_mod_options::buildResetModsCacheItem() {
 void tab_mod_options::buildDisableAllMods() {
 
   _itemDisableAllMods_ = new brls::ListItem(
-    "Disable All Mods",
+    "Disable all mods",
     "This option will remove all installed mods files.\n"
               "Note: to be deleted, installed mod files need to be identical to the one present in this folder.",
     ""

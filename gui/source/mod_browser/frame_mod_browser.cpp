@@ -2,16 +2,19 @@
 // Created by Adrien BLANCHET on 21/06/2020.
 //
 
-#include "frame_mods_browser.h"
+#include "frame_mod_browser.h"
 #include <GlobalObjects.h>
 #include <tab_mod_browser.h>
 #include <tab_mod_presets.h>
 #include <tab_mod_options.h>
+#include <ext_GlobalObjects.h>
 
-frame_mods_browser::frame_mods_browser(std::string folder_){
+frame_mod_browser::frame_mod_browser(std::string folder_){
+
+  ext_GlobalObjects::setCurrentFrameModBrowserPtr(this);
 
   this->setTitle(folder_);
-  auto* icon = GlobalObjects::get_mod_browser().get_folder_icon(folder_);
+  icon = GlobalObjects::get_mod_browser().get_folder_icon(folder_);
   if(icon != nullptr){
     this->setIcon(icon, 0x20000);
   }
@@ -57,7 +60,7 @@ frame_mods_browser::frame_mods_browser(std::string folder_){
 
 }
 
-bool frame_mods_browser::onCancel() {
+bool frame_mod_browser::onCancel() {
 
   // Go back to sidebar
   auto* lastFocus = brls::Application::getCurrentFocus();
@@ -71,4 +74,8 @@ bool frame_mods_browser::onCancel() {
   }
   return true;
 
+}
+
+uint8_t *frame_mod_browser::getIcon() {
+  return icon;
 }

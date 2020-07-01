@@ -38,6 +38,7 @@ namespace toolbox{
   static std::string _bufferString_;
 
   static std::map<std::string, double> _progress_map_;
+  static std::map<std::string, std::string> _str_buffer_map_;
 
 
   //! printout functions :
@@ -210,9 +211,6 @@ namespace toolbox{
       swkbdConfigMakePresetDefault(&kbd);
       swkbdConfigSetInitialText(&kbd, default_str_.c_str());
       rc = swkbdShow(&kbd, tmpoutstr, sizeof(tmpoutstr));
-      if (R_SUCCEEDED(rc)) {
-        printf("out str: %s\n", tmpoutstr);
-      }
       swkbdClose(&kbd);
 
     }
@@ -288,6 +286,13 @@ namespace toolbox{
   void reset_last_displayed_value(){
     _last_displayed_value_ = -1;
   }
+  void reset_progress_map(){
+    _progress_map_.clear();
+  }
+  void reset_str_buffer_map(){
+    _str_buffer_map_.clear();
+  }
+
   void set_last_timestamp(){
     _last_timestamp_ = std::time(nullptr);
   }
@@ -297,12 +302,21 @@ namespace toolbox{
   void fill_progress_map(std::string key_, double value_){
     _progress_map_[key_] = value_;
   }
+  void fill_str_buffer_map(std::string key_, std::string value_){
+    _str_buffer_map_[key_] = std::move(value_);
+  }
 
   double & get_progress(std::string key_){
     if(_progress_map_.find(key_) == _progress_map_.end()){
       _progress_map_[key_] = -1;
     }
     return _progress_map_[key_];
+  }
+  std::string & get_str_buffer(std::string key_){
+    if(_str_buffer_map_.find(key_) == _str_buffer_map_.end()){
+      _str_buffer_map_[key_] = "";
+    }
+    return _str_buffer_map_[key_];
   }
   bool get_CRC_check_is_enabled(){
     return _CRC_check_is_enabled_;
@@ -591,7 +605,6 @@ namespace toolbox{
   }
   bool do_files_are_the_same(std::string file1_path_, std::string file2_path_) {
     bool file_are_same = false;
-    toolbox::fill_progress_map("do_files_are_the_same", 0.);
 
     if(not _native_switch_FS_is_enabled_){
       if(not do_path_is_file(file1_path_)) return false;
@@ -699,8 +712,6 @@ namespace toolbox{
 
   bool copy_file(std::string &source_file_path_, std::string &destination_file_path_){
     bool do_copy_is_success = false;
-
-    toolbox::fill_progress_map("copy_file", 0);
 
     if(do_path_is_file(destination_file_path_)){
       if(not delete_file(destination_file_path_)){

@@ -50,6 +50,8 @@ std::vector<std::string>& mods_preseter::get_presets_list(){
 
 void mods_preseter::read_parameter_file(std::string mod_folder_) {
 
+  if(mod_folder_.empty()) mod_folder_ = _mod_folder_;
+
   reset();
   _mod_folder_ = mod_folder_;
   _preset_file_path_ = mod_folder_ + "/mod_presets.conf";
@@ -84,6 +86,8 @@ void mods_preseter::read_parameter_file(std::string mod_folder_) {
     }
   }
 
+  fill_selector();
+
 }
 void mods_preseter::recreate_preset_file() {
 
@@ -112,7 +116,7 @@ void mods_preseter::recreate_preset_file() {
 }
 void mods_preseter::select_mod_preset() {
 
-  selector sel = fill_selector();
+  fill_selector();
 
   bool is_first_loop = true;
   while(appletMainLoop()){
@@ -120,12 +124,12 @@ void mods_preseter::select_mod_preset() {
     hidScanInput();
     u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
     u64 kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
-    sel.scan_inputs(kDown, kHeld);
+    _selector_.scan_inputs(kDown, kHeld);
     if(kDown & KEY_B){
       break;
     }
     else if(kDown & KEY_A and not _presets_list_.empty()){
-      _selected_mod_preset_index_ = sel.get_selected_entry();
+      _selected_mod_preset_index_ = _selector_.get_selected_entry();
       return;
     }
     else if(kDown & KEY_X and not _presets_list_.empty()){
@@ -134,21 +138,17 @@ void mods_preseter::select_mod_preset() {
         std::vector<std::string>({"Yes", "No"})
       );
       if(answer == "No") continue;
-      _data_handler_[_presets_list_[sel.get_selected_entry()]].resize(0);
-      _presets_list_.erase(_presets_list_.begin() + sel.get_selected_entry());
-      sel = fill_selector();
-      recreate_preset_file();
-      read_parameter_file(_mod_folder_);
+      delete_mod_preset(_presets_list_[_selector_.get_selected_entry()]);
     }
     else if(kDown & KEY_PLUS){
       create_new_preset();
-      sel = fill_selector();
+      fill_selector();
       recreate_preset_file();
       read_parameter_file(_mod_folder_);
     }
     else if(kDown & KEY_Y){
-      edit_preset(sel.get_selected_string(), _data_handler_[sel.get_selected_string()]);
-      sel = fill_selector();
+      edit_preset(_selector_.get_selected_string(), _data_handler_[_selector_.get_selected_string()]);
+      fill_selector();
       recreate_preset_file();
       read_parameter_file(_mod_folder_);
     }
@@ -160,9 +160,9 @@ void mods_preseter::select_mod_preset() {
       std::cout << toolbox::red_bg << std::setw(toolbox::get_terminal_width()) << std::left;
       std::cout << "Select mod preset" << toolbox::reset_color;
       std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
-      sel.print_selector();
+      _selector_.print_selector();
       std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
-      toolbox::print_left("  Page (" + std::to_string(sel.get_current_page()+1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
+      toolbox::print_left("  Page (" + std::to_string(_selector_.get_current_page() + 1) + "/" + std::to_string(_selector_.get_nb_pages()) + ")");
       std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
       toolbox::print_left_right(" A : Select mod preset", " X : Delete mod preset ");
       toolbox::print_left_right(" Y : Edit preset", "+ : Create a preset ");
@@ -183,6 +183,18 @@ void mods_preseter::create_new_preset(){
 
   std::vector<std::string> selected_mods_list;
   edit_preset(default_preset_name, selected_mods_list);
+
+}
+void mods_preseter::delete_mod_preset(std::string preset_name_){
+
+  int itemToDeleteIndex = _selector_.get_entry(preset_name_);
+  if(itemToDeleteIndex == -1) return;
+
+  _data_handler_[preset_name_].resize(0);
+  _presets_list_.erase(_presets_list_.begin() + itemToDeleteIndex);
+  fill_selector();
+  recreate_preset_file();
+  read_parameter_file(_mod_folder_);
 
 }
 void mods_preseter::edit_preset(std::string preset_name_, std::vector<std::string> selected_mods_list_) {
@@ -437,22 +449,31 @@ void mods_preseter::select_next_mod_preset(){
   if(_selected_mod_preset_index_ >= int(_presets_list_.size())) _selected_mod_preset_index_ = 0;
 }
 
-selector mods_preseter::fill_selector(){
-  selector sel;
+void mods_preseter::fill_selector(){
+  _selector_.reset();
   if(not _presets_list_.empty()){
-    sel.set_selection_list(_presets_list_);
+    _selector_.set_selection_list(_presets_list_);
     for(int i_preset = 0 ; i_preset < int(_presets_list_.size()) ; i_preset++){
       std::vector<std::string> description_lines;
+      description_lines.reserve(int(_data_handler_[_presets_list_[i_preset]].size()));
       for(int i_entry = 0 ; i_entry < int(_data_handler_[_presets_list_[i_preset]].size()) ; i_entry++){
         description_lines.emplace_back("  | " + _data_handler_[_presets_list_[i_preset]][i_entry]);
       }
-      sel.set_description(i_preset, description_lines);
+      _selector_.set_description(i_preset, description_lines);
     }
   }
   else {
     std::vector<std::string> empty_list;
     empty_list.emplace_back("NO MODS PRESETS");
-    sel.set_selection_list(empty_list);
+    _selector_.set_selection_list(empty_list);
   }
-  return sel;
+
+}
+
+std::map<std::string, std::vector<std::string>> &mods_preseter::get_data_handler() {
+  return _data_handler_;
+}
+
+void mods_preseter::setSelector(selector selector) {
+  _selector_ = selector;
 }

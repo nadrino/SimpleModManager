@@ -50,11 +50,16 @@ namespace toolbox{
 
   //! toolbox vars management functions :
   void reset_last_displayed_value();
+  void reset_progress_map();
+  void reset_str_buffer_map();
+
   void set_last_timestamp();
   void set_CRC_check_is_enabled(bool CRC_check_is_enabled_);
   void fill_progress_map(std::string key_, double value_);
+  void fill_str_buffer_map(std::string key_, std::string value_);
 
   double & get_progress(std::string key_);
+  std::string & get_str_buffer(std::string key_);
   bool get_CRC_check_is_enabled();
 
 

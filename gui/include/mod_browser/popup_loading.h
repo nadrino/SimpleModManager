@@ -24,6 +24,9 @@ public:
   void setSubTitle(const std::string &subTitle_);
   void setSubProgressColor(const NVGcolor &subProgressColor);
   void setProgressColor(const NVGcolor &progressColor_);
+  void setTitlePtr(std::string *titlePtr);
+  void setSubTitlePtr(std::string *subTitlePtr);
+  void setHeader(std::string header);
 
   void draw(NVGcontext* vg, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* ctx) override;
 
@@ -40,8 +43,11 @@ private:
   NVGcolor _subProgressColor_;
   NVGcolor _progressColor_;
 
+  std::string _header_;
   std::string _title_;
+  std::string* _titlePtr_;
   std::string _subTitle_;
+  std::string* _subTitlePtr_;
 
 };
 

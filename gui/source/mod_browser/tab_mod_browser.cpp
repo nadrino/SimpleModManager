@@ -24,23 +24,47 @@ tab_mod_browser::tab_mod_browser() {
     std::string selected_mod = mod_folders_list[i_folder];
     auto* item = new brls::ListItem(selected_mod, "", "");
     item->getClickEvent()->subscribe([this, selected_mod](View* view) {
-      brls::Logger::debug("Applying mod: %s", selected_mod.c_str());
-      this->getExtModManager().setModName(selected_mod);
-      this->getExtModManager().start_apply_mod();
-      return true;
-    });
-    item->registerAction("Disable", brls::Key::X, [this, selected_mod]{
-      brls::Logger::debug("Disabling mod: %s", selected_mod.c_str());
-      this->getExtModManager().setModName(selected_mod);
-      this->getExtModManager().start_remove_mod();
-      return true;
-    });
-    item->registerAction("Test", brls::Key::Y, [this,selected_mod]{
-      this->getExtModManager().setModName(selected_mod);
-      this->getExtModManager().start_remove_mod();
+
+      auto* dialog = new brls::Dialog("Do you want to install \"" + selected_mod + "\" ?");
+
+      dialog->addButton("Yes", [selected_mod, dialog](brls::View* view) {
+        if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
+          ext_mod_manager::setOnCallBackFunction([dialog](){dialog->close();});
+          ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selected_mod);
+          ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_apply_mod();
+        }
+      });
+      dialog->addButton("No", [dialog](brls::View* view) {
+        dialog->close();
+      });
+
+      dialog->setCancelable(true);
+      dialog->open();
+
       return true;
     });
     item->updateActionHint(brls::Key::A, "Apply");
+
+    item->registerAction("Disable", brls::Key::X, [selected_mod]{
+
+      auto* dialog = new brls::Dialog("Do you want to disable \"" + selected_mod + "\" ?");
+
+      dialog->addButton("Yes", [selected_mod, dialog](brls::View* view) {
+        if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
+          ext_mod_manager::setOnCallBackFunction([dialog](){dialog->close();});
+          ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selected_mod);
+          ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_remove_mod();
+        }
+      });
+      dialog->addButton("No", [dialog](brls::View* view) {
+        dialog->close();
+      });
+
+      dialog->setCancelable(true);
+      dialog->open();
+      return true;
+    });
+
     item->setValue("Unchecked");
 
     this->addView(item);
@@ -53,13 +77,6 @@ void tab_mod_browser::updateModsStatus() {
 
   brls::Logger::debug("updateModsStatus");
   this->getExtModManager().start_check_all_mods();
-
-//  for(auto& modItem : _modsListItems_){
-//    modItem.second->setValue(
-//      GlobalObjects::get_mod_browser().get_mod_manager().get_mod_status(
-//        modItem.second->getLabel()
-//      ));
-//  }
 
 }
 

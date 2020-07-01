@@ -2,27 +2,31 @@
 // Created by Adrien BLANCHET on 21/06/2020.
 //
 
-#ifndef SIMPLEMODMANAGER_FRAME_MODS_BROWSER_H
-#define SIMPLEMODMANAGER_FRAME_MODS_BROWSER_H
+#ifndef SIMPLEMODMANAGER_FRAME_MOD_BROWSER_H
+#define SIMPLEMODMANAGER_FRAME_MOD_BROWSER_H
 
 #include <borealis.hpp>
 #include <tab_mod_browser.h>
 #include <tab_mod_options.h>
 #include <tab_mod_presets.h>
 
-class frame_mods_browser : public brls::TabFrame {
+class frame_mod_browser : public brls::TabFrame {
 
 public:
-  explicit frame_mods_browser(std::string folder_);
+  explicit frame_mod_browser(std::string folder_);
 
   bool onCancel() override;
+
+  uint8_t *getIcon();
 
 private:
   tab_mod_browser* _tabModBrowser_;
   tab_mod_options* _tabModOptions_;
   tab_mod_presets* _tabModPresets_;
 
+  uint8_t* icon;
+
 };
 
 
-#endif //SIMPLEMODMANAGER_FRAME_MODS_BROWSER_H
+#endif //SIMPLEMODMANAGER_FRAME_MOD_BROWSER_H
