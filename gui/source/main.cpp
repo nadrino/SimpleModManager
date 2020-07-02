@@ -91,7 +91,14 @@ void run_gui(){
   main_frame->registerAction("", brls::Key::PLUS, []{return true;}, true);
   main_frame->updateActionHint(brls::Key::PLUS, ""); // make the change visible
 
-  while(brls::Application::mainLoop());
+  while(brls::Application::mainLoop()){
+//    hidScanInput();
+    //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
+//    u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+//    u64 kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
+
+//      brls::Application::navigate(brls::FocusDirection::DOWN);
+  }
 
   nsExit();
 

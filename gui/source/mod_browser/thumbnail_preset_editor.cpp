@@ -129,17 +129,18 @@ void thumbnail_preset_editor::save() {
     (*dataHandlerPtr)[_presetName_].emplace_back(_selectedModsList_[i_entry]);
   }
 
-  ext_GlobalObjects::getCurrentTabModPresetPtr()->setTriggerUpdate(true);
-
-  // Check for conflicts
+  // TODO: Check for conflicts
 //  show_conflicted_files(_presetName_);
 
   GlobalObjects::get_mod_browser().get_mods_preseter().fill_selector();
   GlobalObjects::get_mod_browser().get_mods_preseter().recreate_preset_file();
   GlobalObjects::get_mod_browser().get_mods_preseter().read_parameter_file();
 
+  ext_GlobalObjects::getCurrentTabModPresetPtr()->updatePresetItems();
+
   brls::Application::popView(brls::ViewAnimation::FADE);
   brls::Application::unblockInputs();
+  cleanup();
 
 }
 
@@ -164,4 +165,11 @@ void thumbnail_preset_editor::draw(NVGcontext *vg, int x, int y, unsigned int wi
   }
 
   AppletFrame::draw(vg, x, y, width, height, style, ctx);
+}
+
+void thumbnail_preset_editor::cleanup() {
+
+  itemsList.resize(0);
+  _selectedModsList_.resize(0);
+
 }

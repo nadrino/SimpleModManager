@@ -12,18 +12,14 @@ class tab_mod_presets : public brls::List {
 public:
   tab_mod_presets();
 
-  void draw(NVGcontext* vg, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* ctx) override;
-
-  void setTriggerUpdate(bool triggerUpdate);
-
-  std::vector<brls::ListItem *> &getItemList();
-
-  brls::ListItem *createNewPresetItem(const std::string& presetName_);
   void assignButtons(brls::ListItem *item, bool isPreset_);
   void updatePresetItems();
 
+  int getNbFreeSlots() const;
+
 private:
-  bool _triggerUpdate_;
+  int _maxNbPresetsSlots_;
+  int _nbFreeSlots_;
   std::vector<brls::ListItem*> _itemList_;
   brls::ListItem* _itemNewCreatePreset_;
 

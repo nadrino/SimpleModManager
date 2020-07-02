@@ -11,59 +11,32 @@
 
 tab_mod_presets::tab_mod_presets() {
 
-  _triggerUpdate_ = false;
-
   ext_GlobalObjects::setCurrentTabModPresetPtr(this);
 
-  auto presets_list = GlobalObjects::get_mod_browser().get_mods_preseter().get_presets_list();
-  for(const auto& preset_name : presets_list){
-    _itemList_.emplace_back(this->createNewPresetItem(preset_name));
+  _maxNbPresetsSlots_ = 20;
+  _nbFreeSlots_ = 0;
+  _itemNewCreatePreset_ = nullptr;
+
+  _itemNewCreatePreset_ = new brls::ListItem("\uE402 Create a new mod preset");
+  this->assignButtons(_itemNewCreatePreset_, false);
+  this->addView(_itemNewCreatePreset_);
+
+  for(int i_slot = 0 ; i_slot < _maxNbPresetsSlots_ ; i_slot++){
+    brls::Logger::debug("i_slot : %i",i_slot );
+    _itemList_.emplace_back(new brls::ListItem( "vacant-slot" ));
+    this->assignButtons(_itemList_.back(), true);
     this->addView(_itemList_.back());
   }
 
-  _itemList_.emplace_back(new brls::ListItem("\uE402 Create a new mod preset"));
-  this->assignButtons(_itemList_.back(), false);
-  this->addView(_itemList_.back());
+  this->updatePresetItems();
 
-}
-
-
-std::vector<brls::ListItem *> &tab_mod_presets::getItemList() {
-  return _itemList_;
-}
-
-void tab_mod_presets::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
-                           brls::FrameContext *ctx) {
-
-  if(_triggerUpdate_){
-    this->updatePresetItems();
-    _triggerUpdate_ = false;
-  }
-
-  ScrollView::draw(vg, x, y, width, height, style, ctx);
-}
-
-void tab_mod_presets::setTriggerUpdate(bool triggerUpdate) {
-  _triggerUpdate_ = triggerUpdate;
-}
-
-brls::ListItem *tab_mod_presets::createNewPresetItem(const std::string& presetName_) {
-
-  auto mods_list = GlobalObjects::get_mod_browser().get_mods_preseter().get_mods_list(presetName_);
-
-  auto* item = new brls::ListItem( presetName_,"","" );
-  item->setValue(std::to_string(mods_list.size()) + " mods in this set");
-
-  this->assignButtons(item, true);
-
-  return item;
 }
 
 void tab_mod_presets::assignButtons(brls::ListItem *item, bool isPreset_) {
 
   if(isPreset_){
     item->getClickEvent()->subscribe([item](brls::View* view){});
-    item->registerAction("Apply", brls::Key::A, [this, item]{
+    item->registerAction("Apply", brls::Key::A, [item]{
       auto* dialog = new brls::Dialog("Do you want disable all mods and apply the preset \"" + item->getLabel() + "\" ?");
 
       dialog->addButton("Yes", [dialog, item](brls::View* view) {
@@ -87,7 +60,8 @@ void tab_mod_presets::assignButtons(brls::ListItem *item, bool isPreset_) {
 
       dialog->addButton("Yes", [this, item, dialog](brls::View* view) {
         GlobalObjects::get_mod_browser().get_mods_preseter().delete_mod_preset(item->getLabel());
-        this->setTriggerUpdate(true);
+//        this->setTriggerUpdate(true);
+        this->updatePresetItems();
         dialog->close();
       });
       dialog->addButton("No", [dialog](brls::View* view) {
@@ -118,11 +92,15 @@ void tab_mod_presets::assignButtons(brls::ListItem *item, bool isPreset_) {
     });
     item->updateActionHint(brls::Key::Y, "Edit");
   }
-  else{
+  else {
     // new preset
-    item->getClickEvent()->subscribe([](brls::View* view){});
-    item->updateActionHint(brls::Key::A, "Create");
-    item->registerAction("", brls::Key::A, [](){
+    item->getClickEvent()->subscribe([this](brls::View* view){
+
+      if(this->getNbFreeSlots() <= 0){
+        brls::Application::notify("No available slots");
+        return true;
+      }
+
       // create new preset
       auto* editor = new thumbnail_preset_editor();
       editor->initialize();
@@ -136,70 +114,45 @@ void tab_mod_presets::assignButtons(brls::ListItem *item, bool isPreset_) {
       }
 
       return true;
-    }, false);
+    });
+    item->updateActionHint(brls::Key::A, "Create");
 
-    item->updateActionHint(brls::Key::X, "");
-    item->registerAction("", brls::Key::X, []{return true;}, true);
-    item->updateActionHint(brls::Key::Y, "");
-    item->registerAction("", brls::Key::Y, []{return true;}, true);
   }
 
 }
 
 void tab_mod_presets::updatePresetItems() {
 
-  // it will be overwritten if a preset has been added
-  auto newPresetLabel = this->_itemList_.back()->getLabel();
-
-  // get the new presets list
   auto presets_list = GlobalObjects::get_mod_browser().get_mods_preseter().get_presets_list();
   for(int i_preset = 0 ; i_preset < int(presets_list.size()) ; i_preset++){
+    if(i_preset+1 >= _maxNbPresetsSlots_){ // should not
+      break;
+    }
     auto mods_list = GlobalObjects::get_mod_browser().get_mods_preseter().get_mods_list(presets_list[i_preset]);
-
-    // overwrites labels -> if one is added, it will replace the "Create a new Preset" item
-    if(i_preset < int(this->_itemList_.size())){
-      this->_itemList_[i_preset]->setLabel(presets_list[i_preset]);
-      this->_itemList_[i_preset]->setValue(std::to_string(mods_list.size()) + " mods in this set");
-      this->assignButtons(this->_itemList_[i_preset], true);
-    }
-    // need to create one more slot (in practice it should not be used since only 1 preset can be created at a time)
-    else{
-      this->_itemList_.emplace_back(this->createNewPresetItem(presets_list[i_preset]));
-      this->_itemList_.back()->setValue(std::to_string(mods_list.size()) + " mods in this set");
-      this->assignButtons(this->_itemList_[i_preset], true);
-      this->addView(this->_itemList_.back());
-    }
-
-    if(this->_itemList_[i_preset]->isCollapsed()){
-      this->_itemList_[i_preset]->expand(true);
-    }
+    this->_itemList_[i_preset]->setLabel(presets_list[i_preset]);
+    this->_itemList_[i_preset]->setValue(std::to_string(mods_list.size()) + " mods in this set");
+    this->_itemList_[i_preset]->expand(true);
+//    this->_itemList_[i_preset]->show([](){});
   }
 
-  // in the case where one preset has been added -> need to add one more slot for the "create a new preset" item
-  if(this->_itemList_.back()->getLabel() != newPresetLabel){
-    _itemList_.emplace_back(new brls::ListItem(newPresetLabel));
-    this->assignButtons(_itemList_.back(), false);
-    this->addView(_itemList_.back());
+  // collapsing all hidden slots
+  _nbFreeSlots_ = 0;
+  for(int i_hidden = int(presets_list.size()) ; i_hidden < _maxNbPresetsSlots_ ; i_hidden++){
+    this->_itemList_[i_hidden]->collapse(true);
+//    this->_itemList_[i_hidden]->hide([](){});
+    _nbFreeSlots_++;
   }
 
-  // in the case where one preset has been deleted
-  // _itemList_ will be too big -> need to hide
-  int lastItemDisplayedIndex = int(_itemList_.size()) - 1; // assume all items are displayed (which may not be the case -> double check)
-  while(lastItemDisplayedIndex > int(presets_list.size())){ // should be equal
-    _itemList_[lastItemDisplayedIndex]->collapse(true);
-    lastItemDisplayedIndex--;
-  }
+  brls::Application::unblockInputs();
+//  if(brls::Application::getCurrentFocus() != nullptr and brls::Application::getCurrentFocus()->isCollapsed()){
+//    brls::Application::getCurrentFocus()->onFocusLost();
+//    brls::Application::giveFocus(_itemNewCreatePreset_->getDefaultFocus());
+//  }
 
-  // make sure the last item is create new preset
-  if(_itemList_[lastItemDisplayedIndex]->isCollapsed()){
-    this->_itemList_[lastItemDisplayedIndex]->expand(true);
-  }
-  _itemList_[lastItemDisplayedIndex]->setLabel(newPresetLabel);
-  _itemList_[lastItemDisplayedIndex]->setValue("");
-  this->assignButtons(_itemList_[lastItemDisplayedIndex], false);
+}
 
-
-
+int tab_mod_presets::getNbFreeSlots() const {
+  return _nbFreeSlots_;
 }
 
 
