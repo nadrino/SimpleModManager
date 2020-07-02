@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <utility>
 #include <cstring>
+#include <GlobalObjects.h>
 
 mod_browser::mod_browser(){
 
@@ -238,6 +239,16 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
           );
       }
     }
+    else if(kDown & KEY_ZL or kDown & KEY_ZR){ // switch between config preset
+      auto answer = toolbox::ask_question(
+        "Do you want to switch back to the GUI ?",
+        std::vector<std::string>({"Yes", "No"})
+      );
+      if(answer == "Yes") {
+        get_parameters_handler().set_parameter("use-gui", "1");
+        GlobalObjects::set_quit_now_triggered(true);
+      }
+    }
   }
 
   if(kDown & KEY_B){ // back
@@ -278,9 +289,9 @@ void mod_browser::print_menu(){
   }
   else{
     toolbox::print_left_right(" A : Select folder", "Y : Change config preset ");
+    toolbox::print_left_right(" B : Quit", "ZL/ZR : Switch back to the GUI ");
   }
   if(get_current_relative_depth() > 0) toolbox::print_left(" B : Go back");
-  else toolbox::print_left(" B : Quit");
 //  toolbox::print_left_right(
 //    toolbox::get_RAM_info_string("applet"),
 //    toolbox::get_RAM_info_string("system"),
@@ -525,4 +536,3 @@ void mod_browser::remove_all_mods(bool force_){
   }
   toolbox::set_CRC_check_is_enabled(CRC_check_state);
 }
-

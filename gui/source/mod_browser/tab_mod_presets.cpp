@@ -108,10 +108,10 @@ void tab_mod_presets::assignButtons(brls::ListItem *item, bool isPreset_) {
 
       auto* icon = ext_GlobalObjects::getCurrentFrameModBrowserPtr()->getIcon();
       if(icon != nullptr){
-        brls::PopupFrame::open("Preset Editor", icon, 0x20000, editor, "Please select the mods you want to install");
+        brls::PopupFrame::open("Preset Editor", icon, 0x20000, editor, "Please select the mods you want to install", "The mods will be applied in the same order.");
       }
       else{
-        brls::PopupFrame::open("Preset Editor", editor, "Please select the mods you want to install");
+        brls::PopupFrame::open("Preset Editor", editor, "Please select the mods you want to install", "The mods will be applied in the same order.");
       }
 
       return true;
@@ -129,10 +129,10 @@ void tab_mod_presets::assignButtons(brls::ListItem *item, bool isPreset_) {
 
       auto* icon = ext_GlobalObjects::getCurrentFrameModBrowserPtr()->getIcon();
       if(icon != nullptr){
-        brls::PopupFrame::open("Preset Editor", icon, 0x20000, editor, "Please select the mods you want to install");
+        brls::PopupFrame::open("Preset Editor", icon, 0x20000, editor, "Please select the mods you want to install", "The mods will be applied in the same order.");
       }
       else{
-        brls::PopupFrame::open("Preset Editor", editor, "Please select the mods you want to install");
+        brls::PopupFrame::open("Preset Editor", editor, "Please select the mods you want to install", "The mods will be applied in the same order.");
       }
 
       return true;

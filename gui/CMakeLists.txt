@@ -3,7 +3,7 @@
 #
 
 # Replace this with the name of your application
-set(GUI_NAME "SimpleModManagerGui")
+set(GUI_NAME "SimpleModManager")
 set(GUI_APP "${GUI_NAME}")
 
 

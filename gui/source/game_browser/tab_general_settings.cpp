@@ -15,7 +15,10 @@ void tab_general_settings::rebuild_layout() {
 
   itemCurrentInstallPreset = new brls::ListItem(
     "Current Install Preset:",
-    "Specify on which base folder mods will be installed.\n If you are using Atmosphere, mods have to be installed in /atmosphere/. You need to take this path into account in your mod tree structure.",
+    "Specify on which base folder mods will be installed.\n"\
+    "- If you are using Atmosphere, mods have to be installed in /atmosphere/. "\
+    "This correspond to the \"default\" preset. You need to take this path into account in your mod tree structure.\n"\
+    "- If you want to set a specific install folder for a given game, please refer to its Option tab and go to \"Attribute a config preset\".",
     ""
   );
   itemCurrentInstallPreset->setValue(GlobalObjects::get_mod_browser().get_parameters_handler().get_current_config_preset_name());
@@ -33,9 +36,14 @@ void tab_general_settings::rebuild_layout() {
 
 //       this->valueEvent.fire(result); // not now
     };
+    auto presets_list_labels = GlobalObjects::get_mod_browser().get_parameters_handler().get_presets_list();
+    for(auto& preset_label : presets_list_labels){
+      auto install_folder = GlobalObjects::get_mod_browser().get_parameters_handler().get_parameter(preset_label + "-install-mods-base-folder");
+      preset_label += " \uE090 \"" + install_folder + "\"";
+    }
     brls::Dropdown::open(
       "Current Install Preset:",
-      GlobalObjects::get_mod_browser().get_parameters_handler().get_presets_list(),
+      presets_list_labels,
       valueCallback,
       GlobalObjects::get_mod_browser().get_parameters_handler().get_current_config_preset_id()
     );
@@ -46,9 +54,30 @@ void tab_general_settings::rebuild_layout() {
 
   auto* itemStoredModsBaseFolder = new brls::ListItem(
     "stored-mods-base-folder:",
-    "This is the place where SimpleModManager will look for your mods. From this folder, the tree structure must look like this:\n ./<name of the game or category>/<mod name>/<mod tree structure>.",
+    "This is the place where SimpleModManager will look for your mods. From this folder, the tree structure must look like this:\n"\
+    "<stored-mods-base-folder>/<name-of-the-game-or-category>/<mod-name>/<mod-tree-structure>.",
     "");
   itemStoredModsBaseFolder->setValue(GlobalObjects::get_mod_browser().get_parameters_handler().get_parameter("stored-mods-base-folder"));
   this->addView(itemStoredModsBaseFolder);
+
+  auto* itemUseUI = new brls::ListItem("Disable the GUI", "If you want to go back on the old UI, select this option.");
+  itemUseUI->registerAction("Select", brls::Key::A, [](){
+
+    auto* dialog = new brls::Dialog("Do you want to disable this GUI and switch back to the console-style UI ?");
+
+    dialog->addButton("Yes", [](brls::View* view) {
+      GlobalObjects::get_mod_browser().get_parameters_handler().set_parameter("use-gui", "0");
+      brls::Application::quit();
+    });
+    dialog->addButton("No", [dialog](brls::View* view) {
+      dialog->close();
+    });
+
+    dialog->setCancelable(true);
+    dialog->open();
+
+    return true;
+  });
+  this->addView(itemUseUI);
 
 }

@@ -6,10 +6,8 @@
 #include <GlobalObjects.h>
 #include <thread>
 #include <future>
-#include <popup_apply_mod.h>
 #include <popup_loading.h>
 
-#include <ext_toolbox.h>
 #include <ext_GlobalObjects.h>
 
 tab_mod_browser::tab_mod_browser() {
@@ -69,6 +67,17 @@ tab_mod_browser::tab_mod_browser() {
 
     this->addView(item);
     _modsListItems_[selected_mod] = item;
+  }
+
+  if(mod_folders_list.empty()){
+
+    auto* emptyListLabel = new brls::ListItem(
+      "No mods have been found in " + GlobalObjects::get_mod_browser().get_current_directory(),
+      "There you need to put your mods such as: ./<name-of-the-mod>/<file-structure-in-installed-directory>"
+      );
+    emptyListLabel->show([](){}, false);
+    this->addView(emptyListLabel);
+
   }
 
 }

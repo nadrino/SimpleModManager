@@ -4,6 +4,7 @@
 
 #include "tab_about.h"
 #include <borealis.hpp>
+#include <toolbox.h>
 
 tab_about::tab_about() {
 
@@ -29,12 +30,33 @@ tab_about::tab_about() {
   leftBox->setSpacing(22);
   leftBox->setWidth(500);
   leftBox->setParent(table);
-  leftBox->addView(new brls::Header("Test"));
+
+  leftBox->addView(new brls::Header("Version " + toolbox::get_app_version() + " - Key Features"));
+  auto *changelog = new brls::Label(
+    brls::LabelStyle::DESCRIPTION,
+    " - First Release of the GUI\n - Now SMM automatically find game thumbnails\n",
+    true
+  );
+  changelog->setHorizontalAlign(NVG_ALIGN_LEFT);
+  leftBox->addView(changelog);
+
+  leftBox->addView(new brls::Header("Copyright"));
+  auto *copyright = new brls::Label(
+    brls::LabelStyle::DESCRIPTION,
+    "SimpleModManager is licensed under GPL-v3.0\n" \
+        "\u00A9 2019 - 2020 Nadrino",
+    true
+  );
+  copyright->setHorizontalAlign(NVG_ALIGN_CENTER);
+  leftBox->addView(copyright);
 
   auto* rightBox = new brls::BoxLayout(brls::BoxLayoutOrientation::VERTICAL);
   rightBox->setSpacing(22);
   rightBox->setWidth(200);
   rightBox->setParent(table);
+
+  rightBox->addView(new brls::Label(brls::LabelStyle::DESCRIPTION, " "));
+
   auto* portrait = new brls::Image("romfs:/images/portrait.jpg");
   portrait->setScaleType(brls::ImageScaleType::SCALE);
   portrait->setHeight(200);

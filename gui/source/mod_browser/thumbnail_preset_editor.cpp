@@ -54,13 +54,11 @@ void thumbnail_preset_editor::initialize() {
 
   this->setContentView(modsList);
 
-//  this->getSidebar()->getButton()->setState(brls::ButtonState::DISABLED);
   this->getSidebar()->getButton()->getClickEvent()->subscribe([this](brls::View* view){
     this->save();
     return true;
   });
   this->getSidebar()->registerAction("", brls::Key::PLUS, []{return true;}, true);
-//  this->getSidebar()->updateActionHint(brls::Key::PLUS, ""); // make the change visible
   this->getSidebar()->setTitle(_presetName_);
 
   this->registerAction("", brls::Key::PLUS, []{return true;}, true);
@@ -93,6 +91,8 @@ void thumbnail_preset_editor::process_tags() {
 
     }
   }
+
+  this->getSidebar()->setSubtitle(std::to_string(this->_selectedModsList_.size()) + " mods have been selected.");
 
 }
 

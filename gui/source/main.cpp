@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
 
 void run_gui(){
 
-  GlobalObjects::redirect_cout();
+  GlobalObjects::redirect_cout(); // avoid being spammed while debugging the ui
 
   Result rc;
   rc = nsInitialize();
@@ -126,7 +126,9 @@ void run_console(){
     u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
     u64 kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
 
-    if(kDown & KEY_B and GlobalObjects::get_mod_browser().get_current_relative_depth() == 0){ // back
+    if( (kDown & KEY_B and GlobalObjects::get_mod_browser().get_current_relative_depth() == 0)
+        or GlobalObjects::is_quit_now_triggered()
+        ){ // back
       break;
     }
 

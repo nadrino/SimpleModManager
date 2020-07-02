@@ -43,10 +43,12 @@ tab_games::tab_games() {
 
   if(_games_list_.empty()){
 
-    auto* emptyListLabel = new brls::Label(
-      brls::LabelStyle::REGULAR,
-      "No folder has been found in " + GlobalObjects::get_mod_browser().get_base_folder(),
-      true
+    auto* emptyListLabel = new brls::ListItem(
+      "No game folders have been found in " + GlobalObjects::get_mod_browser().get_base_folder(),
+      "- To add mods, you need to copy them such as: " + GlobalObjects::get_mod_browser().get_base_folder()
+      + "<name-of-the-game>/<name-of-the-mod>/<mods-files-and-folders>.\n" \
+      "- You can also change this folder (" + GlobalObjects::get_mod_browser().get_base_folder()
+      + ") by editing the config file in /config/SimpleModManager/parameters.ini"
       );
     emptyListLabel->show([](){}, false);
     this->addView(emptyListLabel);

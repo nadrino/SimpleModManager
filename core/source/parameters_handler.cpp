@@ -62,6 +62,10 @@ void parameters_handler::set_current_config_preset_name(std::string preset_name_
   }
   set_current_config_preset_id(preset_id);
 }
+void parameters_handler::set_parameter(std::string parameter_name_, std::string value_){
+  _data_handler_[parameter_name_] = std::move(value_);
+  recreate_parameters_file();
+}
 
 int parameters_handler::get_current_config_preset_id(){
   return _current_config_preset_id_;

@@ -3,7 +3,7 @@
 #
 
 # Replace this with the name of your application
-set(HOMEBREW_NAME "SimpleModManager")
+set(HOMEBREW_NAME "SimpleModManagerConsole")
 set(HOMEBREW_APP "${HOMEBREW_NAME}")
 
 # Meta information about the app

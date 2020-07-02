@@ -144,11 +144,13 @@ void ext_mod_manager::remove_mod(std::string &modName_){
   toolbox::reset_last_displayed_value();
   for(auto &relative_file_path : relative_file_path_list){
 
-    toolbox::fill_str_buffer_map("ext_mod_manager::remove_mod:current_file", toolbox::get_filename_from_file_path(relative_file_path));
+    std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path;
+    toolbox::fill_str_buffer_map("ext_mod_manager::remove_mod:current_file",
+      toolbox::get_filename_from_file_path(relative_file_path)
+      + " (" + toolbox::get_file_size_string(absolute_file_path) + ")");
     toolbox::fill_progress_map("ext_mod_manager::remove_mod", (i_file+1.)/double(relative_file_path_list.size()));
 
     i_file++;
-    std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path;
     absolute_file_path = toolbox::remove_extra_doubled_characters(absolute_file_path, "/");
     std::string file_size = toolbox::get_file_size_string(absolute_file_path);
 
@@ -230,7 +232,7 @@ void ext_mod_manager::apply_mods_list(std::vector<std::string>& modsList_){
   // applying mods with ignored files
   for(int i_mod = 0 ; i_mod < int(modsList_.size()) ; i_mod++){
     toolbox::fill_str_buffer_map("ext_mod_manager::apply_mods_list:current_mod",
-      modsList_[i_mod] + " (" + std::to_string(i_mod) + "/" + std::to_string(modsList_.size()-1) + ")");
+      modsList_[i_mod] + " (" + std::to_string(i_mod+1) + "/" + std::to_string(modsList_.size()) + ")");
     toolbox::fill_progress_map("ext_mod_manager::apply_mods_list", (i_mod+1.)/double(modsList_.size()));
     mod_browser->get_mod_manager().set_ignored_file_list(mods_ignored_files_list[i_mod]);
     ext_mod_manager::apply_mod(modsList_[i_mod], true); // normally should work without force (tested) but just in case...
