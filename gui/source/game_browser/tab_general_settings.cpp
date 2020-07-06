@@ -14,10 +14,10 @@ tab_general_settings::tab_general_settings() {
 void tab_general_settings::rebuild_layout() {
 
   itemCurrentInstallPreset = new brls::ListItem(
-    "Current Install Preset:",
-    "Specify on which base folder mods will be installed.\n"\
+    "\uE255 Current Install Preset:",
+    "Specify from which base folder mods will be installed.\n"\
     "- If you are using Atmosphere, mods have to be installed in /atmosphere/. "\
-    "This correspond to the \"default\" preset. You need to take this path into account in your mod tree structure.\n"\
+    "This corresponds to the \"default\" preset. You need to take this path into account in your mod tree structure.\n"\
     "- If you want to set a specific install folder for a given game, please refer to its Option tab and go to \"Attribute a config preset\".",
     ""
   );
@@ -53,14 +53,14 @@ void tab_general_settings::rebuild_layout() {
   GlobalObjects::get_mod_browser().get_parameters_handler().get_presets_list();
 
   auto* itemStoredModsBaseFolder = new brls::ListItem(
-    "stored-mods-base-folder:",
+    "\uE431 Stored Mods Location:",
     "This is the place where SimpleModManager will look for your mods. From this folder, the tree structure must look like this:\n"\
-    "<stored-mods-base-folder>/<name-of-the-game-or-category>/<mod-name>/<mod-tree-structure>.",
+    "./<name-of-the-game-or-category>/<mod-name>/<mod-tree-structure>.",
     "");
   itemStoredModsBaseFolder->setValue(GlobalObjects::get_mod_browser().get_parameters_handler().get_parameter("stored-mods-base-folder"));
   this->addView(itemStoredModsBaseFolder);
 
-  auto* itemUseUI = new brls::ListItem("Disable the GUI", "If you want to go back on the old UI, select this option.");
+  auto* itemUseUI = new brls::ListItem("\uE072 Disable the GUI", "If you want to go back on the old UI, select this option.");
   itemUseUI->registerAction("Select", brls::Key::A, [](){
 
     auto* dialog = new brls::Dialog("Do you want to disable this GUI and switch back to the console-style UI ?");

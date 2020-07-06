@@ -20,8 +20,8 @@ tab_mod_options::tab_mod_options() {
 void tab_mod_options::buildFolderInstallPresetItem() {
 
   _itemFolderInstallPreset_ = new brls::ListItem(
-    "Attribute a config preset",
-    "Specify on which install folder mods from this subfolder (game) will be installed.\n",
+    "\uE255 Attribute a config preset",
+    "Specify from which install folder mods from this subfolder (game) will be installed.\n",
     ""
   );
   _itemFolderInstallPreset_->setValue(_inheritedTitle_);
@@ -100,7 +100,7 @@ void tab_mod_options::buildFolderInstallPresetItem() {
 void tab_mod_options::buildResetModsCacheItem() {
 
   _itemResetModsCache_ = new brls::ListItem(
-    "Recheck all mods",
+    "\uE877 Recheck all mods",
     "\tThis option resets all mods cache status and recheck if each files is properly applied.\n"
               "\tWhen files where managed without SimpleModManager, the displayed mod status can be wrong. "
               "This typically happens when you modified some mod files, or other programs override some of the applied files.",
@@ -132,7 +132,7 @@ void tab_mod_options::buildResetModsCacheItem() {
 void tab_mod_options::buildDisableAllMods() {
 
   _itemDisableAllMods_ = new brls::ListItem(
-    "Disable all mods",
+    "\uE872 Disable all mods",
     "This option will remove all installed mods files.\n"
               "Note: to be deleted, installed mod files need to be identical to the one present in this folder.",
     ""
@@ -166,9 +166,9 @@ void tab_mod_options::initialize() {
   this->buildDisableAllMods();
 
   // finally add to view
-  this->addView(_itemDisableAllMods_);
-  this->addView(_itemFolderInstallPreset_);
   this->addView(_itemResetModsCache_);
+  this->addView(_itemFolderInstallPreset_);
+  this->addView(_itemDisableAllMods_);
 
 }
 

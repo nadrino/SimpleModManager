@@ -17,16 +17,16 @@ tab_mod_presets::tab_mod_presets() {
   _nbFreeSlots_ = 0;
   _itemNewCreatePreset_ = nullptr;
 
-  _itemNewCreatePreset_ = new brls::ListItem("\uE402 Create a new mod preset");
-  this->assignButtons(_itemNewCreatePreset_, false);
-  this->addView(_itemNewCreatePreset_);
-
   for(int i_slot = 0 ; i_slot < _maxNbPresetsSlots_ ; i_slot++){
     brls::Logger::debug("i_slot : %i",i_slot );
     _itemList_.emplace_back(new brls::ListItem( "vacant-slot" ));
     this->assignButtons(_itemList_.back(), true);
     this->addView(_itemList_.back());
   }
+
+  _itemNewCreatePreset_ = new brls::ListItem("\uE402 Create a new mod preset");
+  this->assignButtons(_itemNewCreatePreset_, false);
+  this->addView(_itemNewCreatePreset_);
 
   this->updatePresetItems();
 

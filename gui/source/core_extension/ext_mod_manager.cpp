@@ -249,7 +249,8 @@ void ext_mod_manager::check_all_mods() {
   auto mods_list = mod_browser->get_selector().get_selection_list();
   for(int i_mod = 0 ; i_mod < int(mods_list.size()) ; i_mod++){
 
-    toolbox::fill_str_buffer_map("ext_mod_manager::check_all_mods:current_mod", toolbox::get_filename_from_file_path(mods_list[i_mod]));
+    toolbox::fill_str_buffer_map("ext_mod_manager::check_all_mods:current_mod",
+      toolbox::get_filename_from_file_path(mods_list[i_mod]) + "(" + std::to_string(i_mod+1) + "/" + std::to_string(mods_list.size()) + ")");
     toolbox::fill_progress_map("ext_mod_manager::check_all_mods", (i_mod+1.)/double(mods_list.size()));
 
     // IU update
@@ -356,8 +357,8 @@ ext_mod_manager::ext_mod_manager() {
     ext_mod_manager::_staticPopupLoadingViewPtr_->setTitlePtr(&toolbox::get_str_buffer("ext_mod_manager::check_all_mods:current_mod"));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::check_all_mods"));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setEnableSubLoadingBar(true);
-    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubTitlePtr(&toolbox::get_str_buffer("ext_mod_manager::check_mod_status:current_file"));
-    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::check_mod_status"));
+    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubTitlePtr(&toolbox::get_str_buffer("ext_mod_manager::check_mod_status"));
+    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&toolbox::get_progress("do_files_are_the_same"));
     ext_mod_manager::check_all_mods();
 
     if(ext_mod_manager::_staticOnCallBackFunction_ ? true: false){
@@ -391,9 +392,9 @@ ext_mod_manager::ext_mod_manager() {
     ext_mod_manager::_staticPopupLoadingViewPtr_->setHeader("Checking all mods status...");
     ext_mod_manager::_staticPopupLoadingViewPtr_->setTitlePtr(&toolbox::get_str_buffer("ext_mod_manager::check_all_mods:current_mod"));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setSubTitlePtr(&toolbox::get_str_buffer("ext_mod_manager::check_mod_status:current_file"));
-    ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::check_all_mods"));
+    ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::check_mod_status"));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setEnableSubLoadingBar(true);
-    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::check_mod_status"));
+    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&toolbox::get_progress("do_files_are_the_same"));
     ext_mod_manager::check_all_mods();
 
     if(ext_mod_manager::_staticOnCallBackFunction_ ? true: false){
@@ -427,9 +428,9 @@ ext_mod_manager::ext_mod_manager() {
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressColor(nvgRGB(0x00, 0xff, 0xc8));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setTitlePtr(&toolbox::get_str_buffer("ext_mod_manager::apply_mods_list:current_mod"));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setSubTitlePtr(&toolbox::get_str_buffer("ext_mod_manager::apply_mod:current_file"));
-    ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::apply_mods_list"));
+    ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::apply_mod"));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setEnableSubLoadingBar(true);
-    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::apply_mod"));
+    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&toolbox::get_progress("copy_file"));
     auto modsList = GlobalObjects::get_mod_browser().get_mods_preseter().get_mods_list(mod_preset_name_);
     ext_mod_manager::apply_mods_list(modsList);
 
@@ -439,9 +440,9 @@ ext_mod_manager::ext_mod_manager() {
     ext_mod_manager::_staticPopupLoadingViewPtr_->setHeader("Checking all mods status...");
     ext_mod_manager::_staticPopupLoadingViewPtr_->setTitlePtr(&toolbox::get_str_buffer("ext_mod_manager::check_all_mods:current_mod"));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setSubTitlePtr(&toolbox::get_str_buffer("ext_mod_manager::check_mod_status:current_file"));
-    ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::check_all_mods"));
+    ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::check_mod_status"));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setEnableSubLoadingBar(true);
-    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::check_mod_status"));
+    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&toolbox::get_progress("do_files_are_the_same"));
     ext_mod_manager::check_all_mods();
 
     if(ext_mod_manager::_staticOnCallBackFunction_ ? true: false){

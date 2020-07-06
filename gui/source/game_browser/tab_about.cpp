@@ -31,10 +31,10 @@ tab_about::tab_about() {
   leftBox->setWidth(500);
   leftBox->setParent(table);
 
-  leftBox->addView(new brls::Header("Version " + toolbox::get_app_version() + " - Key Features"));
+  leftBox->addView(new brls::Header("Version " + toolbox::get_app_version() + " - What's new ?"));
   auto *changelog = new brls::Label(
     brls::LabelStyle::DESCRIPTION,
-    " - First Release of the GUI\n - Now SMM automatically find game thumbnails\n",
+    " - Updating the loading displays for mod sets operations\n - Slight changes in the layout\n",
     true
   );
   changelog->setHorizontalAlign(NVG_ALIGN_LEFT);
@@ -57,7 +57,7 @@ tab_about::tab_about() {
 
   rightBox->addView(new brls::Label(brls::LabelStyle::DESCRIPTION, " "));
 
-  auto* portrait = new brls::Image("romfs:/images/portrait.jpg");
+  auto* portrait = new brls::Image("romfs:/images/portrait.png");
   portrait->setScaleType(brls::ImageScaleType::SCALE);
   portrait->setHeight(200);
   portrait->setParent(rightBox);
