@@ -5,6 +5,7 @@
 #include "tab_mod_options.h"
 #include <GlobalObjects.h>
 #include <ext_GlobalObjects.h>
+#include <toolbox.h>
 
 tab_mod_options::tab_mod_options() {
 
@@ -96,7 +97,6 @@ void tab_mod_options::buildFolderInstallPresetItem() {
   });
 
 }
-
 void tab_mod_options::buildResetModsCacheItem() {
 
   _itemResetModsCache_ = new brls::ListItem(
@@ -128,7 +128,6 @@ void tab_mod_options::buildResetModsCacheItem() {
   });
 
 }
-
 void tab_mod_options::buildDisableAllMods() {
 
   _itemDisableAllMods_ = new brls::ListItem(
@@ -158,17 +157,38 @@ void tab_mod_options::buildDisableAllMods() {
   });
 
 }
+void tab_mod_options::buildGameIdentificationItem(){
+
+  _itemGameIdentification_ = new brls::ListItem(
+    "Associated TitleID",
+    "",
+    "Current value :"
+  );
+  if(ext_GlobalObjects::getCurrentFrameModBrowserPtr()->getIcon() != nullptr){
+    _itemGameIdentification_->setValue(ext_GlobalObjects::getCurrentFrameModBrowserPtr()->getTitleid());
+    _itemGameIdentification_->setThumbnail(
+      ext_GlobalObjects::getCurrentFrameModBrowserPtr()->getIcon(),
+      0x20000
+    );
+  }
+  else{
+    _itemGameIdentification_->setValue("No TitleID Candidate");
+  }
+
+}
 
 void tab_mod_options::initialize() {
 
   this->buildFolderInstallPresetItem();
   this->buildResetModsCacheItem();
   this->buildDisableAllMods();
+  this->buildGameIdentificationItem();
 
   // finally add to view
   this->addView(_itemResetModsCache_);
   this->addView(_itemFolderInstallPreset_);
   this->addView(_itemDisableAllMods_);
+  this->addView(_itemGameIdentification_);
 
 }
 

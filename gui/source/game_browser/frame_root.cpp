@@ -51,7 +51,7 @@ frame_root::frame_root() {
     popupTabFrame->addTab("Red", new brls::Rectangle(nvgRGB(255, 0, 0)));
     popupTabFrame->addTab("Green", new brls::Rectangle(nvgRGB(0, 255, 0)));
     popupTabFrame->addTab("Blue", new brls::Rectangle(nvgRGB(0, 0, 255)));
-    brls::PopupFrame::open("Popup title", BOREALIS_ASSET("icon/borealis.jpg"), popupTabFrame, "Subtitle left", "Subtitle right");
+    brls::PopupFrame::open("Popup title", BOREALIS_ASSET("_icon_/borealis.jpg"), popupTabFrame, "Subtitle left", "Subtitle right");
   });
 
   brls::SelectListItem* layerSelectItem = new brls::SelectListItem("Select Layer", { "Layer 1", "Layer 2" });

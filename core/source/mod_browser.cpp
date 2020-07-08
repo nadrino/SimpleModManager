@@ -492,25 +492,34 @@ uint8_t* mod_browser::get_folder_icon(std::string game_folder_){
 
     std::string game_folder_path = get_current_directory() + "/" + game_folder_;
     std::string tid_str = toolbox::recursive_search_for_subfolder_name_like_tid(game_folder_path);
-    if(not tid_str.empty()){
+    icon = get_folder_icon_from_titleid(tid_str);
 
-      NsApplicationControlData controlData;
-      size_t controlSize  = 0;
-      uint64_t tid;
+  }
 
-      std::istringstream buffer(tid_str);
-      buffer >> std::hex >> tid;
+  return icon;
 
-      Result rc;
-      rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, tid, &controlData, sizeof(controlData), &controlSize);
-      if (R_FAILED(rc)){
-        return nullptr;
-      }
+}
+uint8_t* mod_browser::get_folder_icon_from_titleid(std::string titleid_){
 
-      icon = new uint8_t[0x20000];
-      memcpy(icon, controlData.icon, 0x20000);
+  uint8_t* icon = nullptr;
 
+  if(not titleid_.empty()){
+
+    NsApplicationControlData controlData;
+    size_t controlSize  = 0;
+    uint64_t tid;
+
+    std::istringstream buffer(titleid_);
+    buffer >> std::hex >> tid;
+
+    Result rc;
+    rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, tid, &controlData, sizeof(controlData), &controlSize);
+    if (R_FAILED(rc)){
+      return nullptr;
     }
+
+    icon = new uint8_t[0x20000];
+    memcpy(icon, controlData.icon, 0x20000);
 
   }
 

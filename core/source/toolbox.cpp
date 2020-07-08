@@ -1309,7 +1309,7 @@ namespace toolbox{
 
 
 
-  std::string recursive_search_for_subfolder_name_like_tid(std::string &folder_path_){
+  std::string recursive_search_for_subfolder_name_like_tid(std::string folder_path_){
 
     std::string tid_example = "0100626011656000";
 

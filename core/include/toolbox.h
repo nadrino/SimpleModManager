@@ -117,7 +117,7 @@ namespace toolbox{
   std::vector<std::string> get_list_files_in_subfolders(std::string &folder_path_);
   std::string to_lower_case(std::string& input_str_);
 
-  std::string recursive_search_for_subfolder_name_like_tid(std::string &folder_path_);
+  std::string recursive_search_for_subfolder_name_like_tid(std::string folder_path_);
 
 
   //! direct filesystem (not native switch fs) functions :

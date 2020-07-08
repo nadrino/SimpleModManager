@@ -18,6 +18,7 @@ public:
   void buildFolderInstallPresetItem();
   void buildResetModsCacheItem();
   void buildDisableAllMods();
+  void buildGameIdentificationItem();
 
   void draw(NVGcontext* vg, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* ctx) override;
 
@@ -32,6 +33,7 @@ public:
   brls::ListItem* _itemFolderInstallPreset_;
   brls::ListItem* _itemResetModsCache_;
   brls::ListItem* _itemDisableAllMods_;
+  brls::ListItem* _itemGameIdentification_;
 
   bool doUpdateModsStatus;
   int frameSkipCount;

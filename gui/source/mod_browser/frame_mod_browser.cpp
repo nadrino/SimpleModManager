@@ -13,14 +13,18 @@ frame_mod_browser::frame_mod_browser(std::string folder_){
 
   ext_GlobalObjects::setCurrentFrameModBrowserPtr(this);
 
+  std::string game_path = GlobalObjects::get_mod_browser().get_current_directory() + "/" + folder_;
+
+  _icon_ = nullptr;
+
   this->setTitle(folder_);
-  icon = GlobalObjects::get_mod_browser().get_folder_icon(folder_);
-  if(icon != nullptr){
-    this->setIcon(icon, 0x20000);
+  _titleid_ = toolbox::recursive_search_for_subfolder_name_like_tid(game_path);
+  _icon_ = GlobalObjects::get_mod_browser().get_folder_icon_from_titleid(_titleid_);
+  if(_icon_ != nullptr){
+    this->setIcon(_icon_, 0x20000);
   }
   this->setFooterText("SimpleModManager");
 
-  std::string game_path = GlobalObjects::get_mod_browser().get_current_directory() + "/" + folder_;
   if( GlobalObjects::get_mod_browser().change_directory(game_path) ){
 
     GlobalObjects::get_mod_browser().get_mod_manager().set_current_mods_folder(game_path);
@@ -77,5 +81,9 @@ bool frame_mod_browser::onCancel() {
 }
 
 uint8_t *frame_mod_browser::getIcon() {
-  return icon;
+  return _icon_;
+}
+
+std::string frame_mod_browser::getTitleid() {
+  return _titleid_;
 }

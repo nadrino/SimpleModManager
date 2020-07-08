@@ -18,7 +18,6 @@ tab_mod_presets::tab_mod_presets() {
   _itemNewCreatePreset_ = nullptr;
 
   for(int i_slot = 0 ; i_slot < _maxNbPresetsSlots_ ; i_slot++){
-    brls::Logger::debug("i_slot : %i",i_slot );
     _itemList_.emplace_back(new brls::ListItem( "vacant-slot" ));
     this->assignButtons(_itemList_.back(), true);
     this->addView(_itemList_.back());
