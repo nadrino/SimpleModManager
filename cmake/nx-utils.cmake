@@ -144,7 +144,7 @@ function(add_nro_target target)
     endif()
 
 #    set(__NRO_COMMAND
-#            ${ELF2NRO} $<TARGET_FILE:${target}.elf> ${CMAKE_CURRENT_BINARY_DIR}/${target}.nro --nacp=${CMAKE_CURRENT_BINARY_DIR}/${target}.nacp --_icon_=${APP_ICON})
+#            ${ELF2NRO} $<TARGET_FILE:${target}.elf> ${CMAKE_CURRENT_BINARY_DIR}/${target}.nro --nacp=${CMAKE_CURRENT_BINARY_DIR}/${target}.nacp --icon=${APP_ICON})
 
     if (NOT ${CMAKE_CURRENT_BINARY_DIR}/${target}.nacp)
         add_nacp(${target}.nacp)
