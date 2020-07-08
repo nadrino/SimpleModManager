@@ -26,6 +26,7 @@ void mod_browser::initialize(){
   _selector_.initialize();
 
   _parameters_handler_.initialize();
+  _main_config_preset_ = _parameters_handler_.get_current_config_preset_name();
 
   set_base_folder(_parameters_handler_.get_parameter("stored-mods-base-folder"));
   _mod_manager_.set_install_mods_base_folder(_parameters_handler_.get_parameter("install-mods-base-folder"));

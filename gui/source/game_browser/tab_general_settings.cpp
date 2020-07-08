@@ -28,12 +28,10 @@ void tab_general_settings::rebuild_layout() {
         return;
 
       GlobalObjects::get_mod_browser().change_config_preset(GlobalObjects::get_mod_browser().get_parameters_handler().get_presets_list()[result]);
-      brls::Logger::debug(GlobalObjects::get_mod_browser().get_parameters_handler().get_current_config_preset_name().c_str());
-      brls::Logger::debug(GlobalObjects::get_mod_browser().get_mod_manager().get_install_mods_base_folder().c_str());
+      brls::Logger::debug("Selected : %s -> %s",
+        GlobalObjects::get_mod_browser().get_parameters_handler().get_current_config_preset_name().c_str(),
+        GlobalObjects::get_mod_browser().get_mod_manager().get_install_mods_base_folder().c_str());
       this->itemCurrentInstallPreset->setValue(GlobalObjects::get_mod_browser().get_parameters_handler().get_current_config_preset_name());
-
-      // need to change the sublabel -> need to redraw everything
-
 //       this->valueEvent.fire(result); // not now
     };
     auto presets_list_labels = GlobalObjects::get_mod_browser().get_parameters_handler().get_presets_list();
