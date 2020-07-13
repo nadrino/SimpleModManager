@@ -22,6 +22,7 @@ tab_mod_browser::tab_mod_browser() {
   auto mod_folders_list = GlobalObjects::get_mod_browser().get_selector().get_selection_list();
   for (int i_folder = 0; i_folder < int(mod_folders_list.size()); i_folder++) {
     std::string selected_mod = mod_folders_list[i_folder];
+    brls::Logger::debug("Adding mod: %s", selected_mod.c_str());
     auto* item = new brls::ListItem(selected_mod, "", "");
     item->getClickEvent()->subscribe([this, selected_mod](View* view) {
 
@@ -83,8 +84,6 @@ tab_mod_browser::tab_mod_browser() {
 
   }
 
-//  this->getExtModManager().start_check_all_mods();
-//  this->updateDisplayedModsStatus();
   this->triggerRecheckAllMods = true;
 
 }
@@ -125,7 +124,6 @@ void tab_mod_browser::setTriggerUpdateModsDisplayedStatus(bool triggerUpdateMods
 
 void tab_mod_browser::updateDisplayedModsStatus(){
 
-  brls::Logger::info("updateDisplayedModsStatus");
   auto* mod_manager = &GlobalObjects::get_mod_browser().get_mod_manager();
 
   for(auto& modItem : _modsListItems_){
@@ -135,20 +133,21 @@ void tab_mod_browser::updateDisplayedModsStatus(){
     }
 
     // processing tag
+    std::string reference_str = mod_manager->getParametersHandlerPtr()->get_current_config_preset_name() + ": " + modItem.first;
     modItem.second->setValue(
-      mod_manager->get_mods_status_cache()[mod_manager->getParametersHandlerPtr()->get_current_config_preset_name() + ": " + modItem.first]
+      mod_manager->get_mods_status_cache()[reference_str]
       );
 
     NVGcolor color;
     // processing color
-    if(GlobalObjects::get_mod_browser().get_mod_manager().get_mod_status_fraction(modItem.first) == 0){
+    if(GlobalObjects::get_mod_browser().get_mod_manager().getModsStatusCacheFraction()[reference_str] == 0){
       color = nvgRGB(80, 80, 80);
     }
-    else if(GlobalObjects::get_mod_browser().get_mod_manager().get_mod_status_fraction(modItem.first) == 1){
+    else if(GlobalObjects::get_mod_browser().get_mod_manager().getModsStatusCacheFraction()[reference_str] == 1){
       color = nvgRGB(88, 195, 169);
     }
     else{
-      color = nvgRGB(245, 198, 59);
+      color = nvgRGB(245*0.85, 198*0.85, 59*0.85);
     }
     this->_modsListItems_[modItem.first]->setValueActiveColor(color);
 

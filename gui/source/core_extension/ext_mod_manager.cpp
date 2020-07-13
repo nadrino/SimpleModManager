@@ -528,7 +528,6 @@ void ext_mod_manager::start_check_all_mods(){
     _popupLoadingView_ = new popup_loading();
     _hostDialogBox_ = new brls::Dialog(_popupLoadingView_);
     brls::Application::pushView(_hostDialogBox_, brls::ViewAnimation::SLIDE_RIGHT);
-//    _hostDialogBox_->show([](){brls::Application::unblockInputs();}, false);
     ext_mod_manager::_staticPopupLoadingViewPtr_ = _popupLoadingView_;
     _asyncResponse_ = std::async(std::launch::async, _asyncCheckAllModsFunction_, _hostDialogBox_);
   }

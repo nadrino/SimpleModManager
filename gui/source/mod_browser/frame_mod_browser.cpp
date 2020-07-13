@@ -28,7 +28,6 @@ frame_mod_browser::frame_mod_browser(std::string folder_){
   if( GlobalObjects::get_mod_browser().change_directory(game_path) ){
 
     GlobalObjects::get_mod_browser().get_mod_manager().set_current_mods_folder(game_path);
-    GlobalObjects::get_mod_browser().check_mods_status();
     GlobalObjects::get_mod_browser().get_mods_preseter().read_parameter_file(game_path);
 
     auto* parametersTabList = new brls::List();
@@ -56,8 +55,6 @@ frame_mod_browser::frame_mod_browser(std::string folder_){
     list->addView(item);
     this->addTab("Mod Browser", list);
   }
-
-
 
 }
 

@@ -440,7 +440,6 @@ bool mod_browser::change_directory(std::string new_directory_){
     }
   }
 
-
   return true;
 
 }
