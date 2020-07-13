@@ -41,15 +41,12 @@ frame_mod_browser::frame_mod_browser(std::string folder_){
     _tabModPresets_ = new tab_mod_presets();
     _tabModOptions_ = new tab_mod_options();
 
-    // hook to trigger updates
-    _tabModOptions_->_tabModBrowser_ = this->_tabModBrowser_;
     _tabModOptions_->initialize();
 
     this->addTab("Mod Browser", _tabModBrowser_);
     this->addSeparator();
     this->addTab("Mod Presets", _tabModPresets_);
     this->addTab("Options", _tabModOptions_);
-
 
   }
   else{

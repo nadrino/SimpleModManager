@@ -16,8 +16,8 @@ public:
   ext_mod_manager &getExtModManager();
   std::map<std::string, brls::ListItem *> &getModsListItems();
 
-  void setIsAlreadyChecked(bool isAlreadyChecked);
-  void updateModsStatus();
+  void setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDisplayedStatus_);
+  void updateDisplayedModsStatus();
 
   void draw(NVGcontext* vg, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* ctx) override;
 
@@ -26,7 +26,9 @@ private:
   brls::Dialog* dialog;
   std::map<std::string, brls::ListItem*> _modsListItems_;
   ext_mod_manager _extModManager_;
-  bool isAlreadyChecked;
+  bool triggerUpdateModsDisplayedStatus;
+  bool triggerRecheckAllMods;
+  int frameCounter;
 
 
 };

@@ -637,8 +637,9 @@ namespace toolbox{
               if(size_file1 == size_file2){
                 if(_CRC_check_is_enabled_){
 
-//                  size_t copy_buffer_size = 0x10000; // 65 kB (65536 B)
-                  size_t copy_buffer_size = 0x1000; // 4,096 B
+//                  size_t copy_buffer_size = 0x10000; // 65 kB (65536 B) // too much for 2 files...
+//                  size_t copy_buffer_size = 0x1000; // 4,096 B // on the safe side
+                  size_t copy_buffer_size = 0xD000; // 53,248 B
                   s64 copy_buffer_size_s64 = s64(copy_buffer_size);
                   u8 data_buffer_file1[copy_buffer_size];
                   u8 data_buffer_file2[copy_buffer_size];
@@ -687,11 +688,9 @@ namespace toolbox{
                   }
                   while(s64(read_offset) < size_file1);
 
-//                  print_left(std::to_string(counts));
-//                  make_pause();
-
                 } // CRC ? yes
                 else {
+                  // if CRC is disable and we reached this point, then we consider files are the same
                   file_are_same = true;
                 } // CRC ? no
 
@@ -793,6 +792,7 @@ namespace toolbox{
             if(R_SUCCEEDED(fsFsOpenFile(_fileSystemBuffer_, &path_buffer_destination[0], FsOpenMode_Write, &fs_file_destination))){
 
               size_t copy_buffer_size = 0x10000; // 65 kB
+//              size_t copy_buffer_size = 0x1A000; // 106.496 kB
 //              size_t copy_buffer_size = 0x1000; // 4 kB
               s64 copy_buffer_size_s64 = s64(copy_buffer_size);
               u8 data_buffer[copy_buffer_size];

@@ -12,9 +12,11 @@
 
 tab_mod_browser::tab_mod_browser() {
 
-  isAlreadyChecked = false;
-
   ext_GlobalObjects::setCurrentTabModBrowserPtr(this);
+
+  this->triggerRecheckAllMods = false;
+  this->triggerUpdateModsDisplayedStatus = false;
+  this->frameCounter = -1;
 
   // Setup the list
   auto mod_folders_list = GlobalObjects::get_mod_browser().get_selector().get_selection_list();
@@ -64,6 +66,7 @@ tab_mod_browser::tab_mod_browser() {
     });
 
     item->setValue("Unchecked");
+    item->setValueActiveColor(nvgRGB(80, 80, 80));
 
     this->addView(item);
     _modsListItems_[selected_mod] = item;
@@ -80,12 +83,9 @@ tab_mod_browser::tab_mod_browser() {
 
   }
 
-}
-
-void tab_mod_browser::updateModsStatus() {
-
-  brls::Logger::debug("updateModsStatus");
-  this->getExtModManager().start_check_all_mods();
+//  this->getExtModManager().start_check_all_mods();
+//  this->updateDisplayedModsStatus();
+  this->triggerRecheckAllMods = true;
 
 }
 
@@ -99,15 +99,60 @@ std::map<std::string, brls::ListItem *> &tab_mod_browser::getModsListItems() {
 
 void tab_mod_browser::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
                            brls::FrameContext *ctx) {
+
   ScrollView::draw(vg, x, y, width, height, style, ctx);
 
-  if(not isAlreadyChecked){
-    this->updateModsStatus();
-    isAlreadyChecked= true;
+  if(this->triggerUpdateModsDisplayedStatus){
+    this->updateDisplayedModsStatus();
+    this->triggerUpdateModsDisplayedStatus = false;
+  }
+
+  if(this->triggerRecheckAllMods){
+    if(frameCounter == -1) frameCounter = 0;
+    if(frameCounter < 1) frameCounter++; // need to keep at least one spare frame
+    else{
+      this->getExtModManager().start_check_all_mods();
+      this->triggerRecheckAllMods = false;
+      frameCounter = -1;
+    }
   }
 
 }
 
-void tab_mod_browser::setIsAlreadyChecked(bool isAlreadyChecked) {
-  tab_mod_browser::isAlreadyChecked = isAlreadyChecked;
+void tab_mod_browser::setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDisplayedStatus_) {
+  tab_mod_browser::triggerUpdateModsDisplayedStatus = triggerUpdateModsDisplayedStatus_;
 }
+
+void tab_mod_browser::updateDisplayedModsStatus(){
+
+  brls::Logger::info("updateDisplayedModsStatus");
+  auto* mod_manager = &GlobalObjects::get_mod_browser().get_mod_manager();
+
+  for(auto& modItem : _modsListItems_){
+
+    if(mod_manager->get_mods_status_cache()[mod_manager->getParametersHandlerPtr()->get_current_config_preset_name() + ": " + modItem.first] == modItem.second->getValue()){
+      continue;
+    }
+
+    // processing tag
+    modItem.second->setValue(
+      mod_manager->get_mods_status_cache()[mod_manager->getParametersHandlerPtr()->get_current_config_preset_name() + ": " + modItem.first]
+      );
+
+    NVGcolor color;
+    // processing color
+    if(GlobalObjects::get_mod_browser().get_mod_manager().get_mod_status_fraction(modItem.first) == 0){
+      color = nvgRGB(80, 80, 80);
+    }
+    else if(GlobalObjects::get_mod_browser().get_mod_manager().get_mod_status_fraction(modItem.first) == 1){
+      color = nvgRGB(88, 195, 169);
+    }
+    else{
+      color = nvgRGB(245, 198, 59);
+    }
+    this->_modsListItems_[modItem.first]->setValueActiveColor(color);
+
+  }
+
+}
+

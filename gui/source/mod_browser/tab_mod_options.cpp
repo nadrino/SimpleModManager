@@ -11,7 +11,6 @@ tab_mod_options::tab_mod_options() {
 
   frameSkipCount = 0;
   doUpdateModsStatus = false;
-  _tabModBrowser_ = nullptr;
   _preSelection_ = 0;
   _inheritedTitle_ = "Inherited from the main menu";
   _itemFolderInstallPreset_ = nullptr;
@@ -81,7 +80,7 @@ void tab_mod_options::buildFolderInstallPresetItem() {
       if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
         ext_mod_manager::setOnCallBackFunction([](){brls::Application::popView(brls::ViewAnimation::FADE);});
         GlobalObjects::get_mod_browser().get_mod_manager().reset_all_mods_cache_status();
-        ext_GlobalObjects::getCurrentTabModBrowserPtr()->updateModsStatus();
+//        ext_GlobalObjects::getCurrentTabModBrowserPtr()->refreshModsStatus();
       }
 
     }; // Callback sequence
@@ -115,7 +114,8 @@ void tab_mod_options::buildResetModsCacheItem() {
       if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
         ext_mod_manager::setOnCallBackFunction([dialog](){dialog->close();});
         GlobalObjects::get_mod_browser().get_mod_manager().reset_all_mods_cache_status();
-        ext_GlobalObjects::getCurrentTabModBrowserPtr()->updateModsStatus();
+        ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_check_all_mods();
+//        ext_GlobalObjects::getCurrentTabModBrowserPtr()->refreshModsStatus();
       }
     });
     dialog->addButton("No", [dialog](brls::View* view) {
