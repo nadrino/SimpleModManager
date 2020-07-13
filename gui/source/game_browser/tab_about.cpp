@@ -34,7 +34,7 @@ tab_about::tab_about() {
   leftBox->addView(new brls::Header("Version " + toolbox::get_app_version() + " - What's new ?"));
   auto *changelog = new brls::Label(
     brls::LabelStyle::DESCRIPTION,
-    " - Updating the loading displays for mod sets operations\n - Slight changes in the layout\n",
+    " - Fixing focus loss issues while entering a game folder\n - Various fixes and changes to the layout\n",
     true
   );
   changelog->setHorizontalAlign(NVG_ALIGN_LEFT);
