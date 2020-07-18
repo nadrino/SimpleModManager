@@ -66,6 +66,8 @@ void tab_general_settings::rebuild_layout() {
     dialog->addButton("Yes", [](brls::View* view) {
       GlobalObjects::get_mod_browser().get_parameters_handler().set_parameter("use-gui", "0");
       brls::Application::quit();
+//      GlobalObjects::setTriggerSwitchUI(true);
+//      GlobalObjects::disable_cout_redirection();
     });
     dialog->addButton("No", [dialog](brls::View* view) {
       dialog->close();

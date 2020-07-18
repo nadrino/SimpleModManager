@@ -37,25 +37,20 @@ tsl::elm::Element *ModBrowserGui::createUI() {
 
 void ModBrowserGui::fill_item_list() {
 
-  tsl::elm::Element* last_focused_element = this->getFocusedElement();
-  int last_focus_index = 0;
-  tsl::elm::Element* last_element;
-  int element_index = 0;
-  do{
-
-    last_element = _list_->getItemAtIndex(element_index);
-    if(last_focused_element == last_element){
-      last_focus_index = element_index;
-      break;
-    }
-    element_index++;
-
-  } while(last_element != nullptr);
-
-  this->removeFocus();
-  _list_->clear();
-
-  toolbox::make_pause();
+//  tsl::elm::Element* last_focused_element = this->getFocusedElement();
+//  int last_focus_index = 0;
+//  tsl::elm::Element* last_element;
+//  int element_index = 0;
+//  do{
+//
+//    last_element = _list_->getItemAtIndex(element_index);
+//    if(last_focused_element == last_element){
+//      last_focus_index = element_index;
+//      break;
+//    }
+//    element_index++;
+//
+//  } while(last_element != nullptr);
 
   // List Items
   _list_->addItem(new tsl::elm::CategoryHeader(_current_sub_folder_));
@@ -88,21 +83,12 @@ void ModBrowserGui::fill_item_list() {
     });
     _list_->addItem(clickableListItem);
 
-    double mod_fraction = GlobalObjects::get_mod_browser().get_mod_manager().get_mod_status_fraction(mods_list[i_folder]);
-    if (mod_fraction == -1) {
-      mod_fraction = 0;
-      _list_->addItem(
-        new tsl::elm::CustomDrawer([mod_fraction](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
-          renderer->drawRect(x, y + 4, 400, 10, renderer->a(tsl::Color(100, 100, 100, 255)));
-        }), 17);
-    } else {
-      _list_->addItem(
-        new tsl::elm::CustomDrawer([mod_fraction](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
-          renderer->drawRect(x, y + 4, 400 * mod_fraction, 10, renderer->a(tsl::Color(100, 200, 100, 255)));
-          renderer->drawRect(x + 400 * mod_fraction, y + 4, 400 * (1 - mod_fraction), 10,
-                             renderer->a(tsl::Color(100, 100, 100, 255)));
-        }), 17);
-    }
+    double mod_fraction = 0; // initialize at 0
+    _statusBarMap_[mods_list[i_folder]] = new tsl::elm::CustomDrawer([mod_fraction](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
+      renderer->drawRect(x, y + 4, 400, 10, renderer->a(tsl::Color(100, 100, 100, 255)));
+    });
+
+    _list_->addItem(_statusBarMap_[mods_list[i_folder]], 17);
 
   }
 
@@ -120,14 +106,31 @@ void ModBrowserGui::fill_item_list() {
   });
   _list_->addItem(buttonConfigPreset);
 
-//    _list_->addItem(new tsl::elm::NamedStepTrackBar("\uE132", { "Selection 1", "Selection 2", "Selection 3" }));
-
   // Add the list to the frame for it to be drawn
   _frame_->setContent(_list_); // will delete previous list
   _frame_->setFooterTitle("\uE0E1  Back     \uE0E0  Apply     \uE0E2  Disable");
 
-  this->restoreFocus();
+//  this->restoreFocus();
 //  this->requestFocus(_list_->getItemAtIndex(last_focus_index), tsl::FocusDirection::None, true);
+
+  updateModStatusBars();
+
+}
+
+void ModBrowserGui::updateModStatusBars(){
+
+  auto mods_list = GlobalObjects::get_mod_browser().get_selector().get_selection_list();
+  for (int i_folder = 0; i_folder < int(mods_list.size()); i_folder++) {
+    std::string selected_mod_name = mods_list[i_folder];
+    double mod_fraction = GlobalObjects::get_mod_browser().get_mod_manager().get_mod_status_fraction(mods_list[i_folder]);
+    if (mod_fraction == -1) mod_fraction = 0;
+
+    _statusBarMap_[selected_mod_name]->getMRenderFunc() = [mod_fraction](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
+      renderer->drawRect(x, y + 4, 400 * mod_fraction, 10, renderer->a(tsl::Color(100, 200, 100, 255)));
+      renderer->drawRect(x + 400 * mod_fraction, y + 4, 400 * (1 - mod_fraction), 10,
+                         renderer->a(tsl::Color(100, 100, 100, 255)));
+    };
+  }
 
 }
 
@@ -135,7 +138,10 @@ void ModBrowserGui::update() {
 
   if (_trigger_item_list_update_) {
     _trigger_item_list_update_ = false;
-    fill_item_list();
+//    this->removeFocus();
+//    this->_list_->clear();
+//    fill_item_list();
+    updateModStatusBars();
   }
 
 }

@@ -15,6 +15,7 @@ public:
   tsl::elm::Element* createUI() override;
 
   void fill_item_list();
+  void updateModStatusBars();
 
   // Called once every frame to handle inputs not handled by other UI elements
   void update() override;
@@ -28,6 +29,8 @@ private:
   std::string _current_sub_folder_;
   tsl::elm::OverlayFrame* _frame_;
   tsl::elm::List* _list_;
+
+  std::map<std::string, tsl::elm::CustomDrawer*> _statusBarMap_;
 
 };
 

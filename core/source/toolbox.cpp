@@ -324,6 +324,13 @@ namespace toolbox{
 
 
   //! generic tools functions
+  bool to_bool(std::string str) {
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    std::istringstream is(str);
+    bool b;
+    is >> std::boolalpha >> b;
+    return b;
+  }
   bool do_string_contains_substring(std::string string_, std::string substring_){
     if(substring_.size() > string_.size()) return false;
     if(string_.find(substring_) != std::string::npos) return true;
@@ -1343,7 +1350,7 @@ namespace toolbox{
   //! External function
   std::string get_app_version(){
     std::stringstream ss;
-    ss << get_version_major() << "." << get_version_minor() << "." << get_version_micro();
+    ss << get_version_major() << "." << get_version_minor() << "." << get_version_micro() << get_version_tag();
     return ss.str();
   }
 

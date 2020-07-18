@@ -14,16 +14,30 @@ namespace GlobalObjects{
 
   void redirect_cout(){
 
+    GlobalObjects::_cout_backup_ = std::cout.rdbuf();
+
     std::cout.rdbuf(GlobalObjects::_cout_redirect_.rdbuf());
     std::cerr.rdbuf(GlobalObjects::_cout_redirect_.rdbuf());
     std::clog.rdbuf(GlobalObjects::_cout_redirect_.rdbuf());
 
   }
 
-  void threadApplyMod(void* arg) {
-//    brls::Logger::debug("inside");
-  GlobalObjects::get_mod_browser().get_mod_manager().apply_mod(GlobalObjects::_str_buffer_, true);
+  void disable_cout_redirection(){
 
+    if(GlobalObjects::_cout_backup_ != nullptr){
+      std::cout.rdbuf(GlobalObjects::_cout_backup_);
+      std::cerr.rdbuf(GlobalObjects::_cout_backup_);
+      std::clog.rdbuf(GlobalObjects::_cout_backup_);
+    }
+
+  }
+
+  void setTriggerSwitchUI(bool triggerSwitchUI_){
+    GlobalObjects::_triggerSwitchUI_ = std::to_string(triggerSwitchUI_);
+  }
+
+  bool doTriggerSwitchUI(){
+    return toolbox::to_bool(GlobalObjects::_triggerSwitchUI_);
   }
 
   void set_quit_now_triggered(bool value_){

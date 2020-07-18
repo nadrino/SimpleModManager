@@ -64,6 +64,7 @@ namespace toolbox{
 
 
   //! generic tools functions
+  bool to_bool(std::string str);
   bool do_string_contains_substring(std::string string_, std::string substring_);
   bool do_string_starts_with_substring(std::string string_, std::string substring_);
   bool do_string_ends_with_substring(std::string string_, std::string substring_);

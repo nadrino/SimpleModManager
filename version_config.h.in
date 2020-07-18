@@ -6,6 +6,8 @@
 #define VERSION_MAJOR_APP @VERSION_MAJOR@
 #define VERSION_MINOR_APP @VERSION_MINOR@
 #define VERSION_MICRO_APP @VERSION_MICRO@
+#define VERSION_TAG_APP @VERSION_TAG@
+
 
 // alternatively you could add your global method getLibInterfaceVersion here
 unsigned int get_version_major()
@@ -21,6 +23,10 @@ unsigned int get_version_minor()
 unsigned int get_version_micro()
 {
   return @VERSION_MICRO@;
+}
+
+const char* get_version_tag(){
+  return @VERSION_TAG@;
 }
 
 #endif // VERSION_CONFIG_H
