@@ -61,8 +61,8 @@ include_directories("${FREETYPE_INCLUDE_DIRS}")
 
 set(VERSION_MAJOR 2)
 set(VERSION_MINOR 0)
-set(VERSION_MICRO 2)
-set(VERSION_TAG "\"b\"")
+set(VERSION_MICRO 3)
+set(VERSION_TAG "\"\"")
 set(APP_VERSION
     "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}")
 
@@ -76,11 +76,12 @@ if (NOT DEFINED CMAKE_BUILD_TYPE_INIT)
 endif ()
 
 set(CMAKE_C_STANDARD 99)
-if (USE_CPP_17)
-    set(CMAKE_CXX_STANDARD 17)
-else ()
-    set(CMAKE_CXX_STANDARD 11)
-endif ()
+set(CMAKE_CXX_STANDARD 17)
+#if (USE_CPP_17)
+#
+#else ()
+#    set(CMAKE_CXX_STANDARD 11)
+#endif ()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     include(clang-utils)

@@ -37,6 +37,7 @@ file(GLOB GUI_SOURCE_FILES
         "${BOREALIS_DIR}/library/lib/extern/libretro-common/compat/*.c"
         "${BOREALIS_DIR}/library/lib/extern/libretro-common/encodings/*.c"
         "${BOREALIS_DIR}/library/lib/extern/libretro-common/features/*.c"
+        "${BOREALIS_DIR}/library/lib/extern/fmt/src/*.cc"
 #        "${SUBMODULES_DIR}/yaml-cpp/src/*.cpp"
         )
 
@@ -67,6 +68,7 @@ target_include_directories(${GUI_APP}.elf PUBLIC
         ${GUI_INC_DIR}/game_browser
         ${GUI_INC_DIR}/mod_browser
         ${GUI_INC_DIR}/core_extension
+        ${BOREALIS_DIR}/library/lib/extern/fmt/include
         ${BOREALIS_INC_DIR}
         ${BOREALIS_INC_DIR}/borealis
         ${BOREALIS_INC_DIR}/borealis/extern/glad
