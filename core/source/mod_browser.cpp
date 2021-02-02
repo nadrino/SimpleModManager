@@ -409,6 +409,7 @@ bool mod_browser::change_directory(std::string new_directory_){
   std::vector<std::string> selection_list;
   if(not _only_show_folders_)selection_list = toolbox::get_list_of_entries_in_folder(_current_directory_);
   else selection_list = toolbox::get_list_of_subfolders_in_folder(_current_directory_);
+  selection_list.erase(std::remove(selection_list.begin(), selection_list.end(), ".plugins"), selection_list.end());
   std::sort(selection_list.begin(), selection_list.end());
   _selector_.set_selection_list(selection_list);
   _selector_.reset_cursor_position();

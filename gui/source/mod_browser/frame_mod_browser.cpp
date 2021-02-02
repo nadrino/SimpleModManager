@@ -5,6 +5,7 @@
 #include "frame_mod_browser.h"
 #include <GlobalObjects.h>
 #include <tab_mod_browser.h>
+#include <tab_mod_plugins.h>
 #include <tab_mod_presets.h>
 #include <tab_mod_options.h>
 #include <ext_GlobalObjects.h>
@@ -39,6 +40,7 @@ frame_mod_browser::frame_mod_browser(std::string folder_){
     _tabModBrowser_ = new tab_mod_browser();
     _tabModPresets_ = new tab_mod_presets();
     _tabModOptions_ = new tab_mod_options();
+    _tabModPlugins_ = new tab_mod_plugins();
 
     _tabModOptions_->initialize();
 
@@ -46,6 +48,7 @@ frame_mod_browser::frame_mod_browser(std::string folder_){
     this->addSeparator();
     this->addTab("Mod Presets", _tabModPresets_);
     this->addTab("Options", _tabModOptions_);
+    this->addTab("Plugins", _tabModPlugins_);
 
   }
   else{

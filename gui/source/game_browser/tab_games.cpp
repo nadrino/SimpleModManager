@@ -20,7 +20,7 @@ tab_games::tab_games() {
       item->setThumbnail(icon, 0x20000);
     }
     item->getClickEvent()->subscribe([this, selected_folder](View* view) {
-      brls::Logger::debug("Openning %s", selected_folder.c_str());
+      brls::Logger::debug("Opening {}", selected_folder.c_str());
       auto* mods_browser = new frame_mod_browser(selected_folder);
       brls::Application::pushView(mods_browser, brls::ViewAnimation::SLIDE_LEFT);
       mods_browser->registerAction("", brls::Key::PLUS, []{return true;}, true);

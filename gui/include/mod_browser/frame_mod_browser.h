@@ -7,6 +7,7 @@
 
 #include <borealis.hpp>
 #include <tab_mod_browser.h>
+#include <tab_mod_plugins.h>
 #include <tab_mod_options.h>
 #include <tab_mod_presets.h>
 
@@ -24,6 +25,7 @@ private:
   tab_mod_browser* _tabModBrowser_;
   tab_mod_options* _tabModOptions_;
   tab_mod_presets* _tabModPresets_;
+  tab_mod_plugins* _tabModPlugins_;
 
   uint8_t* _icon_;
   std::string _titleid_;
