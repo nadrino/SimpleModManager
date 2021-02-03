@@ -40,7 +40,11 @@ LIBS	:= -lsmm -lnx
 ```
 to your makefile
 
-Example : 
+Example :
+
+<details>
+  <summary>main.cpp</summary>
+
 ```c++
 
 // Include the most common headers from the C standard library
@@ -98,6 +102,11 @@ int main(int argc, char* argv[])
     return 0;
 }
 ```
+</details>
+
+<details>
+  <summary>makefile</summary>
+
 ```makefile
 #---------------------------------------------------------------------------------
 .SUFFIXES:
@@ -293,6 +302,7 @@ $(OFILES_SRC)	: $(HFILES_BIN)
 endif
 #---------------------------------------------------------------------------------------
 ```
+</details>
 
 ## Prebuilt Binaries
 - To download please refer to this link : [Releases](https://github.com/nadrino/SimpleModManager/releases).
