@@ -20,8 +20,49 @@ tab_mod_plugins::tab_mod_plugins() {
   for (int i_nro = 0; i_nro < int(plugin_nros_list.size()); i_nro++) {
     std::string selected_plugin = remove_extension(plugin_nros_list[i_nro]);
     std::string selected_plugin_path = GlobalObjects::get_mod_browser().get_current_directory() + "/.plugins/" + plugin_nros_list[i_nro]; 
+	std::string selected_plugin_author;
+	std::string selected_plugin_version;
     brls::Logger::debug("Adding plugin: {}", selected_plugin.c_str());
-    auto* item = new brls::ListItem(selected_plugin, "", "");
+	FILE* file = fopen(selected_plugin_path.c_str(), "rb");
+	if (file)
+	{
+		char name[513];
+		char author[257];
+		char version[17];
+
+		fseek(file, sizeof(NroStart), SEEK_SET);
+		NroHeader header;
+		fread(&header, sizeof(header), 1, file);
+		fseek(file, header.size, SEEK_SET);
+		NroAssetHeader asset_header;
+		fread(&asset_header, sizeof(asset_header), 1, file);
+
+		NacpStruct* nacp = (NacpStruct*)malloc(sizeof(NacpStruct));
+		if (nacp != NULL)
+		{
+			fseek(file, header.size + asset_header.nacp.offset, SEEK_SET);
+			fread(nacp, sizeof(NacpStruct), 1, file);
+
+			NacpLanguageEntry* langentry = NULL;
+			Result rc                    = nacpGetLanguageEntry(nacp, &langentry);
+			if (R_SUCCEEDED(rc) && langentry != NULL)
+			{
+				strncpy(name, langentry->name, sizeof(name) - 1);
+				strncpy(author, langentry->author, sizeof(author) - 1);
+			}
+			strncpy(version, nacp->display_version, sizeof(version) - 1);
+
+			free(nacp);
+			nacp = NULL;
+		}
+
+		selected_plugin_author = author;
+		selected_plugin_version = version;
+
+		fclose(file);
+	}
+    auto* item = new brls::ListItem(selected_plugin, "", selected_plugin_author);
+	item->setValue(selected_plugin_version);
     item->getClickEvent()->subscribe([this, selected_plugin, selected_plugin_path](View* view) {
 
       auto* dialog = new brls::Dialog("Do you want to start \"" + selected_plugin + "\" ?");
@@ -41,9 +82,9 @@ tab_mod_plugins::tab_mod_plugins() {
       return true;
     });
     item->updateActionHint(brls::Key::A, "Start");
-
-    item->setValueActiveColor(nvgRGB(80, 80, 80));
-    item->setThumbnail(load_image_cache(selected_plugin_path));
+    item->setValueActiveColor(nvgRGB(80, 128, 80));
+	brls::Image * icon = load_image_cache(selected_plugin_path);
+    item->setThumbnail(icon);
 
     this->addView(item);
     _modsListItems_[selected_plugin] = item;
