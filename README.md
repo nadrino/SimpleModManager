@@ -10,13 +10,22 @@ SimpleModManager is an homebrew app for the Nintendo Switch CFW : Atmosphere. It
 - At the root of your SDcard, create a `/mods/` folder.
 - Tree structure : `/mods/<NameOfTheGame>/<NameOfTheMod>/<ModTreeStructureFromAtmosphereFolder>`
 - For plugins: `/mods/<NameOfTheGame>/.plugins/<NameOfTheNro>.nro`
-- Plugins can be any hbmenu nro and can be used for added functionality
-
 Example : `/mods/The Legend of Zelda - Breath of the Wild/First Person View/contents/01007EF00011E000/romfs/Actor/Pack/GameRomCamera.sbactorpack`
+
+## Plugins
+Plugins can be any hbmenu nro, but should be linked against [libsmm](https://github.com/withertech/libsmm) and have the
+```c++
+smmInit();
+```
+called in initialization and
+```c++
+smmExit();
+```
+called in deinitialization
 
 ## Prebuilt Binaries
 - To download please refer to this link : [Releases](https://github.com/nadrino/SimpleModManager/releases).
-
+- For libsmm there is a dkp-pacman package in the releases for [libsmm](https://github.com/withertech/libsmm/releases)
 ## Build From Source
 
 ### Prerequisites (macos)
