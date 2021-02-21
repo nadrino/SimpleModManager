@@ -35,7 +35,7 @@ void mod_manager::initialize() {
 }
 void mod_manager::reset(){
 
-  _install_mods_base_folder_ = "/atmosphere/"; // should not be used
+  _install_mods_base_folder_ = "/atmosphere/contents/"; // should not be used
   _current_mods_folder_path_ = "";
   _use_cache_only_for_status_check_ = false;
 
