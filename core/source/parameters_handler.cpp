@@ -100,13 +100,13 @@ void parameters_handler::set_default_parameters() {
   // don't forget to propagate the changes to "fill_current_preset_parameters()"
   // and "recreate_parameters_file()"
   _presets_list_.emplace_back("default");
-  _data_handler_[_presets_list_.back() + "-install-mods-base-folder"] = "/atmosphere/";
+  _data_handler_[_presets_list_.back() + "-install-mods-base-folder"] = "/atmosphere/contents/";
 
   _presets_list_.emplace_back("reinx");
-  _data_handler_[_presets_list_.back() + "-install-mods-base-folder"] = "/reinx/";
+  _data_handler_[_presets_list_.back() + "-install-mods-base-folder"] = "/reinx/contents/";
 
   _presets_list_.emplace_back("sxos");
-  _data_handler_[_presets_list_.back() + "-install-mods-base-folder"] = "/sxos/";
+  _data_handler_[_presets_list_.back() + "-install-mods-base-folder"] = "/sxos/contents/";
 
   _presets_list_.emplace_back("root");
   _data_handler_[_presets_list_.back() + "-install-mods-base-folder"] = "/";
