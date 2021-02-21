@@ -16,7 +16,7 @@ void tab_general_settings::rebuild_layout() {
   itemCurrentInstallPreset = new brls::ListItem(
     "\uE255 Current Install Preset:",
     "Specify from which base folder mods will be installed.\n"\
-    "- If you are using Atmosphere, mods have to be installed in /atmosphere/. "\
+    "- If you are using Atmosphere, mods have to be installed in /atmosphere/contents/. "\
     "This corresponds to the \"default\" preset. You need to take this path into account in your mod tree structure.\n"\
     "- If you want to set a specific install folder for a given game, please refer to its Option tab and go to \"Attribute a config preset\".",
     ""
