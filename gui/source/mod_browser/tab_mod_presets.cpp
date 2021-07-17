@@ -53,6 +53,8 @@ void tab_mod_presets::assignButtons(brls::ListItem *item, bool isPreset_) {
       return true;
     });
     item->updateActionHint(brls::Key::A, "Apply");
+    item->updateActionHint(brls::Key::B, "Back");
+
     item->registerAction("Remove", brls::Key::X, [this, item]{
 
       auto* dialog = new brls::Dialog("Do you want to delete the preset \"" + item->getLabel() + "\" ?");

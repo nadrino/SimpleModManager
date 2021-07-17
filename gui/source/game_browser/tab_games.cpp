@@ -27,6 +27,7 @@ tab_games::tab_games() {
       mods_browser->updateActionHint(brls::Key::PLUS, ""); // make the change visible
     });
     item->updateActionHint(brls::Key::A, "Open");
+    item->updateActionHint(brls::Key::B, "Back");
 
     _games_list_.emplace_back(item);
     _nb_mods_list_.emplace_back(nb_mods);

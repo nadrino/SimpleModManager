@@ -45,6 +45,7 @@ tab_mod_browser::tab_mod_browser() {
       return true;
     });
     item->updateActionHint(brls::Key::A, "Apply");
+    item->updateActionHint(brls::Key::B, "Back");
 
     item->registerAction("Disable", brls::Key::X, [selected_mod]{
 
