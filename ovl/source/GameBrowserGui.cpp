@@ -78,8 +78,7 @@ void GameBrowserGui::update() {
 
 }
 
-bool GameBrowserGui::handleInput(u64 keysDown, u64 keysHeld, touchPosition touchInput, JoystickPosition leftJoyStick,
-                                 JoystickPosition rightJoyStick) {
+bool GameBrowserGui::handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick, HidAnalogStickState rightJoyStick) {
 
   return false;   // Return true here to singal the inputs have been consumed
 }

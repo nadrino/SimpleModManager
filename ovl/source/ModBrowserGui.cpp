@@ -146,8 +146,7 @@ void ModBrowserGui::update() {
 
 }
 
-bool ModBrowserGui::handleInput(u64 keysDown, u64 keysHeld, touchPosition touchInput, JoystickPosition leftJoyStick,
-                                JoystickPosition rightJoyStick) {
+bool ModBrowserGui::handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick, HidAnalogStickState rightJoyStick) {
   if (keysDown & HidNpadButton_B) {
     GlobalObjects::get_mod_browser().go_back();
     tsl::goBack();

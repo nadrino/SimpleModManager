@@ -19,7 +19,7 @@ public:
 
   // Called once every frame to handle inputs not handled by other UI elements
   void update() override;
-  bool handleInput(u64 keysDown, u64 keysHeld, touchPosition touchInput, JoystickPosition leftJoyStick, JoystickPosition rightJoyStick) override;
+  bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick, HidAnalogStickState rightJoyStick) override;
 
   void set_trigger_item_list_update(bool trigger_item_list_update_);
 
