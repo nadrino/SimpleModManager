@@ -12,6 +12,7 @@
 #include <sstream>
 #include <fstream>
 #include <utility>
+#include "GlobalObjects.h"
 
 mod_manager::mod_manager() {
 
@@ -408,13 +409,13 @@ void mod_manager::display_mod_files_status(std::string mod_folder_path_){
     }
 
     //Scan all the inputs. This should be done once for each frame
-    hidScanInput();
+    padUpdate(&GlobalObjects::gPad);;
 
     //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
-    kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-    kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
+    kDown = padGetButtonsDown(&GlobalObjects::gPad);
+    kHeld = padGetButtons(&GlobalObjects::gPad);
 
-    if (kDown & KEY_B) {
+    if (kDown & HidNpadButton_B) {
       break; // break in order to return to hbmenu
     }
 

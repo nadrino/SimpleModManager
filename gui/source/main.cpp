@@ -105,6 +105,12 @@ void run_console(){
 
   consoleInit(nullptr);
 
+  // Configure our supported input layout: a single player with standard controller styles
+  padConfigureInput(1, HidNpadStyleSet_NpadStandard);
+
+  // Initialize the default gamepad (which reads handheld mode inputs as well as the first connected controller)
+  padInitializeDefault(&GlobalObjects::gPad);
+
   if(__is_new_version__){
     toolbox::print_left("");
     toolbox::print_left("Welcome in SimpleModManager v" + toolbox::get_app_version(), toolbox::green_bg);
@@ -124,13 +130,13 @@ void run_console(){
   while(appletMainLoop())
   {
     //Scan all the inputs. This should be done once for each frame
-    hidScanInput();
+    padUpdate(&GlobalObjects::gPad);;
 
     //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
-    u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-    u64 kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
+    u64 kDown = padGetButtonsDown(&GlobalObjects::gPad);
+    u64 kHeld = padGetButtons(&GlobalObjects::gPad);
 
-    if( (kDown & KEY_B and GlobalObjects::get_mod_browser().get_current_relative_depth() == 0)
+    if( (kDown & HidNpadButton_B and GlobalObjects::get_mod_browser().get_current_relative_depth() == 0)
         or GlobalObjects::is_quit_now_triggered()
         ){ // back
       break;

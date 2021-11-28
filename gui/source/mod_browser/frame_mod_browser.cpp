@@ -8,6 +8,7 @@
 #include <tab_mod_presets.h>
 #include <tab_mod_options.h>
 #include <ext_GlobalObjects.h>
+#include "toolbox.h"
 
 frame_mod_browser::frame_mod_browser(std::string folder_){
 

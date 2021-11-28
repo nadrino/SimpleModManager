@@ -28,7 +28,7 @@ tsl::elm::Element* ChangeConfigPresetGui::createUI() {
     std::string selected_answer = _answers_[i_answer];
 
     clickableListItem->setClickListener([selected_answer, this](u64 keys) {
-      if (keys & KEY_A) {
+      if (keys & HidNpadButton_A) {
         GlobalObjects::get_mod_browser().change_config_preset(selected_answer);
         tsl::goBack();
         return true;
@@ -52,7 +52,7 @@ tsl::elm::Element* ChangeConfigPresetGui::createUI() {
 }
 
 bool ChangeConfigPresetGui::handleInput(u64 keysDown, u64 keysHeld, touchPosition touchInput, JoystickPosition leftJoyStick, JoystickPosition rightJoyStick) {
-  if (keysDown & KEY_B) {
+  if (keysDown & HidNpadButton_B) {
     tsl::goBack();
     return true;
   }
