@@ -61,7 +61,7 @@ void ModBrowserGui::fill_item_list() {
     std::string selected_mod_name = mods_list[i_folder];
 
     clickableListItem->setClickListener([selected_mod_name, this](u64 keys) {
-      if (keys & KEY_A) {
+      if (keys & HidNpadButton_A) {
         // apply mod...
         GlobalObjects::get_mod_browser().get_mod_manager().apply_mod(selected_mod_name, true);
         GlobalObjects::get_mod_browser().get_selector().set_tag(
@@ -70,7 +70,7 @@ void ModBrowserGui::fill_item_list() {
         );
         this->set_trigger_item_list_update(true);
         return true;
-      } else if (keys & KEY_X) {
+      } else if (keys & HidNpadButton_X) {
         GlobalObjects::get_mod_browser().get_mod_manager().remove_mod(selected_mod_name);
         GlobalObjects::get_mod_browser().get_selector().set_tag(
           GlobalObjects::get_mod_browser().get_selector().get_entry(selected_mod_name),
@@ -96,7 +96,7 @@ void ModBrowserGui::fill_item_list() {
   auto *buttonConfigPreset = new tsl::elm::ListItem(
     GlobalObjects::get_mod_browser().get_parameters_handler().get_current_config_preset_name());
   buttonConfigPreset->setClickListener([this](u64 keys) {
-    if (keys & KEY_A) {
+    if (keys & HidNpadButton_A) {
       // apply mod...
       this->set_trigger_item_list_update(true);
       tsl::changeTo<ChangeConfigPresetGui>();
@@ -146,9 +146,8 @@ void ModBrowserGui::update() {
 
 }
 
-bool ModBrowserGui::handleInput(u64 keysDown, u64 keysHeld, touchPosition touchInput, JoystickPosition leftJoyStick,
-                                JoystickPosition rightJoyStick) {
-  if (keysDown & KEY_B) {
+bool ModBrowserGui::handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick, HidAnalogStickState rightJoyStick) {
+  if (keysDown & HidNpadButton_B) {
     GlobalObjects::get_mod_browser().go_back();
     tsl::goBack();
     return true;

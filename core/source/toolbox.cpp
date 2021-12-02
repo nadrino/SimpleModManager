@@ -24,6 +24,7 @@
 #include <version_config.h>
 #include <selector.h>
 #include <numeric>
+#include "GlobalObjects.h"
 
 namespace toolbox{
 
@@ -126,13 +127,13 @@ namespace toolbox{
     std::chrono::high_resolution_clock::time_point clock_buffer = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> time_span = clock_buffer - clock_buffer;
     while(appletMainLoop()){
-      hidScanInput();
-      u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-      u64 kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
-      if (kDown & KEY_A or (kHeld & KEY_A and time_span.count() > 100)) {
+      padUpdate(&GlobalObjects::gPad);;
+      u64 kDown = padGetButtonsDown(&GlobalObjects::gPad);
+      u64 kHeld = padGetButtons(&GlobalObjects::gPad);
+      if (kDown & HidNpadButton_A or (kHeld & HidNpadButton_A and time_span.count() > 100)) {
         break; // break in order to return to hbmenu
       }
-      if (kDown & KEY_PLUS) {
+      if (kDown & HidNpadButton_Plus) {
         consoleExit(nullptr);
         exit(EXIT_SUCCESS);
       }
@@ -253,19 +254,19 @@ namespace toolbox{
       }
 
       //Scan all the inputs. This should be done once for each frame
-      hidScanInput();
+      padUpdate(&GlobalObjects::gPad);;
 
       //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
-      kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+      kDown = padGetButtonsDown(&GlobalObjects::gPad);
 
-      if(kDown & KEY_DOWN){
+      if(kDown & HidNpadButton_AnyDown){
         sel.increment_cursor_position();
-      } else if(kDown & KEY_UP){
+      } else if(kDown & HidNpadButton_AnyUp){
         sel.decrement_cursor_position();
-      } else if(kDown & KEY_A){
+      } else if(kDown & HidNpadButton_A){
         answer = sel.get_selected_string();
         break;
-      } else if(kDown & KEY_B){
+      } else if(kDown & HidNpadButton_B){
         break;
       }
 

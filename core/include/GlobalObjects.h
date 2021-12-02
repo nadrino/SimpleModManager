@@ -6,17 +6,18 @@
 #define SIMPLEMODMANAGER_GLOBALOBJECTS_H
 
 #include <mod_browser.h>
-#include <toolbox.h>
 #include <sstream>
+#include "switch.h"
 
 namespace GlobalObjects {
 
   static mod_browser _mod_browser_;
-  static std::string _version_str_ = "v" + toolbox::get_app_version();
+  extern std::string _version_str_;
   static std::stringstream _cout_redirect_;
   static std::streambuf *_cout_backup_;
   static std::string _str_buffer_;
   static std::string _triggerSwitchUI_;
+  extern PadState gPad;
 
   mod_browser& get_mod_browser();
   void redirect_cout();

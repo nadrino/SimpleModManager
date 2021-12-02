@@ -10,6 +10,7 @@
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
+#include "GlobalObjects.h"
 
 mods_preseter::mods_preseter() {
   reset();
@@ -121,18 +122,18 @@ void mods_preseter::select_mod_preset() {
   bool is_first_loop = true;
   while(appletMainLoop()){
 
-    hidScanInput();
-    u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-    u64 kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
+    padUpdate(&GlobalObjects::gPad);;
+    u64 kDown = padGetButtonsDown(&GlobalObjects::gPad);
+    u64 kHeld = padGetButtons(&GlobalObjects::gPad);
     _selector_.scan_inputs(kDown, kHeld);
-    if(kDown & KEY_B){
+    if(kDown & HidNpadButton_B){
       break;
     }
-    else if(kDown & KEY_A and not _presets_list_.empty()){
+    else if(kDown & HidNpadButton_A and not _presets_list_.empty()){
       _selected_mod_preset_index_ = _selector_.get_selected_entry();
       return;
     }
-    else if(kDown & KEY_X and not _presets_list_.empty()){
+    else if(kDown & HidNpadButton_X and not _presets_list_.empty()){
       std::string answer = toolbox::ask_question(
         "Are you sure you want to remove this preset ?",
         std::vector<std::string>({"Yes", "No"})
@@ -140,13 +141,13 @@ void mods_preseter::select_mod_preset() {
       if(answer == "No") continue;
       delete_mod_preset(_presets_list_[_selector_.get_selected_entry()]);
     }
-    else if(kDown & KEY_PLUS){
+    else if(kDown & HidNpadButton_Plus){
       create_new_preset();
       fill_selector();
       recreate_preset_file();
       read_parameter_file(_mod_folder_);
     }
-    else if(kDown & KEY_Y){
+    else if(kDown & HidNpadButton_Y){
       edit_preset(_selector_.get_selected_string(), _data_handler_[_selector_.get_selected_string()]);
       fill_selector();
       recreate_preset_file();
@@ -221,17 +222,17 @@ void mods_preseter::edit_preset(std::string preset_name_, std::vector<std::strin
   bool is_first_loop = true;
   while(appletMainLoop()){
 
-    hidScanInput();
-    u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-    u64 kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
+    padUpdate(&GlobalObjects::gPad);;
+    u64 kDown = padGetButtonsDown(&GlobalObjects::gPad);
+    u64 kHeld = padGetButtons(&GlobalObjects::gPad);
     sel.scan_inputs(kDown, kHeld);
-    if(kDown & KEY_A){
+    if(kDown & HidNpadButton_A){
       selected_mods_list_.emplace_back(sel.get_selected_string());
       std::string new_tag = sel.get_tag(sel.get_selected_entry());
       if(not new_tag.empty()) new_tag += " & ";
       new_tag += "#" + std::to_string(selected_mods_list_.size());
       sel.set_tag(sel.get_selected_entry(), new_tag);
-    } else if(kDown & KEY_X){
+    } else if(kDown & HidNpadButton_X){
       int original_size = selected_mods_list_.size();
       // in decreasing order because we want to remove the last occurrence of the mod first
       for(int i_entry = int(selected_mods_list_.size()) - 1 ; i_entry >= 0 ; i_entry--){
@@ -256,9 +257,9 @@ void mods_preseter::edit_preset(std::string preset_name_, std::vector<std::strin
         }
       }
       selected_mods_list_.resize(original_size-1);
-    } else if(kDown & KEY_PLUS){
+    } else if(kDown & HidNpadButton_Plus){
       break;
-    } else if(kDown & KEY_B){
+    } else if(kDown & HidNpadButton_B){
       return;
     }
 
@@ -382,13 +383,13 @@ void mods_preseter::show_conflicted_files(std::string &preset_name_) {
     }
 
     //Scan all the inputs. This should be done once for each frame
-    hidScanInput();
+    padUpdate(&GlobalObjects::gPad);;
 
     //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
-    kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-    kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
+    kDown = padGetButtonsDown(&GlobalObjects::gPad);
+    kHeld = padGetButtons(&GlobalObjects::gPad);
 
-    if (kDown & KEY_A) {
+    if (kDown & HidNpadButton_A) {
       break; // break in order to return to hbmenu
     }
 

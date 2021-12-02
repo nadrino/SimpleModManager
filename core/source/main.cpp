@@ -9,6 +9,12 @@ int main(int argc, char **argv){
   consoleInit(nullptr);
   toolbox::enableEmbeddedSwitchFS();
 
+  // Configure our supported input layout: a single player with standard controller styles
+  padConfigureInput(1, HidNpadStyleSet_NpadStandard);
+
+  // Initialize the default gamepad (which reads handheld mode inputs as well as the first connected controller)
+  padInitializeDefault(&GlobalObjects::gPad);
+
   std::string old_config_path = toolbox::get_working_directory() + "/parameters.ini"; // before 1.5.0
   if(toolbox::do_path_is_file(old_config_path)){
     parameters_handler p;
@@ -41,13 +47,13 @@ int main(int argc, char **argv){
   while(appletMainLoop())
   {
     //Scan all the inputs. This should be done once for each frame
-    hidScanInput();
+    padUpdate(&GlobalObjects::gPad);;
 
     //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
-    kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-    kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
+    kDown = padGetButtonsDown(&GlobalObjects::gPad);
+    kHeld = padGetButtons(&GlobalObjects::gPad);
 
-    if(kDown & KEY_B){ // back
+    if(kDown & HidNpadButton_B){ // back
       if(GlobalObjects::get_mod_browser().get_current_relative_depth() == 0){
         break;
       }
