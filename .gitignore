@@ -1,5 +1,4 @@
 # Ignored files
 external
-submodules/*/
 cmake-build-release
 build

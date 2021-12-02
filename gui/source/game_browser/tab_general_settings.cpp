@@ -59,6 +59,8 @@ void tab_general_settings::rebuild_layout() {
   this->addView(itemStoredModsBaseFolder);
 
   auto* itemUseUI = new brls::ListItem("\uE072 Disable the GUI", "If you want to go back on the old UI, select this option.");
+
+  itemUseUI->updateActionHint(brls::Key::B, "Back");
   itemUseUI->registerAction("Select", brls::Key::A, [](){
 
     auto* dialog = new brls::Dialog("Do you want to disable this GUI and switch back to the console-style UI ?");
@@ -79,5 +81,6 @@ void tab_general_settings::rebuild_layout() {
     return true;
   });
   this->addView(itemUseUI);
+
 
 }

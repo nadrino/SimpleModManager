@@ -61,7 +61,7 @@ include_directories("${FREETYPE_INCLUDE_DIRS}")
 
 set(VERSION_MAJOR 2)
 set(VERSION_MINOR 0)
-set(VERSION_MICRO 4)
+set(VERSION_MICRO 5)
 set(VERSION_TAG "\"\"")
 set(APP_VERSION
     "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}")
@@ -101,10 +101,11 @@ include_directories(${SMM_CORE_INCLUDE_DIR})
 # Submodules
 set(SUBMODULES_DIR ${PROJECT_SOURCE_DIR}/submodules)
 
-
-configure_file(version_config.h.in ${CMAKE_BINARY_DIR}/generated/version_config.h)
+# Auto Generated
+configure_file( version_config.h.in ${CMAKE_BINARY_DIR}/generated/version_config.h )
 include_directories( ${CMAKE_BINARY_DIR}/generated/ )
 
+# This project
 include(core/CMakeLists.txt)
 include(gui/CMakeLists.txt)
 include(ovl/CMakeLists.txt)

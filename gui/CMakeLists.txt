@@ -74,6 +74,9 @@ target_include_directories(${GUI_APP}.elf PUBLIC
         ${BOREALIS_INC_DIR}/borealis/extern/glad
         ${BOREALIS_INC_DIR}/borealis/extern/nanovg
         ${BOREALIS_INC_DIR}/borealis/extern/libretro-common
+        ${PROJECT_SOURCE_DIR}/shortcuts
+        ${PROJECT_SOURCE_DIR}/shortcuts/libretro-common
+        ${SUBMODULES_DIR}/json/include
 #        ${SUBMODULES_DIR}/yaml-cpp/src
 #        ${SUBMODULES_DIR}/yaml-cpp/include
         #        ${GUI_INC_DIR}/draw

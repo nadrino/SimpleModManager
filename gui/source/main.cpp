@@ -80,6 +80,7 @@ void run_gui(){
   }
 
   brls::Logger::setLogLevel(brls::LogLevel::DEBUG);
+  brls::i18n::loadTranslations();
   if (not brls::Application::init("SimpleModManager")){
     brls::Logger::error("Unable to init Borealis application");
     nsExit();

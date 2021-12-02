@@ -22,7 +22,7 @@ tab_mod_browser::tab_mod_browser() {
   auto mod_folders_list = GlobalObjects::get_mod_browser().get_selector().get_selection_list();
   for (int i_folder = 0; i_folder < int(mod_folders_list.size()); i_folder++) {
     std::string selected_mod = mod_folders_list[i_folder];
-    brls::Logger::debug("Adding mod: %s", selected_mod.c_str());
+    brls::Logger::debug("Adding mod: {}", selected_mod.c_str());
     auto* item = new brls::ListItem(selected_mod, "", "");
     item->getClickEvent()->subscribe([this, selected_mod](View* view) {
 
@@ -45,6 +45,7 @@ tab_mod_browser::tab_mod_browser() {
       return true;
     });
     item->updateActionHint(brls::Key::A, "Apply");
+    item->updateActionHint(brls::Key::B, "Back");
 
     item->registerAction("Disable", brls::Key::X, [selected_mod]{
 
