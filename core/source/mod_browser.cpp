@@ -102,7 +102,7 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
   if(kDown == 0 and kHeld == 0) return;
 
   if(get_current_relative_depth() == get_max_relative_depth()){
-    if     (kDown & KEY_A){ // select folder / apply mod
+    if     (kDown & HidNpadButton_A){ // select folder / apply mod
       // make mod action (ACTIVATE OR DEACTIVATE)
       _mod_manager_.apply_mod(_selector_.get_selected_string());
 
@@ -113,14 +113,14 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
       );
 
     }
-    else if(kDown & KEY_X){ // disable mod
+    else if(kDown & HidNpadButton_X){ // disable mod
       _mod_manager_.remove_mod(_selector_.get_selected_string());
       _selector_.set_tag(
         _selector_.get_selected_entry(),
         _mod_manager_.get_mod_status(_selector_.get_selected_string())
       );
     }
-    else if(kDown & KEY_Y){ // mod detailed infos
+    else if(kDown & HidNpadButton_Y){ // mod detailed infos
       std::string display_mod_files_status_str ="Show the status of each mod files";
       std::string display_mod_files_conflicts_str = "Show the list of conflicts";
       auto answer = toolbox::ask_question(
@@ -137,7 +137,7 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
         display_conflicts_with_other_mods(_selector_.get_selected_string());
       }
     }
-    else if(kDown & KEY_ZL or kDown & KEY_ZR){ // recheck all mods
+    else if(kDown & HidNpadButton_ZL or kDown & HidNpadButton_ZR){ // recheck all mods
       std::string recheck_all_mods_answer = "Reset mods status cache and recheck all mods";
       std::string disable_all_mods_answer = "Disable all mods";
       std::string set_install_preset_answer = "Attribute a config preset for this folder";
@@ -199,10 +199,10 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
       }
 
     }
-    else if(kDown & KEY_MINUS){ // Enter the mods preset menu a mods preset
+    else if(kDown & HidNpadButton_Minus){ // Enter the mods preset menu a mods preset
       _mods_preseter_.select_mod_preset();
     }
-    else if(kDown & KEY_PLUS){ // Apply a mods preset
+    else if(kDown & HidNpadButton_Plus){ // Apply a mods preset
       std::string answer = toolbox::ask_question(
         "Do you want to apply " + _mods_preseter_.get_selected_mod_preset() + " ?",
         std::vector<std::string>({"Yes", "No"})
@@ -216,15 +216,15 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
         check_mods_status();
       }
     }
-    else if(kDown & KEY_L){
+    else if(kDown & HidNpadButton_L){
       _mods_preseter_.select_previous_mod_preset();
     }
-    else if(kDown & KEY_R){
+    else if(kDown & HidNpadButton_R){
       _mods_preseter_.select_next_mod_preset();
     }
   }
   else {
-    if(kDown & KEY_A){ // select folder / apply mod
+    if(kDown & HidNpadButton_A){ // select folder / apply mod
       go_to_selected_directory();
       if(get_current_relative_depth() == get_max_relative_depth()){
         _mod_manager_.set_current_mods_folder(_current_directory_);
@@ -232,7 +232,7 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
         _mods_preseter_.read_parameter_file(_current_directory_);
       }
     }
-    else if(kDown & KEY_Y){ // switch between config preset
+    else if(kDown & HidNpadButton_Y){ // switch between config preset
       if(get_current_relative_depth() == 0){
         _parameters_handler_.increment_selected_preset_id();
         _mod_manager_.set_install_mods_base_folder(
@@ -240,7 +240,7 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
           );
       }
     }
-    else if(kDown & KEY_ZL or kDown & KEY_ZR){ // switch between config preset
+    else if(kDown & HidNpadButton_ZL or kDown & HidNpadButton_ZR){ // switch between config preset
       auto answer = toolbox::ask_question(
         "Do you want to switch back to the GUI ?",
         std::vector<std::string>({"Yes", "No"})
@@ -252,7 +252,7 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
     }
   }
 
-  if(kDown & KEY_B){ // back
+  if(kDown & HidNpadButton_B){ // back
     if(not go_back()){
       std::cout << "Can't go back." << std::endl;
     }
@@ -345,13 +345,13 @@ void mod_browser::display_conflicts_with_other_mods(std::string selected_mod_){
     }
 
     //Scan all the inputs. This should be done once for each frame
-    hidScanInput();
+    padUpdate(&GlobalObjects::gPad);;
 
     //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
-    kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-    kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
+    kDown = padGetButtonsDown(&GlobalObjects::gPad);
+    kHeld = padGetButtons(&GlobalObjects::gPad);
 
-    if (kDown & KEY_B) {
+    if (kDown & HidNpadButton_B) {
       break; // break in order to return to hbmenu
     }
 
@@ -367,9 +367,9 @@ void mod_browser::check_mods_status(){
   _selector_.reset_tags_list();
   auto mods_list = _selector_.get_selection_list();
   for(int i_mod = 0 ; i_mod < int(mods_list.size()) ; i_mod++){
-    hidScanInput();
-    u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-    if(kDown & KEY_B) break;
+    padUpdate(&GlobalObjects::gPad);;
+    u64 kDown = padGetButtonsDown(&GlobalObjects::gPad);
+    if(kDown & HidNpadButton_B) break;
 
     _selector_.set_tag(i_mod, "Checking...");
     print_menu();

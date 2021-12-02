@@ -5,6 +5,7 @@
 #include <tab_games.h>
 #include <GlobalObjects.h>
 #include <frame_mod_browser.h>
+#include "toolbox.h"
 
 tab_games::tab_games() {
 

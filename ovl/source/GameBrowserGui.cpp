@@ -39,7 +39,7 @@ void GameBrowserGui::fill_item_list() {
     auto *clickableListItem = new tsl::elm::ListItem(mod_folders_list[i_folder]);
     std::string selected_folder = mod_folders_list[i_folder];
     clickableListItem->setClickListener([selected_folder](u64 keys) {
-      if (keys & KEY_A) {
+      if (keys & HidNpadButton_A) {
         tsl::changeTo<ModBrowserGui>(selected_folder);
         return true;
       }
@@ -78,8 +78,7 @@ void GameBrowserGui::update() {
 
 }
 
-bool GameBrowserGui::handleInput(u64 keysDown, u64 keysHeld, touchPosition touchInput, JoystickPosition leftJoyStick,
-                                 JoystickPosition rightJoyStick) {
+bool GameBrowserGui::handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick, HidAnalogStickState rightJoyStick) {
 
   return false;   // Return true here to singal the inputs have been consumed
 }

@@ -15,7 +15,7 @@ public:
   tsl::elm::Element* createUI() override;
 
   // Called once every frame to handle inputs not handled by other UI elements
-  bool handleInput(u64 keysDown, u64 keysHeld, touchPosition touchInput, JoystickPosition leftJoyStick, JoystickPosition rightJoyStick) override;
+  bool handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick, HidAnalogStickState rightJoyStick) override;
 
 private:
 

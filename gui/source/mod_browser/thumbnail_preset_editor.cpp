@@ -5,6 +5,7 @@
 #include "thumbnail_preset_editor.h"
 #include <GlobalObjects.h>
 #include <ext_GlobalObjects.h>
+#include "toolbox.h"
 
 void thumbnail_preset_editor::initialize() {
 
