@@ -8,7 +8,7 @@
 #include <future>
 #include <popup_loading.h>
 #include <switch.h>
-
+#include <toolbox.h>
 #include <ext_GlobalObjects.h>
 std::map<std::string, brls::Image *> cached_thumbs;
 tab_mod_plugins::tab_mod_plugins()

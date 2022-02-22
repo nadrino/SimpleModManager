@@ -1,6 +1,6 @@
 [submodule "submodules/borealis"]
 	path = submodules/borealis
-	url = https://github.com/nadrino/borealis
+	url = https://github.com/withertech/borealis.git
 [submodule "submodules/libtesla"]
 	path = submodules/libtesla
 	url = https://github.com/nadrino/libtesla.git
