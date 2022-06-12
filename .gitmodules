@@ -16,3 +16,6 @@
 [submodule "submodules/json"]
 	path = submodules/json
 	url = https://github.com/nlohmann/json.git
+[submodule "submodules/simple-cpp-logger"]
+	path = submodules/simple-cpp-logger
+	url = https://github.com/nadrino/simple-cpp-logger.git
