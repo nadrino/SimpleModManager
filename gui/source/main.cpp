@@ -1,12 +1,17 @@
-#include <stdio.h>
-#include <stdlib.h>
-
+#include <GlobalObjects.h>
 #include <toolbox.h>
 
+#include "Logger.h"
+
 #include <borealis.hpp>
-#include <string>
-#include <GlobalObjects.h>
 #include <frame_root.h>
+
+#include <string>
+#include <cstdlib>
+
+LoggerInit([]{
+  Logger::setUserHeaderStr("[SimpleModManager.nro]");
+})
 
 //#include "yaml-cpp/yaml.h"
 
@@ -17,6 +22,7 @@ void run_console();
 
 int main(int argc, char* argv[])
 {
+  LogInfo << "test" << std::endl;
 
   // https://github.com/jbeder/yaml-cpp/wiki/Tutorial
 //  YAML::Node config = YAML::LoadFile("config.yaml");

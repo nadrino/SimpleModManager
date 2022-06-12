@@ -26,6 +26,8 @@
 #include <numeric>
 #include "GlobalObjects.h"
 
+#include <unistd.h>
+
 namespace toolbox{
 
   static std::time_t _last_timestamp_;

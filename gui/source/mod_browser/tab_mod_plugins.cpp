@@ -2,14 +2,19 @@
 // Created by Adrien BLANCHET on 21/06/2020.
 //
 
-#include "tab_mod_plugins.h"
+#include <ext_GlobalObjects.h>
 #include <GlobalObjects.h>
-#include <thread>
-#include <future>
+#include "tab_mod_plugins.h"
+#include "toolbox.h"
+
 #include <popup_loading.h>
+
 #include <switch.h>
 
-#include <ext_GlobalObjects.h>
+#include <thread>
+#include <future>
+
+
 std::map<std::string, brls::Image *> cached_thumbs;
 tab_mod_plugins::tab_mod_plugins()
 {

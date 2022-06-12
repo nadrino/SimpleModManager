@@ -7,6 +7,9 @@
 [submodule "submodules/cpp-generic-toolbox"]
 	path = submodules/cpp-generic-toolbox
 	url = https://github.com/nadrino/cpp-generic-toolbox.git
+[submodule "submodules/simple-cpp-logger"]
+        path = submodules/simple-cpp-logger
+        url = https://github.com/nadrino/simple-cpp-logger.git
 [submodule "submodules/switch-nanovg"]
 	path = submodules/switch-nanovg
 	url = https://github.com/retronx-team/switch-nanovg.git

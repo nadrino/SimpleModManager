@@ -10,8 +10,9 @@
 #include <ext_GlobalObjects.h>
 #include <toolbox.h>
 
-#include <utility>
+#include "GenericToolbox.Switch.h"
 
+#include <utility>
 
 // static
 popup_loading* ext_mod_manager::_staticPopupLoadingViewPtr_;
@@ -106,10 +107,14 @@ std::string ext_mod_manager::check_mod_status(std::string modName_) {
       toolbox::fill_str_buffer_map("ext_mod_manager::check_mod_status:current_file", toolbox::get_filename_from_file_path(relative_file_path_list[i_file]));
       toolbox::fill_progress_map("ext_mod_manager::check_mod_status", (i_file+1.)/double(total_files_count));
 
-      if(toolbox::do_files_are_the_same(
+//      if(toolbox::do_files_are_the_same(
+//        mod_manager->get_install_mods_base_folder() + "/" + relative_file_path_list[i_file],
+//        absolute_file_path
+//      )) same_files_count++;
+      if(GenericToolbox::Switch::IO::doFilesAreIdentical(
         mod_manager->get_install_mods_base_folder() + "/" + relative_file_path_list[i_file],
         absolute_file_path
-      )) same_files_count++;
+      )){ same_files_count++; }
 
     }
 

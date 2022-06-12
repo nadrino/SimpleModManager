@@ -63,6 +63,8 @@ add_executable(${GUI_APP}.elf
         ${SMM_SOURCE_FILES}
         )
 
+add_definitions(-D BOREALIS_GUI)
+
 target_include_directories(${GUI_APP}.elf PUBLIC
         ${GUI_INC_DIR}
         ${GUI_INC_DIR}/game_browser
@@ -71,6 +73,7 @@ target_include_directories(${GUI_APP}.elf PUBLIC
         ${BOREALIS_DIR}/library/lib/extern/fmt/include
         ${BOREALIS_INC_DIR}
         ${BOREALIS_INC_DIR}/borealis
+        ${BOREALIS_INC_DIR}/borealis/extern
         ${BOREALIS_INC_DIR}/borealis/extern/glad
         ${BOREALIS_INC_DIR}/borealis/extern/nanovg
         ${BOREALIS_INC_DIR}/borealis/extern/libretro-common
