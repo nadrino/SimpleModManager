@@ -11,7 +11,7 @@
 
 LoggerInit([]{
   Logger::setUserHeaderStr("[SimpleModManager.nro]");
-})
+});
 
 //#include "yaml-cpp/yaml.h"
 
@@ -39,28 +39,6 @@ int main(int argc, char* argv[])
   GlobalObjects::get_mod_browser().set_max_relative_depth(max_depth);
   GlobalObjects::get_mod_browser().initialize();
 
-  __is_new_version__ = false;
-  int last_version = std::stoi(
-    toolbox::join_vector_string(
-      toolbox::split_string(
-        GlobalObjects::get_mod_browser().get_parameters_handler().get_parameter("last-program-version"),
-        "."
-      ),
-      ""
-    )
-  );
-  int this_version = std::stoi(
-    toolbox::join_vector_string(
-      toolbox::split_string(
-        toolbox::get_app_version()
-        ,"."),
-      ""
-    )
-  );
-  if(last_version != this_version){
-    __is_new_version__ = true;
-  }
-
   if(bool(std::stoi(GlobalObjects::get_mod_browser().get_parameters_handler().get_parameter("use-gui")))){
     run_gui();
   }
@@ -77,21 +55,12 @@ int main(int argc, char* argv[])
 
 void run_gui(){
 
-  GlobalObjects::redirect_cout(); // avoid being spammed while debugging the ui
-
-  Result rc;
-  rc = nsInitialize();
-  if (R_FAILED(rc)){
-    brls::Logger::debug("nsInitialize Failed");
-  }
+  LogThrowIf(R_FAILED(nsInitialize()), "nsInitialize Failed");
 
   brls::Logger::setLogLevel(brls::LogLevel::DEBUG);
   brls::i18n::loadTranslations();
-  if (not brls::Application::init("SimpleModManager")){
-    brls::Logger::error("Unable to init Borealis application");
-    nsExit();
-    exit(EXIT_FAILURE);
-  }
+
+  LogThrowIf(not brls::Application::init("SimpleModManager"), "Unable to init Borealis application")
 
   auto* main_frame = new frame_root();
   brls::Application::pushView(main_frame);
@@ -118,7 +87,24 @@ void run_console(){
   // Initialize the default gamepad (which reads handheld mode inputs as well as the first connected controller)
   padInitializeDefault(&GlobalObjects::gPad);
 
-  if(__is_new_version__){
+  int last_version = std::stoi(
+      toolbox::join_vector_string(
+          toolbox::split_string(
+              GlobalObjects::get_mod_browser().get_parameters_handler().get_parameter("last-program-version"),
+              "."
+          ),
+          ""
+      )
+  );
+  int this_version = std::stoi(
+      toolbox::join_vector_string(
+          toolbox::split_string(
+              toolbox::get_app_version()
+              ,"."),
+          ""
+      )
+  );
+  if(last_version != this_version){
     toolbox::print_left("");
     toolbox::print_left("Welcome in SimpleModManager v" + toolbox::get_app_version(), toolbox::green_bg);
     toolbox::print_left("");

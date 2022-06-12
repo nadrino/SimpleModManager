@@ -5,14 +5,17 @@
 #include "mod_manager.h"
 #include <toolbox.h>
 #include <mod_browser.h>
+#include "GlobalObjects.h"
+
+#include "GenericToolbox.Switch.h"
+
+#include <switch.h>
 
 #include <iostream>
 #include <sys/stat.h>
-#include <switch.h>
 #include <sstream>
 #include <fstream>
 #include <utility>
-#include "GlobalObjects.h"
 
 mod_manager::mod_manager() {
 
@@ -183,7 +186,7 @@ std::string mod_manager::get_mod_status(std::string mod_name_){
       toolbox::magenta_bg
       );
 
-    if(toolbox::do_files_are_the_same(
+    if(GenericToolbox::Switch::IO::doFilesAreIdentical(
       _install_mods_base_folder_ + "/" + relative_file_path_list[i_file],
       absolute_file_path
     )) same_files_count++;
@@ -264,7 +267,7 @@ void mod_manager::apply_mod(std::string mod_name_, bool force_) {
       is_conflict = false;
     }
     if(not is_conflict or replace_option == "Yes to all" or replace_option == "Yes"){
-      toolbox::copy_file( absolute_file_path, install_path );
+      GenericToolbox::Switch::IO::copyFile(absolute_file_path, install_path);
     }
   }
   reset_mod_cache_status(mod_name_);
@@ -324,7 +327,7 @@ void mod_manager::remove_mod(std::string mod_name_){
     std::string installed_file_path = _install_mods_base_folder_ + "/" + relative_file_path;
     installed_file_path = toolbox::remove_extra_doubled_characters(installed_file_path, "/");
     // Check if the installed mod belongs to the selected mod
-    if( toolbox::do_files_are_the_same( absolute_file_path, installed_file_path ) ){
+    if( GenericToolbox::Switch::IO::doFilesAreIdentical( absolute_file_path, installed_file_path ) ){
 
       // Remove the mod file
       toolbox::delete_file(installed_file_path);
@@ -375,7 +378,7 @@ void mod_manager::display_mod_files_status(std::string mod_folder_path_){
       );
 
     std::string installed_file_path = _install_mods_base_folder_ + "/" + file_path_list[i_file];
-    if(toolbox::do_files_are_the_same(
+    if(GenericToolbox::Switch::IO::doFilesAreIdentical(
         mod_folder_path_+ "/" + file_path_list[i_file],
         installed_file_path
         )){

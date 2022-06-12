@@ -15,26 +15,6 @@ namespace GlobalObjects{
     return _mod_browser_;
   }
 
-  void redirect_cout(){
-
-    GlobalObjects::_cout_backup_ = std::cout.rdbuf();
-
-    std::cout.rdbuf(GlobalObjects::_cout_redirect_.rdbuf());
-    std::cerr.rdbuf(GlobalObjects::_cout_redirect_.rdbuf());
-    std::clog.rdbuf(GlobalObjects::_cout_redirect_.rdbuf());
-
-  }
-
-  void disable_cout_redirection(){
-
-    if(GlobalObjects::_cout_backup_ != nullptr){
-      std::cout.rdbuf(GlobalObjects::_cout_backup_);
-      std::cerr.rdbuf(GlobalObjects::_cout_backup_);
-      std::clog.rdbuf(GlobalObjects::_cout_backup_);
-    }
-
-  }
-
   void setTriggerSwitchUI(bool triggerSwitchUI_){
     GlobalObjects::_triggerSwitchUI_ = std::to_string(triggerSwitchUI_);
   }

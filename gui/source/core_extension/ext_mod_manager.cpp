@@ -4,15 +4,21 @@
 
 #include "ext_mod_manager.h"
 #include <GlobalObjects.h>
-
 #include <ext_toolbox.h>
 #include <tab_mod_browser.h>
 #include <ext_GlobalObjects.h>
 #include <toolbox.h>
 
 #include "GenericToolbox.Switch.h"
+#include "Logger.h"
 
 #include <utility>
+#include "string"
+
+
+LoggerInit([]{
+  Logger::setUserHeaderStr("[GuiModManager]");
+});
 
 // static
 popup_loading* ext_mod_manager::_staticPopupLoadingViewPtr_;
@@ -45,30 +51,24 @@ void ext_mod_manager::apply_mod(std::string &modName_, bool force_) {
     }
 
     std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path_list[i_file];
+    GenericToolbox::removeRepeatedCharacters(absolute_file_path, "/");
     std::string file_size = toolbox::get_file_size_string(absolute_file_path);
 
     toolbox::fill_str_buffer_map("ext_mod_manager::apply_mod:current_file", toolbox::get_filename_from_file_path(relative_file_path_list[i_file]) + " (" + file_size + ")");
     toolbox::fill_progress_map("ext_mod_manager::apply_mod", (i_file+1.)/double(relative_file_path_list.size()));
 
     std::string install_path = GlobalObjects::get_mod_browser().get_mod_manager().get_install_mods_base_folder() + "/" + relative_file_path_list[i_file];
-    if(toolbox::do_path_is_file(install_path)) {
+    GenericToolbox::removeRepeatedCharInsideInputStr(install_path, "/");
+    if(GenericToolbox::Switch::IO::doesPathIsFile(install_path)) {
       is_conflict = true;
-//      if (replace_option == "Yes to all") {
-//         remove log entry ? if log enabled
-//      }
-//      else if (replace_option == "No to all") {
-//        continue; // do nothing
-//      }
-//      else {
-//        replace_option = ask_to_replace(relative_file_path_list[i_file]);
-//        std::cout << ss_files_list.str();
-//      }
     }
     else {
       is_conflict = false;
     }
     if(not is_conflict or replace_option == "Yes to all" or replace_option == "Yes"){
-      toolbox::copy_file( absolute_file_path, install_path );
+      GenericToolbox::getElapsedTimeSinceLastCallInMicroSeconds();
+      GenericToolbox::Switch::IO::copyFile(absolute_file_path, install_path);
+      LogWarning << "Took: " << GenericToolbox::parseTimeUnit(GenericToolbox::getElapsedTimeSinceLastCallInMicroSeconds()) << std::endl;
     }
 
   }
@@ -107,10 +107,6 @@ std::string ext_mod_manager::check_mod_status(std::string modName_) {
       toolbox::fill_str_buffer_map("ext_mod_manager::check_mod_status:current_file", toolbox::get_filename_from_file_path(relative_file_path_list[i_file]));
       toolbox::fill_progress_map("ext_mod_manager::check_mod_status", (i_file+1.)/double(total_files_count));
 
-//      if(toolbox::do_files_are_the_same(
-//        mod_manager->get_install_mods_base_folder() + "/" + relative_file_path_list[i_file],
-//        absolute_file_path
-//      )) same_files_count++;
       if(GenericToolbox::Switch::IO::doFilesAreIdentical(
         mod_manager->get_install_mods_base_folder() + "/" + relative_file_path_list[i_file],
         absolute_file_path
@@ -164,10 +160,10 @@ void ext_mod_manager::remove_mod(std::string &modName_){
     std::string installed_file_path = mod_manager->get_install_mods_base_folder() + "/" + relative_file_path;
     installed_file_path = toolbox::remove_extra_doubled_characters(installed_file_path, "/");
     // Check if the installed mod belongs to the selected mod
-    if( toolbox::do_files_are_the_same( absolute_file_path, installed_file_path ) ){
+    if( GenericToolbox::Switch::IO::doFilesAreIdentical( absolute_file_path, installed_file_path ) ){
 
       // Remove the mod file
-      toolbox::delete_file(installed_file_path);
+      GenericToolbox::Switch::IO::deleteFile(installed_file_path);
 
       // Delete the folder if no other files is present
       std::string empty_folder_path_candidate = toolbox::get_folder_path_from_file_path(installed_file_path);
@@ -304,25 +300,26 @@ ext_mod_manager::ext_mod_manager() {
 
   _asyncApplyModFunction_  = [](std::string mod_name_, brls::Dialog* hostDialogBox_){
 
-    brls::Logger::info("Applying: %s", mod_name_.c_str());
+    LogInfo("Applying: %s", mod_name_.c_str());
+
     ext_mod_manager::_staticPopupLoadingViewPtr_->reset();
     ext_mod_manager::_staticPopupLoadingViewPtr_->setHeader("Applying mod...");
     ext_mod_manager::_staticPopupLoadingViewPtr_->setTitlePtr(&mod_name_);
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressColor(nvgRGB(0x00, 0xff, 0xc8));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setSubTitlePtr(&toolbox::get_str_buffer("ext_mod_manager::apply_mod:current_file"));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::apply_mod"));
-    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&toolbox::get_progress("copy_file"));
+    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["copyFile"]);
     ext_mod_manager::_staticPopupLoadingViewPtr_->setEnableSubLoadingBar(true);
     ext_mod_manager::apply_mod(mod_name_, true);
 
-    brls::Logger::info("Checking: %s", mod_name_.c_str());
+    LogInfo("Checking: %s", mod_name_.c_str());
     ext_mod_manager::_staticPopupLoadingViewPtr_->reset();
     ext_mod_manager::_staticPopupLoadingViewPtr_->setHeader("Checking the applied mod...");
     ext_mod_manager::_staticPopupLoadingViewPtr_->setTitlePtr(&mod_name_);
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressColor(nvgRGB(0x00, 0xc8, 0xff));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setSubTitlePtr(&toolbox::get_str_buffer("ext_mod_manager::check_mod_status:current_file"));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::check_mod_status"));
-    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&toolbox::get_progress("do_files_are_the_same"));
+    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
     ext_mod_manager::_staticPopupLoadingViewPtr_->setEnableSubLoadingBar(true);
     ext_mod_manager::check_mod_status(mod_name_);
 
@@ -340,7 +337,7 @@ ext_mod_manager::ext_mod_manager() {
   };
   _asyncRemoveModFunction_ = [](std::string mod_name_, brls::Dialog* hostDialogBox_){
 
-    brls::Logger::info("Removing: %s", mod_name_.c_str());
+    LogInfo("Removing: %s", mod_name_.c_str());
     ext_mod_manager::_staticPopupLoadingViewPtr_->reset();
     ext_mod_manager::_staticPopupLoadingViewPtr_->setHeader("Removing mod...");
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressColor(nvgRGB(0xff, 0x64, 0x64));
@@ -349,7 +346,7 @@ ext_mod_manager::ext_mod_manager() {
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::remove_mod"));
     ext_mod_manager::remove_mod(mod_name_);
 
-    brls::Logger::info("Checking: %s", mod_name_.c_str());
+    LogInfo("Checking: %s", mod_name_.c_str());
     ext_mod_manager::_staticPopupLoadingViewPtr_->reset();
     ext_mod_manager::_staticPopupLoadingViewPtr_->setHeader("Checking mod...");
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressColor(nvgRGB(0x00, 0xc8, 0xff));
@@ -357,7 +354,7 @@ ext_mod_manager::ext_mod_manager() {
     ext_mod_manager::_staticPopupLoadingViewPtr_->setSubTitlePtr(&toolbox::get_str_buffer("ext_mod_manager::check_mod_status:current_file"));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::check_mod_status"));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setEnableSubLoadingBar(true);
-    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&toolbox::get_progress("do_files_are_the_same"));
+    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
     ext_mod_manager::check_mod_status(mod_name_);
 
     // check if the call back function is callable
@@ -377,7 +374,7 @@ ext_mod_manager::ext_mod_manager() {
   _asyncCheckAllModsFunction_ = [](brls::Dialog* hostDialogBox_){
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    brls::Logger::info("Checking all mods status...");
+    LogInfo("Checking all mods status...");
     ext_mod_manager::_staticPopupLoadingViewPtr_->reset();
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressColor(nvgRGB(0x00, 0xc8, 0xff));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setHeader("Checking all mods status...");
@@ -385,21 +382,21 @@ ext_mod_manager::ext_mod_manager() {
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::check_mod_status"));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setEnableSubLoadingBar(true);
     ext_mod_manager::_staticPopupLoadingViewPtr_->setSubTitlePtr(&toolbox::get_str_buffer("ext_mod_manager::check_mod_status:current_file"));
-    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&toolbox::get_progress("do_files_are_the_same"));
+    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
     ext_mod_manager::check_all_mods();
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
     // 60fps = 17ms per frame
     auto processingDuration = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
-    brls::Logger::debug("processingDuration = %i ms", int(processingDuration));
+    LogDebug("processingDuration = %i ms", int(processingDuration));
     if(processingDuration < 17*5){ // wait at least 5 frames
-      brls::Logger::debug("extra wait... %i ms", int(17*5-processingDuration));
+      LogDebug("extra wait... %i ms", int(17*5-processingDuration));
       std::chrono::milliseconds interval(17*5 - processingDuration);
       std::this_thread::sleep_for(interval);
-      brls::Logger::debug("done");
+      LogDebug("done");
     }
 
-    if(ext_mod_manager::_staticOnCallBackFunction_ ? true: false){
+    if(ext_mod_manager::_staticOnCallBackFunction_){
       brls::Application::popView(brls::ViewAnimation::SLIDE_LEFT, ext_mod_manager::_staticOnCallBackFunction_);
       ext_mod_manager::setOnCallBackFunction([](){}); // reset
     }
@@ -414,7 +411,7 @@ ext_mod_manager::ext_mod_manager() {
   };
   _asyncRemoveAllModsFunction_ = [](brls::Dialog* hostDialogBox_){
 
-    brls::Logger::info("Removing all installed mods...");
+    LogInfo("Removing all installed mods...");
     ext_mod_manager::_staticPopupLoadingViewPtr_->reset();
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressColor(nvgRGB(0xff, 0x64, 0x64));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setHeader("Removing all installed mods...");
@@ -425,7 +422,7 @@ ext_mod_manager::ext_mod_manager() {
     ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::remove_mod"));
     ext_mod_manager::remove_all_mods(true);
 
-    brls::Logger::info("Checking all mods status...");
+    LogInfo("Checking all mods status...");
     ext_mod_manager::_staticPopupLoadingViewPtr_->reset();
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressColor(nvgRGB(0x00, 0xc8, 0xff));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setHeader("Checking all mods status...");
@@ -433,10 +430,10 @@ ext_mod_manager::ext_mod_manager() {
     ext_mod_manager::_staticPopupLoadingViewPtr_->setSubTitlePtr(&toolbox::get_str_buffer("ext_mod_manager::check_mod_status:current_file"));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::check_mod_status"));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setEnableSubLoadingBar(true);
-    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&toolbox::get_progress("do_files_are_the_same"));
+    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
     ext_mod_manager::check_all_mods();
 
-    if(ext_mod_manager::_staticOnCallBackFunction_ ? true: false){
+    if(ext_mod_manager::_staticOnCallBackFunction_){
       brls::Application::popView(brls::ViewAnimation::FADE, ext_mod_manager::_staticOnCallBackFunction_);
       ext_mod_manager::setOnCallBackFunction([](){}); // reset
     }
@@ -450,7 +447,7 @@ ext_mod_manager::ext_mod_manager() {
   };
   _asyncApplyModPresetFunction_ = [](std::string mod_preset_name_, brls::Dialog* hostDialogBox_){
 
-    brls::Logger::info("Removing all installed mods...");
+    LogInfo("Removing all installed mods...");
     ext_mod_manager::_staticPopupLoadingViewPtr_->reset();
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressColor(nvgRGB(0xff, 0x64, 0x64));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setHeader("Removing all installed mods...");
@@ -461,7 +458,7 @@ ext_mod_manager::ext_mod_manager() {
     ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::remove_mod"));
     ext_mod_manager::remove_all_mods(true);
 
-    brls::Logger::info("Applying Mod Preset");
+    LogInfo("Applying Mod Preset");
     ext_mod_manager::_staticPopupLoadingViewPtr_->reset();
     ext_mod_manager::_staticPopupLoadingViewPtr_->setHeader("Applying mod preset...");
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressColor(nvgRGB(0x00, 0xff, 0xc8));
@@ -469,11 +466,11 @@ ext_mod_manager::ext_mod_manager() {
     ext_mod_manager::_staticPopupLoadingViewPtr_->setSubTitlePtr(&toolbox::get_str_buffer("ext_mod_manager::apply_mod:current_file"));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::apply_mod"));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setEnableSubLoadingBar(true);
-    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&toolbox::get_progress("copy_file"));
+    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["copyFile"]);
     auto modsList = GlobalObjects::get_mod_browser().get_mods_preseter().get_mods_list(mod_preset_name_);
     ext_mod_manager::apply_mods_list(modsList);
 
-    brls::Logger::info("Checking all mods status...");
+    LogInfo("Checking all mods status...");
     ext_mod_manager::_staticPopupLoadingViewPtr_->reset();
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressColor(nvgRGB(0x00, 0xc8, 0xff));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setHeader("Checking all mods status...");
@@ -481,10 +478,10 @@ ext_mod_manager::ext_mod_manager() {
     ext_mod_manager::_staticPopupLoadingViewPtr_->setSubTitlePtr(&toolbox::get_str_buffer("ext_mod_manager::check_mod_status:current_file"));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setProgressFractionPtr(&toolbox::get_progress("ext_mod_manager::check_mod_status"));
     ext_mod_manager::_staticPopupLoadingViewPtr_->setEnableSubLoadingBar(true);
-    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&toolbox::get_progress("do_files_are_the_same"));
+    ext_mod_manager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
     ext_mod_manager::check_all_mods();
 
-    if(ext_mod_manager::_staticOnCallBackFunction_ ? true: false){
+    if(ext_mod_manager::_staticOnCallBackFunction_){
       brls::Application::popView(brls::ViewAnimation::FADE, ext_mod_manager::_staticOnCallBackFunction_);
       ext_mod_manager::setOnCallBackFunction([](){}); // reset
     }
@@ -506,7 +503,7 @@ void ext_mod_manager::setModName(std::string modName_) {
 void ext_mod_manager::start_apply_mod() {
 
   if(_modName_.empty()) return;
-  if(_asyncApplyModFunction_ ? true : false){
+  if(_asyncApplyModFunction_){
     _popupLoadingView_ = new popup_loading();
     _hostDialogBox_ = new brls::Dialog(_popupLoadingView_);
     brls::Application::pushView(_hostDialogBox_);
@@ -518,7 +515,7 @@ void ext_mod_manager::start_apply_mod() {
 void ext_mod_manager::start_remove_mod(){
 
   if(_modName_.empty()) return;
-  if(_asyncRemoveModFunction_ ? true : false){
+  if(_asyncRemoveModFunction_){
     _popupLoadingView_ = new popup_loading();
     _hostDialogBox_ = new brls::Dialog(_popupLoadingView_);
     brls::Application::pushView(_hostDialogBox_);
@@ -528,8 +525,8 @@ void ext_mod_manager::start_remove_mod(){
 
 }
 void ext_mod_manager::start_check_all_mods(){
-  if(_asyncCheckAllModsFunction_ ? true : false){
-    brls::Logger::info("Async check all mods function is starting...");
+  if(_asyncCheckAllModsFunction_){
+    LogInfo("Async check all mods function is starting...");
     _popupLoadingView_ = new popup_loading();
     _hostDialogBox_ = new brls::Dialog(_popupLoadingView_);
     brls::Application::pushView(_hostDialogBox_, brls::ViewAnimation::SLIDE_RIGHT);
@@ -538,7 +535,7 @@ void ext_mod_manager::start_check_all_mods(){
   }
 }
 void ext_mod_manager::start_remove_all_mods(){
-  if(_asyncCheckAllModsFunction_ ? true : false){
+  if(_asyncCheckAllModsFunction_){
     _popupLoadingView_ = new popup_loading();
     _hostDialogBox_ = new brls::Dialog(_popupLoadingView_);
     brls::Application::pushView(_hostDialogBox_);

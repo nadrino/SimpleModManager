@@ -4,13 +4,17 @@
 
 #include <toolbox.h>
 #include <mods_preseter.h>
-#include <fstream>
-#include <switch.h>
 #include <selector.h>
+#include "GlobalObjects.h"
+
+#include "GenericToolbox.Switch.h"
+
+#include <switch.h>
+
+#include <fstream>
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
-#include "GlobalObjects.h"
 
 mods_preseter::mods_preseter() {
   reset();
@@ -425,7 +429,7 @@ std::map<std::string, std::vector<std::string>> mods_preseter::get_conflicts_wit
     for(auto& other_mod_file_path: other_mod_files_path_list){
       if(toolbox::do_string_in_vector(other_mod_file_path, mod_files_path_list)){
         // if the two files are the same, no need to consider them as conflict
-        if(not toolbox::do_files_are_the_same(
+        if(not GenericToolbox::Switch::IO::doFilesAreIdentical(
           other_mod_folder_path + "/" + other_mod_file_path,
           mod_folder_path + "/" + other_mod_file_path
           )){
