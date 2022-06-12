@@ -2,12 +2,12 @@
 // Created by Adrien BLANCHET on 22/06/2020.
 //
 
-#include "tab_mod_options.h"
+#include "TabModOptions.h"
 #include <GlobalObjects.h>
 #include <ext_GlobalObjects.h>
 #include <toolbox.h>
 
-tab_mod_options::tab_mod_options() {
+TabModOptions::TabModOptions() {
 
   frameSkipCount = 0;
   doUpdateModsStatus = false;
@@ -17,7 +17,7 @@ tab_mod_options::tab_mod_options() {
 
 }
 
-void tab_mod_options::buildFolderInstallPresetItem() {
+void TabModOptions::buildFolderInstallPresetItem() {
 
   _itemFolderInstallPreset_ = new brls::ListItem(
     "\uE255 Attribute a config preset",
@@ -78,7 +78,7 @@ void tab_mod_options::buildFolderInstallPresetItem() {
       }
 
       if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
-        ext_mod_manager::setOnCallBackFunction([](){brls::Application::popView(brls::ViewAnimation::FADE);});
+        GuiModManager::setOnCallBackFunction([](){brls::Application::popView(brls::ViewAnimation::FADE);});
         GlobalObjects::get_mod_browser().get_mod_manager().reset_all_mods_cache_status();
 //        ext_GlobalObjects::getCurrentTabModBrowserPtr()->refreshModsStatus();
       }
@@ -96,7 +96,7 @@ void tab_mod_options::buildFolderInstallPresetItem() {
   });
 
 }
-void tab_mod_options::buildResetModsCacheItem() {
+void TabModOptions::buildResetModsCacheItem() {
 
   _itemResetModsCache_ = new brls::ListItem(
     "\uE877 Recheck all mods",
@@ -112,7 +112,7 @@ void tab_mod_options::buildResetModsCacheItem() {
 
     dialog->addButton("Yes", [this, dialog](brls::View* view) {
       if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
-        ext_mod_manager::setOnCallBackFunction([dialog](){dialog->close();});
+        GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
         GlobalObjects::get_mod_browser().get_mod_manager().reset_all_mods_cache_status();
         ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_check_all_mods();
 //        ext_GlobalObjects::getCurrentTabModBrowserPtr()->refreshModsStatus();
@@ -128,7 +128,7 @@ void tab_mod_options::buildResetModsCacheItem() {
   });
 
 }
-void tab_mod_options::buildDisableAllMods() {
+void TabModOptions::buildDisableAllMods() {
 
   _itemDisableAllMods_ = new brls::ListItem(
     "\uE872 Disable all mods",
@@ -143,7 +143,7 @@ void tab_mod_options::buildDisableAllMods() {
 
     dialog->addButton("Yes", [dialog](brls::View* view) {
       if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
-        ext_mod_manager::setOnCallBackFunction([dialog](){dialog->close();});
+        GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
         ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_remove_all_mods();
       }
     });
@@ -157,7 +157,7 @@ void tab_mod_options::buildDisableAllMods() {
   });
 
 }
-void tab_mod_options::buildGameIdentificationItem(){
+void TabModOptions::buildGameIdentificationItem(){
 
   _itemGameIdentification_ = new brls::ListItem(
     "Associated TitleID",
@@ -177,7 +177,7 @@ void tab_mod_options::buildGameIdentificationItem(){
 
 }
 
-void tab_mod_options::initialize() {
+void TabModOptions::initialize() {
 
   this->buildFolderInstallPresetItem();
   this->buildResetModsCacheItem();
@@ -192,8 +192,8 @@ void tab_mod_options::initialize() {
 
 }
 
-void tab_mod_options::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
-                           brls::FrameContext *ctx) {
+void TabModOptions::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
+                         brls::FrameContext *ctx) {
   ScrollView::draw(vg, x, y, width, height, style, ctx);
 
 }

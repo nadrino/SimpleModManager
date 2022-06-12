@@ -4,10 +4,11 @@
 
 #include <ext_GlobalObjects.h>
 #include <GlobalObjects.h>
-#include "tab_mod_plugins.h"
+#include "TabModPlugins.h"
 #include "toolbox.h"
 
-#include <popup_loading.h>
+#include <PopupLoading.h>
+#include "Logger.h"
 
 #include <switch.h>
 
@@ -15,8 +16,13 @@
 #include <future>
 
 
+LoggerInit([]{
+  Logger::setUserHeaderStr("[tab_mod_plugins]");
+});
+
+
 std::map<std::string, brls::Image *> cached_thumbs;
-tab_mod_plugins::tab_mod_plugins()
+TabModPlugins::TabModPlugins()
 {
 
 	this->frameCounter = -1;
@@ -33,7 +39,7 @@ tab_mod_plugins::tab_mod_plugins()
 		std::string selected_plugin_path = GlobalObjects::get_mod_browser().get_current_directory() + "/.plugins/" + plugin_nros_list[i_nro];
 		std::string selected_plugin_author;
 		std::string selected_plugin_version;
-		brls::Logger::debug("Adding plugin: {}", selected_plugin.c_str());
+		LogDebug("Adding plugin: %s", selected_plugin.c_str());
 		FILE *file = fopen(selected_plugin_path.c_str(), "rb");
 		if (file)
 		{
@@ -111,7 +117,7 @@ tab_mod_plugins::tab_mod_plugins()
 	}
 }
 
-std::string tab_mod_plugins::remove_extension(const std::string &filename)
+std::string TabModPlugins::remove_extension(const std::string &filename)
 {
 	size_t lastdot = filename.find_last_of(".");
 	if (lastdot == std::string::npos)
@@ -119,7 +125,7 @@ std::string tab_mod_plugins::remove_extension(const std::string &filename)
 	return filename.substr(0, lastdot);
 }
 
-std::string tab_mod_plugins::get_extension(const std::string &filename)
+std::string TabModPlugins::get_extension(const std::string &filename)
 {
 	size_t lastdot = filename.find_last_of(".");
 	if (lastdot == std::string::npos)
@@ -127,9 +133,9 @@ std::string tab_mod_plugins::get_extension(const std::string &filename)
 	return filename.substr(lastdot);
 }
 
-brls::Image *tab_mod_plugins::load_image_cache(std::string filename)
+brls::Image *TabModPlugins::load_image_cache(std::string filename)
 {
-	brls::Logger::debug("Requesting icon: {}", filename);
+	LogDebug("Requesting icon: %s", filename);
 
 	brls::Image *image = nullptr;
 
@@ -141,13 +147,13 @@ brls::Image *tab_mod_plugins::load_image_cache(std::string filename)
 	// found
 	if (it != cached_thumbs.end())
 	{
-		brls::Logger::debug("Icon Already Cached: {}", filename);
+		LogDebug("Icon Already Cached: %s", filename);
 		image = cached_thumbs[filename_enc];
 	}
 	else
 	// not found
 	{
-		brls::Logger::debug("Icon Not Yet Cached: {}", filename);
+		LogDebug("Icon Not Yet Cached: %s", filename);
 
 		FILE *file = fopen(filename.c_str(), "rb");
 		if (file)
@@ -167,7 +173,7 @@ brls::Image *tab_mod_plugins::load_image_cache(std::string filename)
 				fseek(file, header.size + asset_header.icon.offset, SEEK_SET);
 				fread(icon, icon_size, 1, file);
 
-				brls::Logger::debug("Caching New Icon: {}", filename);
+				LogDebug("Caching New Icon: %s", filename);
 
 				image = new brls::Image(icon, icon_size);
 
@@ -181,7 +187,7 @@ brls::Image *tab_mod_plugins::load_image_cache(std::string filename)
 		}
 		else
 		{
-			brls::Logger::debug("Using Unknown Icon For: {}", filename);
+			LogDebug("Using Unknown Icon For: %s", filename);
 			image = new brls::Image("romfs:/images/unknown.png");
 		}
 	}
@@ -189,7 +195,7 @@ brls::Image *tab_mod_plugins::load_image_cache(std::string filename)
 	return image;
 }
 
-std::string tab_mod_plugins::base64_encode(const std::string &in)
+std::string TabModPlugins::base64_encode(const std::string &in)
 {
 	std::string out;
 
@@ -211,7 +217,7 @@ std::string tab_mod_plugins::base64_encode(const std::string &in)
 	return out;
 }
 
-std::string tab_mod_plugins::base64_decode(const std::string &in)
+std::string TabModPlugins::base64_decode(const std::string &in)
 {
 	std::string out;
 
@@ -234,8 +240,8 @@ std::string tab_mod_plugins::base64_decode(const std::string &in)
 	}
 	return out;
 }
-void tab_mod_plugins::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
-						   brls::FrameContext *ctx)
+void TabModPlugins::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
+                         brls::FrameContext *ctx)
 {
 
 	ScrollView::draw(vg, x, y, width, height, style, ctx);

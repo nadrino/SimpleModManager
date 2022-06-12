@@ -4,7 +4,7 @@
 #include "Logger.h"
 
 #include <borealis.hpp>
-#include <frame_root.h>
+#include <FrameRoot.h>
 
 #include <string>
 #include <cstdlib>
@@ -15,14 +15,12 @@ LoggerInit([]{
 
 //#include "yaml-cpp/yaml.h"
 
-bool __is_new_version__;
-void run_gui();
-void run_console();
+void runGui();
+void runConsole();
 
 
-int main(int argc, char* argv[])
-{
-  LogInfo << "test" << std::endl;
+int main(int argc, char* argv[]){
+  LogInfo << "SimpleModManager is starting..." << std::endl;
 
   // https://github.com/jbeder/yaml-cpp/wiki/Tutorial
 //  YAML::Node config = YAML::LoadFile("config.yaml");
@@ -40,10 +38,10 @@ int main(int argc, char* argv[])
   GlobalObjects::get_mod_browser().initialize();
 
   if(bool(std::stoi(GlobalObjects::get_mod_browser().get_parameters_handler().get_parameter("use-gui")))){
-    run_gui();
+    runGui();
   }
   else{
-    run_console();
+    runConsole();
   }
 
   toolbox::disableEmbeddedSwitchFS();
@@ -53,16 +51,15 @@ int main(int argc, char* argv[])
 }
 
 
-void run_gui(){
+void runGui(){
 
   LogThrowIf(R_FAILED(nsInitialize()), "nsInitialize Failed");
 
-  brls::Logger::setLogLevel(brls::LogLevel::DEBUG);
-  brls::i18n::loadTranslations();
+  brls::Logger::setLogLevel(brls::LogLevel::ERROR);
 
   LogThrowIf(not brls::Application::init("SimpleModManager"), "Unable to init Borealis application")
 
-  auto* main_frame = new frame_root();
+  auto* main_frame = new FrameRoot();
   brls::Application::pushView(main_frame);
   main_frame->registerAction("", brls::Key::PLUS, []{return true;}, true);
   main_frame->updateActionHint(brls::Key::PLUS, ""); // make the change visible
@@ -72,14 +69,15 @@ void run_gui(){
   nsExit();
 
   if(GlobalObjects::doTriggerSwitchUI()){
-    run_console();
+    runConsole();
   }
 
 }
 
-void run_console(){
+void runConsole(){
+  LogFatal.setMaxLogLevel();
 
-  consoleInit(nullptr);
+  auto* console = consoleInit(nullptr);
 
   // Configure our supported input layout: a single player with standard controller styles
   padConfigureInput(1, HidNpadStyleSet_NpadStandard);
@@ -123,7 +121,7 @@ void run_console(){
   while(appletMainLoop())
   {
     //Scan all the inputs. This should be done once for each frame
-    padUpdate(&GlobalObjects::gPad);;
+    padUpdate(&GlobalObjects::gPad);
 
     //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
     u64 kDown = padGetButtonsDown(&GlobalObjects::gPad);

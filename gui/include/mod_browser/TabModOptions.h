@@ -2,16 +2,16 @@
 // Created by Adrien BLANCHET on 22/06/2020.
 //
 
-#ifndef SIMPLEMODMANAGER_TAB_MOD_OPTIONS_H
-#define SIMPLEMODMANAGER_TAB_MOD_OPTIONS_H
+#ifndef SIMPLEMODMANAGER_TABMODOPTIONS_H
+#define SIMPLEMODMANAGER_TABMODOPTIONS_H
 
 #include <borealis.hpp>
-#include <tab_mod_browser.h>
+#include <TabModBrowser.h>
 
-class tab_mod_options : public brls::List {
+class TabModOptions : public brls::List {
 
 public:
-  tab_mod_options();
+  TabModOptions();
 
   void initialize();
 
@@ -38,4 +38,4 @@ public:
 };
 
 
-#endif //SIMPLEMODMANAGER_TAB_MOD_OPTIONS_H
+#endif //SIMPLEMODMANAGER_TABMODOPTIONS_H

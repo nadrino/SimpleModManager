@@ -2,15 +2,15 @@
 // Created by Adrien BLANCHET on 22/06/2020.
 //
 
-#ifndef SIMPLEMODMANAGER_TAB_MOD_PRESETS_H
-#define SIMPLEMODMANAGER_TAB_MOD_PRESETS_H
+#ifndef SIMPLEMODMANAGER_TABMODPRESETS_H
+#define SIMPLEMODMANAGER_TABMODPRESETS_H
 
 #include <borealis.hpp>
 
-class tab_mod_presets : public brls::List {
+class TabModPresets : public brls::List {
 
 public:
-  tab_mod_presets();
+  TabModPresets();
 
   void assignButtons(brls::ListItem *item, bool isPreset_);
   void updatePresetItems();
@@ -26,4 +26,4 @@ private:
 };
 
 
-#endif //SIMPLEMODMANAGER_TAB_MOD_PRESETS_H
+#endif //SIMPLEMODMANAGER_TABMODPRESETS_H

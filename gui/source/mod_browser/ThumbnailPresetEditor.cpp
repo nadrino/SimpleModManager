@@ -2,12 +2,12 @@
 // Created by Adrien BLANCHET on 30/06/2020.
 //
 
-#include "thumbnail_preset_editor.h"
+#include "ThumbnailPresetEditor.h"
 #include <GlobalObjects.h>
 #include <ext_GlobalObjects.h>
 #include "toolbox.h"
 
-void thumbnail_preset_editor::initialize() {
+void ThumbnailPresetEditor::initialize() {
 
   if(_presetName_.empty()){
     this->autoAssignPresetName();
@@ -72,7 +72,7 @@ void thumbnail_preset_editor::initialize() {
 
 }
 
-void thumbnail_preset_editor::process_tags() {
+void ThumbnailPresetEditor::process_tags() {
 
   // reset
   for(auto & item : itemsList){
@@ -97,15 +97,15 @@ void thumbnail_preset_editor::process_tags() {
 
 }
 
-void thumbnail_preset_editor::setPresetName(const std::string &presetName) {
+void ThumbnailPresetEditor::setPresetName(const std::string &presetName) {
   _presetName_ = presetName;
 }
 
-std::vector<std::string> & thumbnail_preset_editor::getSelectedModsList() {
+std::vector<std::string> & ThumbnailPresetEditor::getSelectedModsList() {
   return _selectedModsList_;
 }
 
-void thumbnail_preset_editor::save() {
+void ThumbnailPresetEditor::save() {
 
   auto* dataHandlerPtr = &GlobalObjects::get_mod_browser().get_mods_preseter().get_data_handler();
   auto* PresetsListPtr = &GlobalObjects::get_mod_browser().get_mods_preseter().get_presets_list();
@@ -145,7 +145,7 @@ void thumbnail_preset_editor::save() {
 
 }
 
-void thumbnail_preset_editor::autoAssignPresetName() {
+void ThumbnailPresetEditor::autoAssignPresetName() {
   std::string autoName = "new-preset";
   _presetName_ = autoName;
   int count = 0;
@@ -155,8 +155,8 @@ void thumbnail_preset_editor::autoAssignPresetName() {
   }
 }
 
-void thumbnail_preset_editor::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
-                              brls::FrameContext *ctx) {
+void ThumbnailPresetEditor::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
+                                 brls::FrameContext *ctx) {
 
   if(_selectedModsList_.empty()){
     this->getSidebar()->getButton()->setState(brls::ButtonState::DISABLED);
@@ -168,7 +168,7 @@ void thumbnail_preset_editor::draw(NVGcontext *vg, int x, int y, unsigned int wi
   AppletFrame::draw(vg, x, y, width, height, style, ctx);
 }
 
-void thumbnail_preset_editor::cleanup() {
+void ThumbnailPresetEditor::cleanup() {
 
   itemsList.resize(0);
   _selectedModsList_.resize(0);

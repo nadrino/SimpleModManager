@@ -3,32 +3,32 @@
 //
 
 #include "ext_GlobalObjects.h"
-#include <frame_mod_browser.h>
-#include <tab_mod_presets.h>
+#include <FrameModBrowser.h>
+#include <TabModPresets.h>
 
 namespace ext_GlobalObjects {
 
-  static tab_mod_browser* _currentTabModBrowserPtr_;
-  static frame_mod_browser* _currentFrameModBrowserPtr_;
-  static tab_mod_presets* _currentTabModPresetPtr_;
+  static TabModBrowser* _currentTabModBrowserPtr_;
+  static FrameModBrowser* _currentFrameModBrowserPtr_;
+  static TabModPresets* _currentTabModPresetPtr_;
 
-  void setCurrentTabModBrowserPtr(tab_mod_browser* currentTabModBrowserPtr_){
+  void setCurrentTabModBrowserPtr(TabModBrowser* currentTabModBrowserPtr_){
     ext_GlobalObjects::_currentTabModBrowserPtr_ = currentTabModBrowserPtr_;
   }
-  void setCurrentFrameModBrowserPtr(frame_mod_browser* currentFrameModBrowserPtr_){
+  void setCurrentFrameModBrowserPtr(FrameModBrowser* currentFrameModBrowserPtr_){
     ext_GlobalObjects::_currentFrameModBrowserPtr_ = currentFrameModBrowserPtr_;
   }
-  void setCurrentTabModPresetPtr(tab_mod_presets* currentTabModPresetPtr_){
+  void setCurrentTabModPresetPtr(TabModPresets* currentTabModPresetPtr_){
     ext_GlobalObjects::_currentTabModPresetPtr_ = currentTabModPresetPtr_;
   }
 
-  tab_mod_browser* getCurrentTabModBrowserPtr(){
+  TabModBrowser* getCurrentTabModBrowserPtr(){
     return ext_GlobalObjects::_currentTabModBrowserPtr_;
   }
-  frame_mod_browser* getCurrentFrameModBrowserPtr(){
+  FrameModBrowser* getCurrentFrameModBrowserPtr(){
     return ext_GlobalObjects::_currentFrameModBrowserPtr_;
   }
-  tab_mod_presets* getCurrentTabModPresetPtr(){
+  TabModPresets* getCurrentTabModPresetPtr(){
     return ext_GlobalObjects::_currentTabModPresetPtr_;
   }
 

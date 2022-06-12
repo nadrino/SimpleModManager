@@ -2,18 +2,18 @@
 // Created by Adrien BLANCHET on 26/06/2020.
 //
 
-#ifndef SIMPLEMODMANAGER_POPUP_APPLY_MOD_H
-#define SIMPLEMODMANAGER_POPUP_APPLY_MOD_H
+#ifndef SIMPLEMODMANAGER_POPUPAPPLYMOD_H
+#define SIMPLEMODMANAGER_POPUPAPPLYMOD_H
 
 #include <borealis.hpp>
 #include <future>
-#include <tab_mod_browser.h>
+#include <TabModBrowser.h>
 
 
-class popup_apply_mod : public brls::Dialog {
+class PopupApplyMod : public brls::Dialog {
 
 public:
-  explicit popup_apply_mod(std::string text);
+  explicit PopupApplyMod(std::string text);
 
   void set_mod_name(std::string mod_name_);
   void set_mod_item(brls::ListItem* mod_item_);
@@ -29,4 +29,4 @@ public:
 };
 
 
-#endif //SIMPLEMODMANAGER_POPUP_APPLY_MOD_H
+#endif //SIMPLEMODMANAGER_POPUPAPPLYMOD_H

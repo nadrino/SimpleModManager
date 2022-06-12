@@ -2,15 +2,21 @@
 // Created by Adrien BLANCHET on 21/06/2020.
 //
 
-#include "tab_mod_browser.h"
+#include "TabModBrowser.h"
 #include <GlobalObjects.h>
-#include <thread>
-#include <future>
-#include <popup_loading.h>
-
+#include <PopupLoading.h>
 #include <ext_GlobalObjects.h>
 
-tab_mod_browser::tab_mod_browser() {
+#include "Logger.h"
+
+#include <thread>
+#include <future>
+
+LoggerInit([]{
+  Logger::setUserHeaderStr("[tab_mod_browser]");
+});
+
+TabModBrowser::TabModBrowser() {
 
   ext_GlobalObjects::setCurrentTabModBrowserPtr(this);
 
@@ -22,7 +28,7 @@ tab_mod_browser::tab_mod_browser() {
   auto mod_folders_list = GlobalObjects::get_mod_browser().get_selector().get_selection_list();
   for (int i_folder = 0; i_folder < int(mod_folders_list.size()); i_folder++) {
     std::string selected_mod = mod_folders_list[i_folder];
-    brls::Logger::debug("Adding mod: {}", selected_mod.c_str());
+    LogDebug("Adding mod: %s", selected_mod.c_str());
     auto* item = new brls::ListItem(selected_mod, "", "");
     item->getClickEvent()->subscribe([this, selected_mod](View* view) {
 
@@ -30,7 +36,7 @@ tab_mod_browser::tab_mod_browser() {
 
       dialog->addButton("Yes", [selected_mod, dialog](brls::View* view) {
         if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
-          ext_mod_manager::setOnCallBackFunction([dialog](){dialog->close();});
+          GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
           ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selected_mod);
           ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_apply_mod();
         }
@@ -53,7 +59,7 @@ tab_mod_browser::tab_mod_browser() {
 
       dialog->addButton("Yes", [selected_mod, dialog](brls::View* view) {
         if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
-          ext_mod_manager::setOnCallBackFunction([dialog](){dialog->close();});
+          GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
           ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selected_mod);
           ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_remove_mod();
         }
@@ -89,16 +95,16 @@ tab_mod_browser::tab_mod_browser() {
 
 }
 
-ext_mod_manager &tab_mod_browser::getExtModManager() {
+GuiModManager &TabModBrowser::getExtModManager() {
   return _extModManager_;
 }
 
-std::map<std::string, brls::ListItem *> &tab_mod_browser::getModsListItems() {
+std::map<std::string, brls::ListItem *> &TabModBrowser::getModsListItems() {
   return _modsListItems_;
 }
 
-void tab_mod_browser::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
-                           brls::FrameContext *ctx) {
+void TabModBrowser::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
+                         brls::FrameContext *ctx) {
 
   ScrollView::draw(vg, x, y, width, height, style, ctx);
 
@@ -119,11 +125,11 @@ void tab_mod_browser::draw(NVGcontext *vg, int x, int y, unsigned int width, uns
 
 }
 
-void tab_mod_browser::setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDisplayedStatus_) {
-  tab_mod_browser::triggerUpdateModsDisplayedStatus = triggerUpdateModsDisplayedStatus_;
+void TabModBrowser::setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDisplayedStatus_) {
+  TabModBrowser::triggerUpdateModsDisplayedStatus = triggerUpdateModsDisplayedStatus_;
 }
 
-void tab_mod_browser::updateDisplayedModsStatus(){
+void TabModBrowser::updateDisplayedModsStatus(){
 
   auto* mod_manager = &GlobalObjects::get_mod_browser().get_mod_manager();
 

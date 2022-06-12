@@ -2,15 +2,15 @@
 // Created by Adrien BLANCHET on 27/06/2020.
 //
 
-#ifndef SIMPLEMODMANAGER_POPUP_LOADING_H
-#define SIMPLEMODMANAGER_POPUP_LOADING_H
+#ifndef SIMPLEMODMANAGER_POPUPLOADING_H
+#define SIMPLEMODMANAGER_POPUPLOADING_H
 
 #include <borealis.hpp>
 
-class popup_loading : public brls::View {
+class PopupLoading : public brls::View {
 
 public:
-  popup_loading();
+  PopupLoading();
 
   void reset();
 
@@ -52,4 +52,4 @@ private:
 };
 
 
-#endif //SIMPLEMODMANAGER_POPUP_LOADING_H
+#endif //SIMPLEMODMANAGER_POPUPLOADING_H

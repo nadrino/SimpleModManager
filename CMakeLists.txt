@@ -11,6 +11,7 @@ project(SimpleModManager)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(options)
 include(utils)
+include(devkita64-libnx.cmake)
 
 find_package(LIBNX REQUIRED)
 if (NOT LIBNX_FOUND)

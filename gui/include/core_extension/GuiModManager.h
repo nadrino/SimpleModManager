@@ -2,32 +2,32 @@
 // Created by Adrien BLANCHET on 28/06/2020.
 //
 
-#ifndef SIMPLEMODMANAGER_EXT_MOD_MANAGER_H
-#define SIMPLEMODMANAGER_EXT_MOD_MANAGER_H
+#ifndef SIMPLEMODMANAGER_GUIMODMANAGER_H
+#define SIMPLEMODMANAGER_GUIMODMANAGER_H
 
 #include <string>
 #include <borealis.hpp>
-#include <popup_loading.h>
+#include <PopupLoading.h>
 #include <future>
 
-class ext_mod_manager {
+class GuiModManager {
 
 public:
-  static popup_loading* _staticPopupLoadingViewPtr_;
+  static PopupLoading* _staticPopupLoadingViewPtr_;
   static std::function<void(void)> _staticOnCallBackFunction_;
   static std::vector<std::string> _ignored_file_list_;
 
-  static void apply_mod(std::string &modName_, bool force_= false);
+  static void applyMod(std::string &modName_, bool force_= false);
   static void remove_mod(std::string &modName_);
   static void remove_all_mods(bool force_ = false);
   static void check_all_mods();
-  static std::string check_mod_status(std::string modName_);
+  static std::string getModStatus(const std::string &modName_);
   static void apply_mods_list(std::vector<std::string>& modsList_);
 
   static void setOnCallBackFunction(std::function<void(void)> staticOnCallBackFunction_);
 
 public:
-  ext_mod_manager();
+  GuiModManager();
 
   void setModName(std::string modName_);
 
@@ -46,10 +46,10 @@ private:
   std::function<bool(brls::Dialog* hostDialogBox_)> _asyncCheckAllModsFunction_;
   std::function<bool(brls::Dialog* hostDialogBox_)> _asyncRemoveAllModsFunction_;
   std::future<bool> _asyncResponse_;
-  popup_loading* _popupLoadingView_;
+  PopupLoading* _popupLoadingView_;
   brls::Dialog* _hostDialogBox_;
 
 };
 
 
-#endif //SIMPLEMODMANAGER_EXT_MOD_MANAGER_H
+#endif //SIMPLEMODMANAGER_GUIMODMANAGER_H

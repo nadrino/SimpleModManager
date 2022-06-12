@@ -115,7 +115,7 @@ void selector::print_selector() {
     if(i_entry == _cursor_position_) prefix_string += _cursor_marker_; else prefix_string += " ";
     prefix_string += " ";
     if(i_entry == _cursor_position_) color = toolbox::blue_bg; else color = "";
-    _selection_list_[selection_list_entry];
+//    _selection_list_[selection_list_entry];
     toolbox::print_left_right(
       prefix_string + _selection_list_[selection_list_entry],
       _tags_list_[selection_list_entry] + " ",

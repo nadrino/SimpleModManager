@@ -1,13 +1,13 @@
-#ifndef SIMPLEMODMANAGER_TAB_MOD_PLUGINS_H
-#define SIMPLEMODMANAGER_TAB_MOD_PLUGINS_H
+#ifndef SIMPLEMODMANAGER_TABMODPLUGINS_H
+#define SIMPLEMODMANAGER_TABMODPLUGINS_H
 
 #include <borealis.hpp>
 
-class tab_mod_plugins : public brls::List
+class TabModPlugins : public brls::List
 {
 
 public:
-	tab_mod_plugins();
+	TabModPlugins();
 
 	std::map<std::string, brls::ListItem *> &getModsListItems();
 
@@ -27,4 +27,4 @@ private:
 };
 extern std::map<std::string, brls::Image *> cached_thumbs;
 
-#endif //SIMPLEMODMANAGER_TAB_MOD_PLUGINS_H
+#endif //SIMPLEMODMANAGER_TABMODPLUGINS_H

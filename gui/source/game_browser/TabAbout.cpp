@@ -2,11 +2,11 @@
 // Created by Adrien BLANCHET on 20/06/2020.
 //
 
-#include "tab_about.h"
-#include <borealis.hpp>
+#include "TabAbout.h"
 #include <toolbox.h>
+#include <borealis.hpp>
 
-tab_about::tab_about() {
+TabAbout::TabAbout() {
 
 //  auto* titleLabel = new brls::Label(brls::LabelStyle::LIST_ITEM, "SimpleModManager", true);
 //  titleLabel->setFontSize(36);

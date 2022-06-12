@@ -2,12 +2,12 @@
 // Created by Adrien BLANCHET on 30/06/2020.
 //
 
-#ifndef SIMPLEMODMANAGER_THUMBNAIL_PRESET_EDITOR_H
-#define SIMPLEMODMANAGER_THUMBNAIL_PRESET_EDITOR_H
+#ifndef SIMPLEMODMANAGER_THUMBNAILPRESETEDITOR_H
+#define SIMPLEMODMANAGER_THUMBNAILPRESETEDITOR_H
 
 #include <borealis.hpp>
 
-class thumbnail_preset_editor : public brls::ThumbnailFrame {
+class ThumbnailPresetEditor : public brls::ThumbnailFrame {
 
 public:
   void initialize();
@@ -31,4 +31,4 @@ private:
 };
 
 
-#endif //SIMPLEMODMANAGER_THUMBNAIL_PRESET_EDITOR_H
+#endif //SIMPLEMODMANAGER_THUMBNAILPRESETEDITOR_H

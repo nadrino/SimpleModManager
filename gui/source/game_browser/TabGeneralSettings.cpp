@@ -2,16 +2,22 @@
 // Created by Adrien BLANCHET on 21/06/2020.
 //
 
-#include <tab_general_settings.h>
+#include <TabGeneralSettings.h>
 #include <GlobalObjects.h>
 
-tab_general_settings::tab_general_settings() {
+#include "Logger.h"
+
+LoggerInit([]{
+  Logger::setUserHeaderStr("[tab_general_settings]");
+});
+
+TabGeneralSettings::TabGeneralSettings() {
 
   rebuild_layout();
 
 }
 
-void tab_general_settings::rebuild_layout() {
+void TabGeneralSettings::rebuild_layout() {
 
   itemCurrentInstallPreset = new brls::ListItem(
     "\uE255 Current Install Preset:",
@@ -28,7 +34,7 @@ void tab_general_settings::rebuild_layout() {
         return;
 
       GlobalObjects::get_mod_browser().change_config_preset(GlobalObjects::get_mod_browser().get_parameters_handler().get_presets_list()[result]);
-      brls::Logger::debug("Selected : %s -> %s",
+      LogDebug("Selected : %s -> %s",
         GlobalObjects::get_mod_browser().get_parameters_handler().get_current_config_preset_name().c_str(),
         GlobalObjects::get_mod_browser().get_mod_manager().get_install_mods_base_folder().c_str());
       this->itemCurrentInstallPreset->setValue(GlobalObjects::get_mod_browser().get_parameters_handler().get_current_config_preset_name());

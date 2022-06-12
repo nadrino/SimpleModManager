@@ -2,18 +2,18 @@
 // Created by Adrien BLANCHET on 21/06/2020.
 //
 
-#ifndef SIMPLEMODMANAGER_TAB_MOD_BROWSER_H
-#define SIMPLEMODMANAGER_TAB_MOD_BROWSER_H
+#ifndef SIMPLEMODMANAGER_TABMODBROWSER_H
+#define SIMPLEMODMANAGER_TABMODBROWSER_H
 
 #include <borealis.hpp>
-#include <ext_mod_manager.h>
+#include <GuiModManager.h>
 
-class tab_mod_browser : public brls::List {
+class TabModBrowser : public brls::List {
 
 public:
-  tab_mod_browser();
+  TabModBrowser();
 
-  ext_mod_manager &getExtModManager();
+  GuiModManager &getExtModManager();
   std::map<std::string, brls::ListItem *> &getModsListItems();
 
   void setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDisplayedStatus_);
@@ -25,7 +25,7 @@ public:
 private:
   brls::Dialog* dialog;
   std::map<std::string, brls::ListItem*> _modsListItems_;
-  ext_mod_manager _extModManager_;
+  GuiModManager _extModManager_;
   bool triggerUpdateModsDisplayedStatus;
   bool triggerRecheckAllMods;
   int frameCounter;
@@ -34,4 +34,4 @@ private:
 };
 
 
-#endif //SIMPLEMODMANAGER_TAB_MOD_BROWSER_H
+#endif //SIMPLEMODMANAGER_TABMODBROWSER_H

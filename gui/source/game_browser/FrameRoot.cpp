@@ -2,26 +2,25 @@
 // Created by Adrien BLANCHET on 22/06/2020.
 //
 
-#include "frame_root.h"
+#include "FrameRoot.h"
 #include <GlobalObjects.h>
-#include <tab_games.h>
-#include <tab_general_settings.h>
-#include <tab_about.h>
-#include <game_browser/tab_test.h>
+#include <TabGames.h>
+#include <TabGeneralSettings.h>
+#include <TabAbout.h>
 
-frame_root::frame_root() {
+FrameRoot::FrameRoot() {
 
   this->setTitle("SimpleModManager");
   this->setFooterText(GlobalObjects::_version_str_);
   this->setIcon("romfs:/images/icon.jpg");
-  this->addTab("Game Browser", new tab_games());
+  this->addTab("Game Browser", new TabGames());
   this->addSeparator();
-  this->addTab("Settings", new tab_general_settings());
-  this->addTab("About", new tab_about());
+  this->addTab("Settings", new TabGeneralSettings());
+  this->addTab("About", new TabAbout());
 
 }
 
-bool frame_root::onCancel() {
+bool FrameRoot::onCancel() {
 
   auto* lastFocus = brls::Application::getCurrentFocus();
 

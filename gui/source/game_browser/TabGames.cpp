@@ -2,9 +2,9 @@
 // Created by Adrien BLANCHET on 21/06/2020.
 //
 
-#include <tab_games.h>
+#include <TabGames.h>
 #include <GlobalObjects.h>
-#include <frame_mod_browser.h>
+#include <FrameModBrowser.h>
 #include "toolbox.h"
 
 #include "Logger.h"
@@ -13,7 +13,7 @@ LoggerInit([]{
   Logger::setUserHeaderStr("[tab_games]");
 });
 
-tab_games::tab_games() {
+TabGames::TabGames() {
 
   auto mod_folders_list = GlobalObjects::get_mod_browser().get_selector().get_selection_list();
   for (int i_folder = 0; i_folder < int(mod_folders_list.size()); i_folder++) {
@@ -27,8 +27,8 @@ tab_games::tab_games() {
       item->setThumbnail(icon, 0x20000);
     }
     item->getClickEvent()->subscribe([this, selected_folder](View* view) {
-      LogDebug("Opening {}", selected_folder.c_str());
-      auto* mods_browser = new frame_mod_browser(selected_folder);
+      LogDebug("Opening %s", selected_folder.c_str());
+      auto* mods_browser = new FrameModBrowser(selected_folder);
       brls::Application::pushView(mods_browser, brls::ViewAnimation::SLIDE_LEFT);
       mods_browser->registerAction("", brls::Key::PLUS, []{return true;}, true);
       mods_browser->updateActionHint(brls::Key::PLUS, ""); // make the change visible

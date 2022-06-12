@@ -2,7 +2,7 @@
 // Created by Adrien BLANCHET on 27/06/2020.
 //
 
-#include "popup_loading.h"
+#include "PopupLoading.h"
 #include <future>
 #include <borealis.hpp>
 #include <chrono>
@@ -10,13 +10,13 @@
 
 using namespace std::literals::chrono_literals;
 
-popup_loading::popup_loading() {
+PopupLoading::PopupLoading() {
 
   this->reset();
 
 }
 
-void popup_loading::reset(){
+void PopupLoading::reset(){
 
   _header_ = "";
   _title_ = "";
@@ -35,8 +35,8 @@ void popup_loading::reset(){
 
 }
 
-void popup_loading::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
-                         brls::FrameContext *ctx) {
+void PopupLoading::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
+                        brls::FrameContext *ctx) {
 
   float y_offset = 0;
   if(not _header_.empty()){
@@ -123,50 +123,50 @@ void popup_loading::draw(NVGcontext *vg, int x, int y, unsigned int width, unsig
 
 }
 
-void popup_loading::setProgressFraction(double progress_fraction_) {
+void PopupLoading::setProgressFraction(double progress_fraction_) {
   _progressFraction_ = progress_fraction_;
 }
 
-void popup_loading::setTitle(const std::string &title_) {
+void PopupLoading::setTitle(const std::string &title_) {
   _title_ = title_;
 }
 
-void popup_loading::setSubTitle(const std::string &subTitle_) {
+void PopupLoading::setSubTitle(const std::string &subTitle_) {
   _subTitle_ = subTitle_;
 }
 
-void popup_loading::setProgressColor(const NVGcolor &progressColor_) {
+void PopupLoading::setProgressColor(const NVGcolor &progressColor_) {
   _progressColor_ = progressColor_;
 }
 
-void popup_loading::setSubProgressColor(const NVGcolor &subProgressColor) {
+void PopupLoading::setSubProgressColor(const NVGcolor &subProgressColor) {
   _subProgressColor_ = subProgressColor;
 }
 
-void popup_loading::setSubProgressFraction(double subProgressFraction) {
+void PopupLoading::setSubProgressFraction(double subProgressFraction) {
   _subProgressFraction_ = subProgressFraction;
 }
 
-void popup_loading::setSubProgressFractionPtr(double *subProgressFractionPtr) {
+void PopupLoading::setSubProgressFractionPtr(double *subProgressFractionPtr) {
   _subProgressFractionPtr_ = subProgressFractionPtr;
 }
 
-void popup_loading::setProgressFractionPtr(double *progressFractionPtr) {
+void PopupLoading::setProgressFractionPtr(double *progressFractionPtr) {
   _progressFractionPtr_ = progressFractionPtr;
 }
 
-void popup_loading::setEnableSubLoadingBar(bool enableSubLoadingBar) {
+void PopupLoading::setEnableSubLoadingBar(bool enableSubLoadingBar) {
   _enableSubLoadingBar_ = enableSubLoadingBar;
 }
 
-void popup_loading::setTitlePtr(std::string *titlePtr) {
+void PopupLoading::setTitlePtr(std::string *titlePtr) {
   _titlePtr_ = titlePtr;
 }
 
-void popup_loading::setSubTitlePtr(std::string *subTitlePtr) {
+void PopupLoading::setSubTitlePtr(std::string *subTitlePtr) {
   _subTitlePtr_ = subTitlePtr;
 }
 
-void popup_loading::setHeader(std::string header) {
+void PopupLoading::setHeader(std::string header) {
   _header_ = std::move(header);
 }

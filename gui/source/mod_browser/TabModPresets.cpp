@@ -2,14 +2,14 @@
 // Created by Adrien BLANCHET on 22/06/2020.
 //
 
-#include "tab_mod_presets.h"
+#include "TabModPresets.h"
 #include <borealis.hpp>
 #include <GlobalObjects.h>
 #include <ext_GlobalObjects.h>
-#include <ext_mod_manager.h>
-#include <thumbnail_preset_editor.h>
+#include <GuiModManager.h>
+#include <ThumbnailPresetEditor.h>
 
-tab_mod_presets::tab_mod_presets() {
+TabModPresets::TabModPresets() {
 
   ext_GlobalObjects::setCurrentTabModPresetPtr(this);
 
@@ -31,7 +31,7 @@ tab_mod_presets::tab_mod_presets() {
 
 }
 
-void tab_mod_presets::assignButtons(brls::ListItem *item, bool isPreset_) {
+void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
 
   if(isPreset_){
     item->getClickEvent()->subscribe([item](brls::View* view){});
@@ -40,7 +40,7 @@ void tab_mod_presets::assignButtons(brls::ListItem *item, bool isPreset_) {
 
       dialog->addButton("Yes", [dialog, item](brls::View* view) {
         if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
-          ext_mod_manager::setOnCallBackFunction([dialog](){dialog->close();});
+          GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
           ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_apply_mod_preset(item->getLabel());
         }
       });
@@ -77,7 +77,7 @@ void tab_mod_presets::assignButtons(brls::ListItem *item, bool isPreset_) {
     item->updateActionHint(brls::Key::X, "Remove");
     item->registerAction("Edit", brls::Key::Y, [item]{
       // open editor
-      auto* editor = new thumbnail_preset_editor();
+      auto* editor = new ThumbnailPresetEditor();
       editor->setPresetName(item->getLabel());
       editor->initialize();
 
@@ -103,7 +103,7 @@ void tab_mod_presets::assignButtons(brls::ListItem *item, bool isPreset_) {
       }
 
       // create new preset
-      auto* editor = new thumbnail_preset_editor();
+      auto* editor = new ThumbnailPresetEditor();
       editor->initialize();
 
       auto* icon = ext_GlobalObjects::getCurrentFrameModBrowserPtr()->getIcon();
@@ -122,7 +122,7 @@ void tab_mod_presets::assignButtons(brls::ListItem *item, bool isPreset_) {
 
 }
 
-void tab_mod_presets::updatePresetItems() {
+void TabModPresets::updatePresetItems() {
 
   auto presets_list = GlobalObjects::get_mod_browser().get_mods_preseter().get_presets_list();
   for(int i_preset = 0 ; i_preset < int(presets_list.size()) ; i_preset++){
@@ -152,7 +152,7 @@ void tab_mod_presets::updatePresetItems() {
 
 }
 
-int tab_mod_presets::getNbFreeSlots() const {
+int TabModPresets::getNbFreeSlots() const {
   return _nbFreeSlots_;
 }
 

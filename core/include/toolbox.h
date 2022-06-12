@@ -15,12 +15,12 @@
 namespace toolbox{
 
   static std::string empty_str;
-  static std::string red_bg = "\033[1;41m";
-  static std::string grey_bg = "\033[1;47m";
-  static std::string blue_bg = "\033[1;44m";
-  static std::string green_bg = "\033[1;42m";
-  static std::string magenta_bg = "\033[1;45m";
-  static std::string reset_color = "\033[0m";
+  static std::string red_bg = "\x1b[41m";
+  static std::string grey_bg = "\x1b[47m";
+  static std::string blue_bg = "\x1b[44m";
+  static std::string green_bg = "\x1b[42m";
+  static std::string magenta_bg = "\x1b[45m";
+  static std::string reset_color = "\x1b[0m";
   static std::vector<std::string> colors_list({
                                                 red_bg,
                                                 grey_bg,
