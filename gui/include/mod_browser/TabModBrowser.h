@@ -23,12 +23,12 @@ public:
 
 
 private:
-  brls::Dialog* dialog;
-  std::map<std::string, brls::ListItem*> _modsListItems_;
-  GuiModManager _extModManager_;
-  bool triggerUpdateModsDisplayedStatus;
-  bool triggerRecheckAllMods;
-  int frameCounter;
+  brls::Dialog* dialog{nullptr};
+  std::map<std::string, brls::ListItem*> _modsListItems_{};
+  GuiModManager _extModManager_{};
+  bool triggerUpdateModsDisplayedStatus{false};
+  bool triggerRecheckAllMods{false};
+  int frameCounter{0};
 
 
 };

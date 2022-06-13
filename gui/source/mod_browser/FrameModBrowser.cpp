@@ -14,34 +14,34 @@
 #include "Logger.h"
 
 LoggerInit([]{
-  Logger::setUserHeaderStr("[frame_mod_browser]");
+  Logger::setUserHeaderStr("[FrameModBrowser]");
 });
 
 FrameModBrowser::FrameModBrowser(std::string folder_){
 
   ext_GlobalObjects::setCurrentFrameModBrowserPtr(this);
 
-  std::string game_path = GlobalObjects::get_mod_browser().get_current_directory() + "/" + folder_;
+  std::string game_path = GlobalObjects::getModBrowser().get_current_directory() + "/" + folder_;
 
   _icon_ = nullptr;
 
   this->setTitle(folder_);
   _titleid_ = toolbox::recursive_search_for_subfolder_name_like_tid(game_path);
-  _icon_ = GlobalObjects::get_mod_browser().get_folder_icon_from_titleid(_titleid_);
+  _icon_ = GlobalObjects::getModBrowser().get_folder_icon_from_titleid(_titleid_);
   if(_icon_ != nullptr){
     this->setIcon(_icon_, 0x20000);
   }
   this->setFooterText("SimpleModManager");
 
-  if( GlobalObjects::get_mod_browser().change_directory(game_path) ){
+  if(GlobalObjects::getModBrowser().change_directory(game_path) ){
 
-    GlobalObjects::get_mod_browser().get_mod_manager().set_current_mods_folder(game_path);
-    GlobalObjects::get_mod_browser().get_mods_preseter().read_parameter_file(game_path);
+    GlobalObjects::getModBrowser().get_mod_manager().set_current_mods_folder(game_path);
+    GlobalObjects::getModBrowser().get_mods_preseter().read_parameter_file(game_path);
 
     auto* parametersTabList = new brls::List();
-    GlobalObjects::get_mod_browser().get_parameters_handler().get_current_config_preset_name();
+    GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name();
     auto* presetParameter = new brls::ListItem("Config preset", "", "");
-    presetParameter->setValue(GlobalObjects::get_mod_browser().get_parameters_handler().get_current_config_preset_name());
+    presetParameter->setValue(GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name());
     parametersTabList->addView(presetParameter);
 
     _tabModBrowser_ = new TabModBrowser();
@@ -76,8 +76,8 @@ bool FrameModBrowser::onCancel() {
 
   // If the sidebar was already there, the focus has not changed
   if(lastFocus == brls::Application::getCurrentFocus()){
-    LogDebug("go_back");
-    GlobalObjects::get_mod_browser().go_back();
+    LogDebug("Back on games screen...");
+    GlobalObjects::getModBrowser().go_back();
     brls::Application::popView(brls::ViewAnimation::SLIDE_RIGHT);
   }
   return true;

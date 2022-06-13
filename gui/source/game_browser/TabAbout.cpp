@@ -6,7 +6,15 @@
 #include <toolbox.h>
 #include <borealis.hpp>
 
+#include "GenericToolbox.h"
+#include "Logger.h"
+
+LoggerInit([]{
+  Logger::setUserHeaderStr("[TabAbout]");
+});
+
 TabAbout::TabAbout() {
+  LogInfo << __METHOD_NAME__ << std::endl;
 
 //  auto* titleLabel = new brls::Label(brls::LabelStyle::LIST_ITEM, "SimpleModManager", true);
 //  titleLabel->setFontSize(36);
@@ -44,7 +52,7 @@ TabAbout::TabAbout() {
   auto *copyright = new brls::Label(
     brls::LabelStyle::DESCRIPTION,
     "SimpleModManager is licensed under GPL-v3.0\n" \
-        "\u00A9 2019 - 2020 Nadrino",
+        "\u00A9 2019 - 2022 Nadrino",
     true
   );
   copyright->setHorizontalAlign(NVG_ALIGN_CENTER);
@@ -72,7 +80,7 @@ TabAbout::TabAbout() {
   this->addView(table);
 
   this->addView(new brls::Header("Remerciements"));
-  brls::Label *links = new brls::Label(
+  auto *links = new brls::Label(
     brls::LabelStyle::SMALL,
     "\uE017  SimpleModManager is powered by Borealis, an hardware accelerated UI library\n" \
          "\uE017  Special thanks to the RetroNX team for their support with Borealis\n",

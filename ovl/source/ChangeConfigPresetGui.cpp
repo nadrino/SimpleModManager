@@ -8,7 +8,7 @@
 ChangeConfigPresetGui::ChangeConfigPresetGui(){
 
   _question_ = "Select the config preset";
-  _answers_ = GlobalObjects::get_mod_browser().get_parameters_handler().get_presets_list();
+  _answers_ = GlobalObjects::getModBrowser().get_parameters_handler().get_presets_list();
 
 }
 
@@ -29,7 +29,7 @@ tsl::elm::Element* ChangeConfigPresetGui::createUI() {
 
     clickableListItem->setClickListener([selected_answer, this](u64 keys) {
       if (keys & HidNpadButton_A) {
-        GlobalObjects::get_mod_browser().change_config_preset(selected_answer);
+        GlobalObjects::getModBrowser().change_config_preset(selected_answer);
         tsl::goBack();
         return true;
       }
@@ -37,7 +37,7 @@ tsl::elm::Element* ChangeConfigPresetGui::createUI() {
     });
     list->addItem(clickableListItem);
 
-    std::string install_path_display = "install-mods-base-folder: "+ GlobalObjects::get_mod_browser().get_parameters_handler().get_parameter(
+    std::string install_path_display = "install-mods-base-folder: "+ GlobalObjects::getModBrowser().get_parameters_handler().get_parameter(
       _answers_[i_answer] + "-install-mods-base-folder"
     );
     list->addItem(new tsl::elm::CustomDrawer([install_path_display](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {

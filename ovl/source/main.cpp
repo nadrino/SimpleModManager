@@ -14,9 +14,9 @@ public:
 
     toolbox::enableEmbeddedSwitchFS();
 
-    GlobalObjects::get_mod_browser().set_only_show_folders(true);
-    GlobalObjects::get_mod_browser().set_max_relative_depth(1);
-    GlobalObjects::get_mod_browser().initialize();
+    GlobalObjects::getModBrowser().set_only_show_folders(true);
+    GlobalObjects::getModBrowser().set_max_relative_depth(1);
+    GlobalObjects::getModBrowser().initialize();
 
     tsl::hlp::ScopeGuard dirGuard([&] {
     });

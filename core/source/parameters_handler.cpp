@@ -3,13 +3,17 @@
 //
 
 #include "parameters_handler.h"
-
 #include "toolbox.h"
+
+#include "GenericToolbox.Switch.h"
+
+#include <switch/services/hid.h>
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
-#include <switch/services/hid.h>
+
 
 parameters_handler::parameters_handler() {
 
@@ -156,7 +160,7 @@ void parameters_handler::read_parameters() {
 
     if(line[0] == '#') continue;
 
-    auto line_elements = toolbox::split_string(line, "=");
+    auto line_elements = GenericToolbox::splitString(line, "=");
     if(line_elements.size() != 2) continue;
 
     // clean up for extra spaces characters

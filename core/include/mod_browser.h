@@ -34,7 +34,7 @@ public:
   std::string get_base_folder();
   std::string get_main_config_preset();
   parameters_handler &get_parameters_handler();
-  selector &get_selector();
+  selector &getSelector();
   mods_preseter &get_mods_preseter();
   mod_manager &get_mod_manager();
 

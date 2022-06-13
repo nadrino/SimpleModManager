@@ -15,7 +15,7 @@ void ThumbnailPresetEditor::initialize() {
 
   auto* modsList = new brls::List();
 
-  auto mod_folders_list = GlobalObjects::get_mod_browser().get_selector().get_selection_list();
+  auto mod_folders_list = GlobalObjects::getModBrowser().getSelector().getSelectionList();
   for (int i_folder = 0; i_folder < int(mod_folders_list.size()); i_folder++) {
     std::string selected_mod = mod_folders_list[i_folder];
     auto* item = new brls::ListItem(selected_mod, "", "");
@@ -65,8 +65,8 @@ void ThumbnailPresetEditor::initialize() {
   this->registerAction("", brls::Key::PLUS, []{return true;}, true);
 //  this->updateActionHint(brls::Key::PLUS, ""); // make the change visible
 
-  if(toolbox::do_string_in_vector(_presetName_, GlobalObjects::get_mod_browser().get_mods_preseter().get_presets_list())){
-    _selectedModsList_ = GlobalObjects::get_mod_browser().get_mods_preseter().get_mods_list(_presetName_);
+  if(toolbox::do_string_in_vector(_presetName_, GlobalObjects::getModBrowser().get_mods_preseter().get_presets_list())){
+    _selectedModsList_ = GlobalObjects::getModBrowser().get_mods_preseter().get_mods_list(_presetName_);
   }
   this->process_tags();
 
@@ -107,8 +107,8 @@ std::vector<std::string> & ThumbnailPresetEditor::getSelectedModsList() {
 
 void ThumbnailPresetEditor::save() {
 
-  auto* dataHandlerPtr = &GlobalObjects::get_mod_browser().get_mods_preseter().get_data_handler();
-  auto* PresetsListPtr = &GlobalObjects::get_mod_browser().get_mods_preseter().get_presets_list();
+  auto* dataHandlerPtr = &GlobalObjects::getModBrowser().get_mods_preseter().get_data_handler();
+  auto* PresetsListPtr = &GlobalObjects::getModBrowser().get_mods_preseter().get_presets_list();
 
   (*dataHandlerPtr)[_presetName_].clear();
   (*dataHandlerPtr)[_presetName_].resize(0);
@@ -133,9 +133,9 @@ void ThumbnailPresetEditor::save() {
   // TODO: Check for conflicts
 //  show_conflicted_files(_presetName_);
 
-  GlobalObjects::get_mod_browser().get_mods_preseter().fill_selector();
-  GlobalObjects::get_mod_browser().get_mods_preseter().recreate_preset_file();
-  GlobalObjects::get_mod_browser().get_mods_preseter().read_parameter_file();
+  GlobalObjects::getModBrowser().get_mods_preseter().fill_selector();
+  GlobalObjects::getModBrowser().get_mods_preseter().recreate_preset_file();
+  GlobalObjects::getModBrowser().get_mods_preseter().read_parameter_file();
 
   ext_GlobalObjects::getCurrentTabModPresetPtr()->updatePresetItems();
 
@@ -149,7 +149,7 @@ void ThumbnailPresetEditor::autoAssignPresetName() {
   std::string autoName = "new-preset";
   _presetName_ = autoName;
   int count = 0;
-  while(toolbox::do_string_in_vector(_presetName_, GlobalObjects::get_mod_browser().get_mods_preseter().get_presets_list())){
+  while(toolbox::do_string_in_vector(_presetName_, GlobalObjects::getModBrowser().get_mods_preseter().get_presets_list())){
     _presetName_ = autoName + "-" + std::to_string(count);
     count++;
   }

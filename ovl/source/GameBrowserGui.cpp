@@ -31,9 +31,9 @@ void GameBrowserGui::fill_item_list() {
   _list_->clear();
 
   // List Items
-  _list_->addItem(new tsl::elm::CategoryHeader("Folder : " + GlobalObjects::get_mod_browser().get_current_directory()));
+  _list_->addItem(new tsl::elm::CategoryHeader("Folder : " + GlobalObjects::getModBrowser().get_current_directory()));
 
-  auto mod_folders_list = GlobalObjects::get_mod_browser().get_selector().get_selection_list();
+  auto mod_folders_list = GlobalObjects::getModBrowser().getSelector().getSelectionList();
   for (int i_folder = 0; i_folder < int(mod_folders_list.size()); i_folder++) {
 
     auto *clickableListItem = new tsl::elm::ListItem(mod_folders_list[i_folder]);

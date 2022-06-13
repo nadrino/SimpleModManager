@@ -16,7 +16,7 @@ namespace GlobalObjects {
   static std::string _triggerSwitchUI_;
   extern PadState gPad;
 
-  mod_browser& get_mod_browser();
+  mod_browser& getModBrowser();
 
   void setTriggerSwitchUI(bool triggerSwitchUI_);
   bool doTriggerSwitchUI();

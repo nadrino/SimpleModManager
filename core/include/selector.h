@@ -37,7 +37,7 @@ public:
   int get_selected_entry();
   int get_entry(std::string entry_name_);
   std::string get_tag(int entry_);
-  std::vector<std::string> & get_selection_list();
+  std::vector<std::string> & getSelectionList();
 
   void print_selector();
   void scan_inputs(u64 kDown, u64 kHeld);

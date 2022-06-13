@@ -6,6 +6,8 @@
 #include <borealis.hpp>
 #include <FrameRoot.h>
 
+#include "GenericToolbox.Switch.h"
+
 #include <string>
 #include <cstdlib>
 
@@ -33,11 +35,11 @@ int main(int argc, char* argv[]){
   toolbox::enableEmbeddedSwitchFS();
 
   int max_depth = 1; // could be a parameter in the future
-  GlobalObjects::get_mod_browser().set_only_show_folders(true);
-  GlobalObjects::get_mod_browser().set_max_relative_depth(max_depth);
-  GlobalObjects::get_mod_browser().initialize();
+  GlobalObjects::getModBrowser().set_only_show_folders(true);
+  GlobalObjects::getModBrowser().set_max_relative_depth(max_depth);
+  GlobalObjects::getModBrowser().initialize();
 
-  if(bool(std::stoi(GlobalObjects::get_mod_browser().get_parameters_handler().get_parameter("use-gui")))){
+  if(bool(std::stoi(GlobalObjects::getModBrowser().get_parameters_handler().get_parameter("use-gui")))){
     runGui();
   }
   else{
@@ -52,7 +54,6 @@ int main(int argc, char* argv[]){
 
 
 void runGui(){
-
   LogThrowIf(R_FAILED(nsInitialize()), "nsInitialize Failed");
 
   brls::Logger::setLogLevel(brls::LogLevel::ERROR);
@@ -85,24 +86,24 @@ void runConsole(){
   // Initialize the default gamepad (which reads handheld mode inputs as well as the first connected controller)
   padInitializeDefault(&GlobalObjects::gPad);
 
-  int last_version = std::stoi(
-      toolbox::join_vector_string(
-          toolbox::split_string(
-              GlobalObjects::get_mod_browser().get_parameters_handler().get_parameter("last-program-version"),
+  int lastVersion = std::stoi(
+      GenericToolbox::joinVectorString(
+          GenericToolbox::splitString(
+              GlobalObjects::getModBrowser().get_parameters_handler().get_parameter("last-program-version"),
               "."
           ),
           ""
       )
   );
   int this_version = std::stoi(
-      toolbox::join_vector_string(
-          toolbox::split_string(
+      GenericToolbox::joinVectorString(
+          GenericToolbox::splitString(
               toolbox::get_app_version()
               ,"."),
           ""
       )
   );
-  if(last_version != this_version){
+  if(lastVersion != this_version){
     toolbox::print_left("");
     toolbox::print_left("Welcome in SimpleModManager v" + toolbox::get_app_version(), toolbox::green_bg);
     toolbox::print_left("");
@@ -115,7 +116,7 @@ void runConsole(){
     toolbox::ask_question("To continue, press A.", {"Ok"});
   }
 
-  GlobalObjects::get_mod_browser().print_menu();
+  GlobalObjects::getModBrowser().print_menu();
 
   // Main loop
   while(appletMainLoop())
@@ -127,13 +128,13 @@ void runConsole(){
     u64 kDown = padGetButtonsDown(&GlobalObjects::gPad);
     u64 kHeld = padGetButtons(&GlobalObjects::gPad);
 
-    if( (kDown & HidNpadButton_B and GlobalObjects::get_mod_browser().get_current_relative_depth() == 0)
+    if( (kDown & HidNpadButton_B and GlobalObjects::getModBrowser().get_current_relative_depth() == 0)
         or GlobalObjects::is_quit_now_triggered()
         ){ // back
       break;
     }
 
-    GlobalObjects::get_mod_browser().scan_inputs(kDown, kHeld);
+    GlobalObjects::getModBrowser().scan_inputs(kDown, kHeld);
 
   } // while
 

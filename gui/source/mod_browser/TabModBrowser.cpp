@@ -13,7 +13,7 @@
 #include <future>
 
 LoggerInit([]{
-  Logger::setUserHeaderStr("[tab_mod_browser]");
+  Logger::setUserHeaderStr("[TabModBrowser]");
 });
 
 TabModBrowser::TabModBrowser() {
@@ -25,19 +25,17 @@ TabModBrowser::TabModBrowser() {
   this->frameCounter = -1;
 
   // Setup the list
-  auto mod_folders_list = GlobalObjects::get_mod_browser().get_selector().get_selection_list();
-  for (int i_folder = 0; i_folder < int(mod_folders_list.size()); i_folder++) {
-    std::string selected_mod = mod_folders_list[i_folder];
-    LogDebug("Adding mod: %s", selected_mod.c_str());
-    auto* item = new brls::ListItem(selected_mod, "", "");
-    item->getClickEvent()->subscribe([this, selected_mod](View* view) {
+  auto modFoldersList = GlobalObjects::getModBrowser().getSelector().getSelectionList();
+  for (const auto& selectedMod : modFoldersList) {
+    LogDebug << "Adding mod: \"" << selectedMod << "\"" << std::endl;
+    auto* item = new brls::ListItem(selectedMod, "", "");
+    item->getClickEvent()->subscribe([this, selectedMod](View* view) {
+      auto* dialog = new brls::Dialog("Do you want to install \"" + selectedMod + "\" ?");
 
-      auto* dialog = new brls::Dialog("Do you want to install \"" + selected_mod + "\" ?");
-
-      dialog->addButton("Yes", [selected_mod, dialog](brls::View* view) {
+      dialog->addButton("Yes", [selectedMod, dialog](brls::View* view) {
         if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
           GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
-          ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selected_mod);
+          ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selectedMod);
           ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_apply_mod();
         }
       });
@@ -53,14 +51,14 @@ TabModBrowser::TabModBrowser() {
     item->updateActionHint(brls::Key::A, "Apply");
     item->updateActionHint(brls::Key::B, "Back");
 
-    item->registerAction("Disable", brls::Key::X, [selected_mod]{
+    item->registerAction("Disable", brls::Key::X, [selectedMod]{
 
-      auto* dialog = new brls::Dialog("Do you want to disable \"" + selected_mod + "\" ?");
+      auto* dialog = new brls::Dialog("Do you want to disable \"" + selectedMod + "\" ?");
 
-      dialog->addButton("Yes", [selected_mod, dialog](brls::View* view) {
+      dialog->addButton("Yes", [selectedMod, dialog](brls::View* view) {
         if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
           GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
-          ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selected_mod);
+          ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selectedMod);
           ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_remove_mod();
         }
       });
@@ -77,13 +75,13 @@ TabModBrowser::TabModBrowser() {
     item->setValueActiveColor(nvgRGB(80, 80, 80));
 
     this->addView(item);
-    _modsListItems_[selected_mod] = item;
+    _modsListItems_[selectedMod] = item;
   }
 
-  if(mod_folders_list.empty()){
+  if(modFoldersList.empty()){
 
     auto* emptyListLabel = new brls::ListItem(
-      "No mods have been found in " + GlobalObjects::get_mod_browser().get_current_directory(),
+      "No mods have been found in " + GlobalObjects::getModBrowser().get_current_directory(),
       "There you need to put your mods such as: ./<name-of-the-mod>/<file-structure-in-installed-directory>"
       );
     emptyListLabel->show([](){}, false);
@@ -131,7 +129,7 @@ void TabModBrowser::setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDi
 
 void TabModBrowser::updateDisplayedModsStatus(){
 
-  auto* mod_manager = &GlobalObjects::get_mod_browser().get_mod_manager();
+  auto* mod_manager = &GlobalObjects::getModBrowser().get_mod_manager();
 
   for(auto& modItem : _modsListItems_){
 
@@ -147,10 +145,10 @@ void TabModBrowser::updateDisplayedModsStatus(){
 
     NVGcolor color;
     // processing color
-    if(GlobalObjects::get_mod_browser().get_mod_manager().getModsStatusCacheFraction()[reference_str] == 0){
+    if(GlobalObjects::getModBrowser().get_mod_manager().getModsStatusCacheFraction()[reference_str] == 0){
       color = nvgRGB(80, 80, 80);
     }
-    else if(GlobalObjects::get_mod_browser().get_mod_manager().getModsStatusCacheFraction()[reference_str] == 1){
+    else if(GlobalObjects::getModBrowser().get_mod_manager().getModsStatusCacheFraction()[reference_str] == 1){
       color = nvgRGB(88, 195, 169);
     }
     else{

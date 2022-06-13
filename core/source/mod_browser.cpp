@@ -4,6 +4,9 @@
 
 #include <mod_browser.h>
 #include <toolbox.h>
+#include <GlobalObjects.h>
+
+#include "GenericToolbox.Switch.h"
 
 #include <iostream>
 #include <switch.h>
@@ -11,7 +14,6 @@
 #include <iomanip>
 #include <utility>
 #include <cstring>
-#include <GlobalObjects.h>
 
 mod_browser::mod_browser(){
 
@@ -85,7 +87,7 @@ std::string mod_browser::get_main_config_preset(){
 parameters_handler &mod_browser::get_parameters_handler(){
   return _parameters_handler_;
 }
-selector &mod_browser::get_selector(){
+selector &mod_browser::getSelector(){
   return _selector_;
 }
 mods_preseter &mod_browser::get_mods_preseter(){
@@ -365,7 +367,7 @@ void mod_browser::display_conflicts_with_other_mods(std::string selected_mod_){
 void mod_browser::check_mods_status(){
   if(get_current_relative_depth() != get_max_relative_depth()) return;
   _selector_.reset_tags_list();
-  auto mods_list = _selector_.get_selection_list();
+  auto mods_list = _selector_.getSelectionList();
   for(int i_mod = 0 ; i_mod < int(mods_list.size()) ; i_mod++){
     padUpdate(&GlobalObjects::gPad);;
     u64 kDown = padGetButtonsDown(&GlobalObjects::gPad);
@@ -407,8 +409,9 @@ bool mod_browser::change_directory(std::string new_directory_){
 
   // update list of entries
   std::vector<std::string> selection_list;
-  if(not _only_show_folders_)selection_list = toolbox::get_list_of_entries_in_folder(_current_directory_);
-  else selection_list = toolbox::get_list_of_subfolders_in_folder(_current_directory_);
+  if(not _only_show_folders_) { selection_list = GenericToolbox::Switch::IO::getListOfEntriesInFolder(_current_directory_); }
+  else                        { selection_list = GenericToolbox::Switch::IO::getListOfSubFoldersInFolder(_current_directory_); }
+
   selection_list.erase(std::remove(selection_list.begin(), selection_list.end(), ".plugins"), selection_list.end());
   std::sort(selection_list.begin(), selection_list.end());
   _selector_.set_selection_list(selection_list);
@@ -442,7 +445,6 @@ bool mod_browser::change_directory(std::string new_directory_){
   }
 
   return true;
-
 }
 void mod_browser::change_config_preset(std::string new_config_preset_){
 
@@ -461,8 +463,8 @@ bool mod_browser::go_back(){
 
   if(get_relative_path_depth(_current_directory_) <= 0 or _current_directory_ == "/") return false; // already at maximum root
 
-  auto folder_elements = toolbox::split_string(_current_directory_, "/");
-  auto new_path = "/" + toolbox::join_vector_string(folder_elements, "/", 0, folder_elements.size()-1);
+  auto folder_elements = GenericToolbox::splitString(_current_directory_, "/");
+  auto new_path = "/" + GenericToolbox::joinVectorString(folder_elements, "/", 0, folder_elements.size()-1);
   new_path = toolbox::remove_extra_doubled_characters(new_path, "/");
   if(not toolbox::do_path_is_folder(new_path)){
     std::cerr << "Can't go back, \"" << new_path << "\" is not a folder" << std::endl;
@@ -478,7 +480,7 @@ int mod_browser::get_relative_path_depth(std::string& path_){
   return relative_path_depth;
 }
 int mod_browser::get_path_depth(std::string& path_){
-  int path_depth = (toolbox::split_string(path_, "/")).size() ;
+  int path_depth = (GenericToolbox::splitString(path_, "/")).size() ;
   if(toolbox::do_string_starts_with_substring(path_, "/")) path_depth--;
   if(toolbox::do_string_ends_with_substring(path_, "/")) path_depth--;
   return path_depth;
@@ -540,8 +542,8 @@ void mod_browser::remove_all_mods(bool force_){
     answer = "Yes";
   }
   if(answer == "Yes") {
-    for(int i_mod = 0 ; i_mod < int(_selector_.get_selection_list().size()) ; i_mod++){
-      _mod_manager_.remove_mod(_selector_.get_selection_list()[i_mod]);
+    for(int i_mod = 0 ; i_mod < int(_selector_.getSelectionList().size()) ; i_mod++){
+      _mod_manager_.remove_mod(_selector_.getSelectionList()[i_mod]);
     }
   }
   toolbox::set_CRC_check_is_enabled(CRC_check_state);

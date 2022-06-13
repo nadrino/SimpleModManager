@@ -60,7 +60,7 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
       auto* dialog = new brls::Dialog("Do you want to delete the preset \"" + item->getLabel() + "\" ?");
 
       dialog->addButton("Yes", [this, item, dialog](brls::View* view) {
-        GlobalObjects::get_mod_browser().get_mods_preseter().delete_mod_preset(item->getLabel());
+        GlobalObjects::getModBrowser().get_mods_preseter().delete_mod_preset(item->getLabel());
 //        this->setTriggerUpdate(true);
         this->updatePresetItems();
         dialog->close();
@@ -124,12 +124,12 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
 
 void TabModPresets::updatePresetItems() {
 
-  auto presets_list = GlobalObjects::get_mod_browser().get_mods_preseter().get_presets_list();
+  auto presets_list = GlobalObjects::getModBrowser().get_mods_preseter().get_presets_list();
   for(int i_preset = 0 ; i_preset < int(presets_list.size()) ; i_preset++){
     if(i_preset+1 >= _maxNbPresetsSlots_){ // should not
       break;
     }
-    auto mods_list = GlobalObjects::get_mod_browser().get_mods_preseter().get_mods_list(presets_list[i_preset]);
+    auto mods_list = GlobalObjects::getModBrowser().get_mods_preseter().get_mods_list(presets_list[i_preset]);
     this->_itemList_[i_preset]->setLabel(presets_list[i_preset]);
     this->_itemList_[i_preset]->setValue(std::to_string(mods_list.size()) + " mods in this set");
     this->_itemList_[i_preset]->expand(true);

@@ -37,10 +37,10 @@ int main(int argc, char **argv){
 
   int max_depth = 1; // could be a parameter in the future
 
-  GlobalObjects::get_mod_browser().set_only_show_folders(true);
-  GlobalObjects::get_mod_browser().set_max_relative_depth(max_depth);
-  GlobalObjects::get_mod_browser().initialize();
-  GlobalObjects::get_mod_browser().print_menu();
+  GlobalObjects::getModBrowser().set_only_show_folders(true);
+  GlobalObjects::getModBrowser().set_max_relative_depth(max_depth);
+  GlobalObjects::getModBrowser().initialize();
+  GlobalObjects::getModBrowser().print_menu();
 
   // Main loop
   u64 kDown, kHeld;
@@ -54,12 +54,12 @@ int main(int argc, char **argv){
     kHeld = padGetButtons(&GlobalObjects::gPad);
 
     if(kDown & HidNpadButton_B){ // back
-      if(GlobalObjects::get_mod_browser().get_current_relative_depth() == 0){
+      if(GlobalObjects::getModBrowser().get_current_relative_depth() == 0){
         break;
       }
     }
 
-    GlobalObjects::get_mod_browser().scan_inputs(kDown, kHeld);
+    GlobalObjects::getModBrowser().scan_inputs(kDown, kHeld);
 
   } // while
 

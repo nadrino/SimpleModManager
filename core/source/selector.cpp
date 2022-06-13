@@ -100,7 +100,7 @@ int selector::get_entry(std::string entry_name_){
 std::string selector::get_tag(int entry_){
   return _tags_list_[entry_];
 }
-std::vector<std::string> & selector::get_selection_list(){
+std::vector<std::string> & selector::getSelectionList(){
   return _selection_list_;
 }
 

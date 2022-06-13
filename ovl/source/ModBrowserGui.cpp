@@ -19,12 +19,12 @@ tsl::elm::Element *ModBrowserGui::createUI() {
 
   _frame_ = new tsl::elm::OverlayFrame("SimpleModManager", GlobalObjects::_version_str_);
 
-  std::string new_path = GlobalObjects::get_mod_browser().get_current_directory() + "/" + _current_sub_folder_;
+  std::string new_path = GlobalObjects::getModBrowser().get_current_directory() + "/" + _current_sub_folder_;
   new_path = toolbox::remove_extra_doubled_characters(new_path, "/");
 
-  GlobalObjects::get_mod_browser().change_directory(new_path);
-  GlobalObjects::get_mod_browser().get_mod_manager().set_current_mods_folder(new_path);
-  GlobalObjects::get_mod_browser().get_mods_preseter().read_parameter_file(new_path);
+  GlobalObjects::getModBrowser().change_directory(new_path);
+  GlobalObjects::getModBrowser().get_mod_manager().set_current_mods_folder(new_path);
+  GlobalObjects::getModBrowser().get_mods_preseter().read_parameter_file(new_path);
 
   _list_ = new tsl::elm::List();
 
@@ -55,7 +55,7 @@ void ModBrowserGui::fill_item_list() {
   // List Items
   _list_->addItem(new tsl::elm::CategoryHeader(_current_sub_folder_));
 
-  auto mods_list = GlobalObjects::get_mod_browser().get_selector().get_selection_list();
+  auto mods_list = GlobalObjects::getModBrowser().getSelector().getSelectionList();
   for (int i_folder = 0; i_folder < int(mods_list.size()); i_folder++) {
     auto *clickableListItem = new tsl::elm::ListItem(mods_list[i_folder]);
     std::string selected_mod_name = mods_list[i_folder];
@@ -63,18 +63,18 @@ void ModBrowserGui::fill_item_list() {
     clickableListItem->setClickListener([selected_mod_name, this](u64 keys) {
       if (keys & HidNpadButton_A) {
         // apply mod...
-        GlobalObjects::get_mod_browser().get_mod_manager().apply_mod(selected_mod_name, true);
-        GlobalObjects::get_mod_browser().get_selector().set_tag(
-          GlobalObjects::get_mod_browser().get_selector().get_entry(selected_mod_name),
-          GlobalObjects::get_mod_browser().get_mod_manager().get_mod_status(selected_mod_name)
+        GlobalObjects::getModBrowser().get_mod_manager().apply_mod(selected_mod_name, true);
+        GlobalObjects::getModBrowser().getSelector().set_tag(
+            GlobalObjects::getModBrowser().getSelector().get_entry(selected_mod_name),
+          GlobalObjects::getModBrowser().get_mod_manager().get_mod_status(selected_mod_name)
         );
         this->set_trigger_item_list_update(true);
         return true;
       } else if (keys & HidNpadButton_X) {
-        GlobalObjects::get_mod_browser().get_mod_manager().remove_mod(selected_mod_name);
-        GlobalObjects::get_mod_browser().get_selector().set_tag(
-          GlobalObjects::get_mod_browser().get_selector().get_entry(selected_mod_name),
-          GlobalObjects::get_mod_browser().get_mod_manager().get_mod_status(selected_mod_name)
+        GlobalObjects::getModBrowser().get_mod_manager().remove_mod(selected_mod_name);
+        GlobalObjects::getModBrowser().getSelector().set_tag(
+            GlobalObjects::getModBrowser().getSelector().get_entry(selected_mod_name),
+          GlobalObjects::getModBrowser().get_mod_manager().get_mod_status(selected_mod_name)
         );
         this->set_trigger_item_list_update(true);
         return true;
@@ -94,7 +94,7 @@ void ModBrowserGui::fill_item_list() {
 
   _list_->addItem(new tsl::elm::CategoryHeader("Config Preset"));
   auto *buttonConfigPreset = new tsl::elm::ListItem(
-    GlobalObjects::get_mod_browser().get_parameters_handler().get_current_config_preset_name());
+      GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name());
   buttonConfigPreset->setClickListener([this](u64 keys) {
     if (keys & HidNpadButton_A) {
       // apply mod...
@@ -119,10 +119,10 @@ void ModBrowserGui::fill_item_list() {
 
 void ModBrowserGui::updateModStatusBars(){
 
-  auto mods_list = GlobalObjects::get_mod_browser().get_selector().get_selection_list();
+  auto mods_list = GlobalObjects::getModBrowser().getSelector().getSelectionList();
   for (int i_folder = 0; i_folder < int(mods_list.size()); i_folder++) {
     std::string selected_mod_name = mods_list[i_folder];
-    double mod_fraction = GlobalObjects::get_mod_browser().get_mod_manager().get_mod_status_fraction(mods_list[i_folder]);
+    double mod_fraction = GlobalObjects::getModBrowser().get_mod_manager().get_mod_status_fraction(mods_list[i_folder]);
     if (mod_fraction == -1) mod_fraction = 0;
 
     _statusBarMap_[selected_mod_name]->getMRenderFunc() = [mod_fraction](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
@@ -148,7 +148,7 @@ void ModBrowserGui::update() {
 
 bool ModBrowserGui::handleInput(u64 keysDown, u64 keysHeld, const HidTouchState &touchPos, HidAnalogStickState leftJoyStick, HidAnalogStickState rightJoyStick) {
   if (keysDown & HidNpadButton_B) {
-    GlobalObjects::get_mod_browser().go_back();
+    GlobalObjects::getModBrowser().go_back();
     tsl::goBack();
     return true;
   }

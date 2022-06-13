@@ -2,7 +2,15 @@
 // Created by Nadrino on 04/09/2019.
 //
 
+#include "GlobalObjects.h"
 #include <toolbox.h>
+#include <version_config.h>
+#include <selector.h>
+
+#include "GenericToolbox.Switch.h"
+
+#include <switch.h>
+#include <zlib.h>
 
 #include <cstring>
 #include <cmath>
@@ -16,16 +24,6 @@
 #include <filesystem> // cpp 17 functions -> does not work
 #include <exception>
 #include <chrono>
-
-#include <switch.h>
-
-#include <zlib.h>
-
-#include <version_config.h>
-#include <selector.h>
-#include <numeric>
-#include "GlobalObjects.h"
-
 #include <unistd.h>
 
 namespace toolbox{
@@ -371,7 +369,7 @@ namespace toolbox{
     return splitted_path.back();
   }
   std::string get_head_path_element_name(std::string folder_path_){
-    auto elements = toolbox::split_string(folder_path_, "/");
+    auto elements = GenericToolbox::splitString(folder_path_, "/");
     for(int i_element = elements.size()-1; i_element >= 0 ; i_element--){
       if(not elements[i_element].empty()) return elements[i_element];
     }
@@ -1073,7 +1071,7 @@ namespace toolbox{
     std::vector<std::string> lines;
     if(do_path_is_file(file_path_)){
       std::string data = toolbox::dump_file_as_string(file_path_);
-      lines = toolbox::split_string(data, "\n");
+      lines = GenericToolbox::splitString(data, "\n");
     }
     return lines;
   }
@@ -1194,7 +1192,8 @@ namespace toolbox{
       if( directory == nullptr ) {
         std::cout << "Failed to open directory : " << folder_path_ << std::endl;
         return files_list;
-      } else {
+      }
+      else {
         struct dirent* entry;
         while ( (entry = readdir(directory)) ) {
           std::string file_candidate = folder_path_ + "/" + std::string(entry->d_name);

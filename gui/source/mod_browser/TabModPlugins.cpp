@@ -28,7 +28,8 @@ TabModPlugins::TabModPlugins()
 	this->frameCounter = -1;
 
 	// Setup the list
-	auto plugin_nros_list = toolbox::get_list_of_entries_in_folder(GlobalObjects::get_mod_browser().get_current_directory() + "/.plugins");
+	auto plugin_nros_list = toolbox::get_list_of_entries_in_folder(
+      GlobalObjects::getModBrowser().get_current_directory() + "/.plugins");
 	plugin_nros_list.erase(std::remove_if(plugin_nros_list.begin(), plugin_nros_list.end(), [this](std::string &x) {
 							   return get_extension(x) != ".smm"; // put your condition here
 						   }),
@@ -36,7 +37,8 @@ TabModPlugins::TabModPlugins()
 	for (int i_nro = 0; i_nro < int(plugin_nros_list.size()); i_nro++)
 	{
 		std::string selected_plugin = remove_extension(plugin_nros_list[i_nro]);
-		std::string selected_plugin_path = GlobalObjects::get_mod_browser().get_current_directory() + "/.plugins/" + plugin_nros_list[i_nro];
+		std::string selected_plugin_path =
+        GlobalObjects::getModBrowser().get_current_directory() + "/.plugins/" + plugin_nros_list[i_nro];
 		std::string selected_plugin_author;
 		std::string selected_plugin_version;
 		LogDebug("Adding plugin: %s", selected_plugin.c_str());
@@ -110,7 +112,7 @@ TabModPlugins::TabModPlugins()
 	{
 
 		auto *emptyListLabel = new brls::ListItem(
-			"No plugins have been found in " + GlobalObjects::get_mod_browser().get_current_directory() + "/.plugins",
+        "No plugins have been found in " + GlobalObjects::getModBrowser().get_current_directory() + "/.plugins",
 			"There you need to put your plugins such as: ./<name-of-the-plugin>.smm");
 		emptyListLabel->show([]() {}, false);
 		this->addView(emptyListLabel);

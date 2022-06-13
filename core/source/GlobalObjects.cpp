@@ -11,7 +11,7 @@ namespace GlobalObjects{
   std::string _version_str_ = "v" + toolbox::get_app_version();
   PadState gPad{};
 
-  mod_browser &get_mod_browser() {
+  mod_browser &getModBrowser() {
     return _mod_browser_;
   }
 

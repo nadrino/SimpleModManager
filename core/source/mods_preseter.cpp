@@ -67,7 +67,7 @@ void mods_preseter::read_parameter_file(std::string mod_folder_) {
   for(auto &line : lines){
     if(line[0] == '#') continue;
 
-    auto line_elements = toolbox::split_string(line, "=");
+    auto line_elements = GenericToolbox::splitString(line, "=");
     if(line_elements.size() != 2) continue;
 
     // clean up for extra spaces characters
@@ -204,7 +204,7 @@ void mods_preseter::delete_mod_preset(std::string preset_name_){
 }
 void mods_preseter::edit_preset(std::string preset_name_, std::vector<std::string> selected_mods_list_) {
 
-  std::vector<std::string> mods_list = toolbox::get_list_of_subfolders_in_folder(_mod_folder_);
+  std::vector<std::string> mods_list = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(_mod_folder_);
   std::sort(mods_list.begin(), mods_list.end());
   selector sel;
   sel.set_selection_list(mods_list);
@@ -325,7 +325,7 @@ void mods_preseter::show_conflicted_files(std::string &preset_name_) {
     consoleUpdate(nullptr);
 
     std::string mod_folder_path = _mod_folder_ + "/" + _data_handler_[preset_name_][i_entry];
-    auto mod_files_path_list = toolbox::get_list_files_in_subfolders(mod_folder_path);
+    auto mod_files_path_list = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(mod_folder_path);
     for(auto& mod_file_path: mod_files_path_list){
       std::string mod_file_full_path = mod_folder_path + "/" + mod_file_path;
       files_size_map[mod_file_path] = toolbox::get_file_size(mod_file_full_path); // will overwrite when conflict
@@ -412,9 +412,9 @@ std::map<std::string, std::vector<std::string>> mods_preseter::get_conflicts_wit
   std::string mod_folder_path = _mod_folder_ + "/" + mod_name_;
   toolbox::print_left(" > Getting list of files for " + mod_name_, toolbox::magenta_bg);
   consoleUpdate(nullptr);
-  auto mod_files_path_list = toolbox::get_list_files_in_subfolders(mod_folder_path);
+  auto mod_files_path_list = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(mod_folder_path);
 
-  auto other_mods_list = toolbox::get_list_of_subfolders_in_folder(_mod_folder_);
+  auto other_mods_list = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(_mod_folder_);
 
   for(auto& other_mod_name: other_mods_list){
 
@@ -425,7 +425,7 @@ std::map<std::string, std::vector<std::string>> mods_preseter::get_conflicts_wit
     std::string other_mod_folder_path = _mod_folder_ + "/" + other_mod_name;
     toolbox::print_left(" > Scanning conflicts with " + other_mod_name, toolbox::magenta_bg);
     consoleUpdate(nullptr);
-    auto other_mod_files_path_list = toolbox::get_list_files_in_subfolders(other_mod_folder_path);
+    auto other_mod_files_path_list = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(other_mod_folder_path);
     for(auto& other_mod_file_path: other_mod_files_path_list){
       if(toolbox::do_string_in_vector(other_mod_file_path, mod_files_path_list)){
         // if the two files are the same, no need to consider them as conflict

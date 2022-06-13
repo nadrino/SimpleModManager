@@ -23,9 +23,9 @@ PopupApplyMod::PopupApplyMod(std::string text) : Dialog(text) {
 void PopupApplyMod::start_applying() {
 
   _apply_mod_thread_ = std::async(std::launch::async, [this](){
-    GlobalObjects::get_mod_browser().get_mod_manager().apply_mod(this->_mod_name_, true);
+    GlobalObjects::getModBrowser().get_mod_manager().apply_mod(this->_mod_name_, true);
     if(this->_mod_item_ != nullptr){
-      this->_mod_item_->setValue(GlobalObjects::get_mod_browser().get_mod_manager().get_mod_status(this->_mod_name_));
+      this->_mod_item_->setValue(GlobalObjects::getModBrowser().get_mod_manager().get_mod_status(this->_mod_name_));
     }
 
     this->close();

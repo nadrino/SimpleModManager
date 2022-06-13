@@ -18,9 +18,9 @@ public:
   static std::vector<std::string> _ignored_file_list_;
 
   static void applyMod(std::string &modName_, bool force_= false);
-  static void remove_mod(std::string &modName_);
-  static void remove_all_mods(bool force_ = false);
-  static void check_all_mods();
+  static void removeMod(std::string &modName_);
+  static void removeAllMods(bool force_ = false);
+  static void checkAllMods();
   static std::string getModStatus(const std::string &modName_);
   static void apply_mods_list(std::vector<std::string>& modsList_);
 

@@ -27,10 +27,10 @@ void TabModOptions::buildFolderInstallPresetItem() {
   _itemFolderInstallPreset_->setValue(_inheritedTitle_);
 
   // Find the current selection
-  std::string folderConfigFilePath = GlobalObjects::get_mod_browser().get_current_directory() + "/this_folder_config.txt";
+  std::string folderConfigFilePath = GlobalObjects::getModBrowser().get_current_directory() + "/this_folder_config.txt";
   if(toolbox::do_path_is_file(folderConfigFilePath)){
-    _preSelection_ = 1 + GlobalObjects::get_mod_browser().get_parameters_handler().get_current_config_preset_id();
-    _itemFolderInstallPreset_->setValue(GlobalObjects::get_mod_browser().get_parameters_handler().get_current_config_preset_name());
+    _preSelection_ = 1 + GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_id();
+    _itemFolderInstallPreset_->setValue(GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name());
   }
 
   // On click : show scrolling up menu
@@ -39,7 +39,7 @@ void TabModOptions::buildFolderInstallPresetItem() {
     // build the choice list
     std::vector<std::string> config_presets_list;
     config_presets_list.emplace_back(this->_inheritedTitle_);
-    for(const auto& preset_name: GlobalObjects::get_mod_browser().get_parameters_handler().get_presets_list()){
+    for(const auto& preset_name: GlobalObjects::getModBrowser().get_parameters_handler().get_presets_list()){
       config_presets_list.emplace_back(preset_name);
     }
 
@@ -56,30 +56,31 @@ void TabModOptions::buildFolderInstallPresetItem() {
       this->_preSelection_ = result;
 
       // overwriting
-      std::string this_folder_config_file_path = GlobalObjects::get_mod_browser().get_current_directory() + "/this_folder_config.txt";
+      std::string this_folder_config_file_path =
+          GlobalObjects::getModBrowser().get_current_directory() + "/this_folder_config.txt";
       toolbox::delete_file(this_folder_config_file_path);
       if(result > 0){
         // then a preset has been specified
         toolbox::dump_string_in_file(
-          GlobalObjects::get_mod_browser().get_parameters_handler().get_presets_list()[result-1],
+            GlobalObjects::getModBrowser().get_parameters_handler().get_presets_list()[result - 1],
           this_folder_config_file_path
         );
-        GlobalObjects::get_mod_browser().change_config_preset(
-          GlobalObjects::get_mod_browser().get_parameters_handler().get_presets_list()[result-1]
+        GlobalObjects::getModBrowser().change_config_preset(
+            GlobalObjects::getModBrowser().get_parameters_handler().get_presets_list()[result - 1]
         );
-        this->_itemFolderInstallPreset_->setValue(GlobalObjects::get_mod_browser().get_parameters_handler().get_current_config_preset_name());
+        this->_itemFolderInstallPreset_->setValue(GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name());
       }
       else{
         // restore the config preset from the main menu
-        GlobalObjects::get_mod_browser().change_config_preset(
-          GlobalObjects::get_mod_browser().get_main_config_preset()
+        GlobalObjects::getModBrowser().change_config_preset(
+            GlobalObjects::getModBrowser().get_main_config_preset()
         );
         this->_itemFolderInstallPreset_->setValue(_inheritedTitle_);
       }
 
       if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
         GuiModManager::setOnCallBackFunction([](){brls::Application::popView(brls::ViewAnimation::FADE);});
-        GlobalObjects::get_mod_browser().get_mod_manager().reset_all_mods_cache_status();
+        GlobalObjects::getModBrowser().get_mod_manager().reset_all_mods_cache_status();
 //        ext_GlobalObjects::getCurrentTabModBrowserPtr()->refreshModsStatus();
       }
 
@@ -113,7 +114,7 @@ void TabModOptions::buildResetModsCacheItem() {
     dialog->addButton("Yes", [this, dialog](brls::View* view) {
       if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
         GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
-        GlobalObjects::get_mod_browser().get_mod_manager().reset_all_mods_cache_status();
+        GlobalObjects::getModBrowser().get_mod_manager().reset_all_mods_cache_status();
         ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_check_all_mods();
 //        ext_GlobalObjects::getCurrentTabModBrowserPtr()->refreshModsStatus();
       }

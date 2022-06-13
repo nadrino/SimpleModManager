@@ -13,8 +13,8 @@ public:
   TabGames();
 
 private:
-  std::vector<brls::ListItem*> _games_list_;
-  std::vector<int> _nb_mods_list_;
+  std::vector<brls::ListItem*> _gamesList_;
+  std::vector<int> _nbModsPerGameList_;
 
 };
 

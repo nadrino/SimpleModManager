@@ -8,7 +8,15 @@
 #include <TabGeneralSettings.h>
 #include <TabAbout.h>
 
+#include "GenericToolbox.h"
+#include "Logger.h"
+
+LoggerInit([]{
+  Logger::setUserHeaderStr("[FrameRoot]");
+});
+
 FrameRoot::FrameRoot() {
+  LogInfo << __METHOD_NAME__ << std::endl;
 
   this->setTitle("SimpleModManager");
   this->setFooterText(GlobalObjects::_version_str_);
@@ -18,6 +26,7 @@ FrameRoot::FrameRoot() {
   this->addTab("Settings", new TabGeneralSettings());
   this->addTab("About", new TabAbout());
 
+  LogInfo << __METHOD_NAME__ << std::endl;
 }
 
 bool FrameRoot::onCancel() {

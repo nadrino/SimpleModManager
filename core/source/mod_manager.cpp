@@ -88,7 +88,7 @@ void mod_manager::load_mods_status_cache_file() {
 
     auto lines = toolbox::dump_file_as_vector_string(cache_file_path);
     for(int i_line = 0 ; i_line < int(lines.size()) ; i_line++){
-      auto line_elements = toolbox::split_string(lines[i_line], "=");
+      auto line_elements = GenericToolbox::splitString(lines[i_line], "=");
       if(line_elements.size() < 2) continue; // useless entry
 
       int index_mod_name = 0;
@@ -164,13 +164,13 @@ std::string mod_manager::get_mod_status(std::string mod_name_){
   consoleUpdate(nullptr);
   std::vector<std::string> relative_file_path_list;
 //  if(_relative_file_path_list_cache_[mod_name_].empty()){
-//    relative_file_path_list = toolbox::get_list_files_in_subfolders(absolute_mod_folder_path);
+//    relative_file_path_list = GenericToolbox::getListFilesInSubfolders(absolute_mod_folder_path);
 //    _relative_file_path_list_cache_[mod_name_] = relative_file_path_list;
 //  } else{
 //    relative_file_path_list = _relative_file_path_list_cache_[mod_name_];
 //  }
 
-  relative_file_path_list = toolbox::get_list_files_in_subfolders(absolute_mod_folder_path);
+  relative_file_path_list = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(absolute_mod_folder_path);
 
   int total_files_count = relative_file_path_list.size();
   toolbox::reset_last_displayed_value();
@@ -212,13 +212,13 @@ void mod_manager::apply_mod(std::string mod_name_, bool force_) {
   toolbox::print_left("   Getting files list...", toolbox::green_bg, true);
 
 //  if(_relative_file_path_list_cache_[mod_name_].empty()){
-//    relative_file_path_list = toolbox::get_list_files_in_subfolders(absolute_mod_folder_path);
+//    relative_file_path_list = GenericToolbox::getListFilesInSubfolders(absolute_mod_folder_path);
 //    _relative_file_path_list_cache_[mod_name_] = relative_file_path_list;
 //  } else {
 //    relative_file_path_list = _relative_file_path_list_cache_[mod_name_];
 //  }
 
-  relative_file_path_list = toolbox::get_list_files_in_subfolders(absolute_mod_folder_path);
+  relative_file_path_list = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(absolute_mod_folder_path);
 
   // deleting ignored entries
   for(int i_mod = int(relative_file_path_list.size())-1 ; i_mod >= 0 ; i_mod--){
@@ -280,7 +280,7 @@ void mod_manager::apply_mod_list(std::vector<std::string> &mod_names_list_){
   std::vector<std::vector<std::string>> mods_ignored_files_list(mod_names_list_.size());
   for(int i_mod = int(mod_names_list_.size())-1 ; i_mod >= 0 ; i_mod--){
     std::string mod_path = _current_mods_folder_path_ + "/" + mod_names_list_[i_mod];
-    auto mod_files_list = toolbox::get_list_files_in_subfolders(mod_path);
+    auto mod_files_list = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(mod_path);
     for(auto& mod_file : mod_files_list){
       if(toolbox::do_string_in_vector(mod_file, applied_files_listing)){
         mods_ignored_files_list[i_mod].emplace_back(mod_file);
@@ -306,7 +306,7 @@ void mod_manager::remove_mod(std::string mod_name_){
 
   std::vector<std::string> relative_file_path_list;
 
-  relative_file_path_list = toolbox::get_list_files_in_subfolders(absolute_mod_folder_path);
+  relative_file_path_list = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(absolute_mod_folder_path);
 
   int i_file=0;
   toolbox::reset_last_displayed_value();
@@ -338,11 +338,11 @@ void mod_manager::remove_mod(std::string mod_name_){
 
         toolbox::delete_directory(empty_folder_path_candidate);
 
-        std::vector<std::string> sub_folder_list = toolbox::split_string(empty_folder_path_candidate, "/");
+        std::vector<std::string> sub_folder_list = GenericToolbox::splitString(empty_folder_path_candidate, "/");
         if(sub_folder_list.empty()) break; // virtually impossible -> would mean everything has been deleted on the sd
         // decrement folder depth
         empty_folder_path_candidate =
-          "/" + toolbox::join_vector_string(
+          "/" + GenericToolbox::joinVectorString(
             sub_folder_list,
             "/",
             0,
@@ -361,7 +361,7 @@ void mod_manager::display_mod_files_status(std::string mod_folder_path_){
   toolbox::print_left("Listing Files...", toolbox::red_bg);
   consoleUpdate(nullptr);
 
-  file_path_list = toolbox::get_list_files_in_subfolders(mod_folder_path_);
+  file_path_list = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(mod_folder_path_);
   selector sel;
   sel.set_selection_list(file_path_list);
   toolbox::print_left("Checking Files...", toolbox::red_bg);
