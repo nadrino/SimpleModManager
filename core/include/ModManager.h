@@ -5,18 +5,18 @@
 #ifndef MODAPPLIER_MOD_MANAGER_H
 #define MODAPPLIER_MOD_MANAGER_H
 
-#include <parameters_handler.h>
+#include <ParametersHandler.h>
 
 #include <vector>
 #include <string>
 #include <map>
 
-class mod_manager {
+class ModManager {
 
 public:
 
-  mod_manager();
-  ~mod_manager();
+  ModManager();
+  ~ModManager();
 
   void initialize();
   void reset();
@@ -31,9 +31,9 @@ public:
   std::map<std::string, std::string> & get_mods_status_cache();
   bool isUseCacheOnlyForStatusCheck();
   std::map<std::string, double> &getModsStatusCacheFraction();
-  parameters_handler *getParametersHandlerPtr();
+  ParametersHandler *getParametersHandlerPtr();
 
-  void set_parameters_handler_ptr(parameters_handler *parameters_handler_ptr_);
+  void set_parameters_handler_ptr(ParametersHandler *parameters_handler_ptr_);
   void set_current_mods_folder(std::string folder_path_);
   void load_mods_status_cache_file();
   void save_mods_status_cache_file();
@@ -64,7 +64,7 @@ private:
   std::map<std::string, std::string> _mods_status_cache_;
   std::map<std::string, double> _mods_status_cache_fraction_;
 
-  parameters_handler* _parameters_handler_ptr_;
+  ParametersHandler* _parameters_handler_ptr_;
 
 
 

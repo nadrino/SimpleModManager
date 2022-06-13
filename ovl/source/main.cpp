@@ -1,6 +1,6 @@
 #define TESLA_INIT_IMPL // If you have more than one file using the tesla header, only define this in the main one
 #include <tesla.hpp>    // The Tesla Header
-#include <toolbox.h>
+#include <Toolbox.h>
 
 #include <GlobalObjects.h>
 #include <GameBrowserGui.h>
@@ -12,7 +12,7 @@ public:
   // libtesla already initialized fs, hid, pl, pmdmnt, hid:sys and set:sys
   void initServices() override {
 
-    toolbox::enableEmbeddedSwitchFS();
+    Toolbox::enableEmbeddedSwitchFS();
 
     GlobalObjects::getModBrowser().set_only_show_folders(true);
     GlobalObjects::getModBrowser().set_max_relative_depth(1);
@@ -24,7 +24,7 @@ public:
   }  // Called at the start_apply_mod to initialize all services necessary for this Overlay
   void exitServices() override {
 
-    toolbox::disableEmbeddedSwitchFS();
+    Toolbox::disableEmbeddedSwitchFS();
 
   }  // Callet at the end to clean up all services previously initialized
 

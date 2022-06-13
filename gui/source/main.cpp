@@ -1,5 +1,5 @@
 #include <GlobalObjects.h>
-#include <toolbox.h>
+#include <Toolbox.h>
 
 #include "Logger.h"
 
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]){
 //  const auto username = config["username"].as<std::string>();
 //  const auto password = config["password"].as<std::string>();
 
-  toolbox::enableEmbeddedSwitchFS();
+  Toolbox::enableEmbeddedSwitchFS();
 
   int max_depth = 1; // could be a parameter in the future
   GlobalObjects::getModBrowser().set_only_show_folders(true);
@@ -46,7 +46,7 @@ int main(int argc, char* argv[]){
     runConsole();
   }
 
-  toolbox::disableEmbeddedSwitchFS();
+  Toolbox::disableEmbeddedSwitchFS();
 
   // Exit
   return EXIT_SUCCESS;
@@ -98,22 +98,22 @@ void runConsole(){
   int this_version = std::stoi(
       GenericToolbox::joinVectorString(
           GenericToolbox::splitString(
-              toolbox::get_app_version()
-              ,"."),
+              Toolbox::get_app_version()
+              , "."),
           ""
       )
   );
   if(lastVersion != this_version){
-    toolbox::print_left("");
-    toolbox::print_left("Welcome in SimpleModManager v" + toolbox::get_app_version(), toolbox::green_bg);
-    toolbox::print_left("");
-    toolbox::print_left("");
-    toolbox::print_left("");
-    toolbox::print_left("");
-    toolbox::print_left(" > The application have successfully been upgraded.");
-    toolbox::print_left("");
-    toolbox::print_left("");
-    toolbox::ask_question("To continue, press A.", {"Ok"});
+    GenericToolbox::Switch::Printout::printLeft("");
+    GenericToolbox::Switch::Printout::printLeft("Welcome in SimpleModManager v" + Toolbox::get_app_version(), Toolbox::green_bg);
+    GenericToolbox::Switch::Printout::printLeft("");
+    GenericToolbox::Switch::Printout::printLeft("");
+    GenericToolbox::Switch::Printout::printLeft("");
+    GenericToolbox::Switch::Printout::printLeft("");
+    GenericToolbox::Switch::Printout::printLeft(" > The application have successfully been upgraded.");
+    GenericToolbox::Switch::Printout::printLeft("");
+    GenericToolbox::Switch::Printout::printLeft("");
+    Toolbox::ask_question("To continue, press A.", {"Ok"});
   }
 
   GlobalObjects::getModBrowser().print_menu();

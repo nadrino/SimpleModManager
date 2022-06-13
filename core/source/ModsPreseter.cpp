@@ -2,31 +2,30 @@
 // Created by Nadrino on 13/02/2020.
 //
 
-#include <toolbox.h>
-#include <mods_preseter.h>
-#include <selector.h>
+#include <Toolbox.h>
+#include <ModsPreseter.h>
+#include <Selector.h>
 #include "GlobalObjects.h"
 
 #include "GenericToolbox.Switch.h"
 
 #include <switch.h>
 
-#include <fstream>
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
 
-mods_preseter::mods_preseter() {
+ModsPreseter::ModsPreseter() {
   reset();
 }
-mods_preseter::~mods_preseter() {
+ModsPreseter::~ModsPreseter() {
   reset();
 }
 
-void mods_preseter::initialize() {
+void ModsPreseter::initialize() {
 
 }
-void mods_preseter::reset() {
+void ModsPreseter::reset() {
 
   _selected_mod_preset_index_ = -1;
   _mod_folder_ = "";
@@ -36,24 +35,24 @@ void mods_preseter::reset() {
 
 }
 
-int mods_preseter::get_selected_mod_preset_index(){
+int ModsPreseter::get_selected_mod_preset_index(){
   return _selected_mod_preset_index_;
 }
-std::string mods_preseter::get_selected_mod_preset(){
+std::string ModsPreseter::get_selected_mod_preset(){
   if(_selected_mod_preset_index_ >= 0 and _selected_mod_preset_index_ < int(_presets_list_.size())){
     return _presets_list_[_selected_mod_preset_index_];
   } else{
     return "";
   }
 }
-std::vector<std::string> mods_preseter::get_mods_list(std::string preset_) {
+std::vector<std::string> ModsPreseter::get_mods_list(std::string preset_) {
   return _data_handler_[preset_];
 }
-std::vector<std::string>& mods_preseter::get_presets_list(){
+std::vector<std::string>& ModsPreseter::get_presets_list(){
   return _presets_list_;
 }
 
-void mods_preseter::read_parameter_file(std::string mod_folder_) {
+void ModsPreseter::read_parameter_file(std::string mod_folder_) {
 
   if(mod_folder_.empty()) mod_folder_ = _mod_folder_;
 
@@ -94,7 +93,7 @@ void mods_preseter::read_parameter_file(std::string mod_folder_) {
   fill_selector();
 
 }
-void mods_preseter::recreate_preset_file() {
+void ModsPreseter::recreate_preset_file() {
 
   std::stringstream ss;
 
@@ -119,7 +118,7 @@ void mods_preseter::recreate_preset_file() {
   GenericToolbox::dumpStringInFile(data, _preset_file_path_);
 
 }
-void mods_preseter::select_mod_preset() {
+void ModsPreseter::select_mod_preset() {
 
   fill_selector();
 
@@ -138,7 +137,7 @@ void mods_preseter::select_mod_preset() {
       return;
     }
     else if(kDown & HidNpadButton_X and not _presets_list_.empty()){
-      std::string answer = toolbox::ask_question(
+      std::string answer = Toolbox::ask_question(
         "Are you sure you want to remove this preset ?",
         std::vector<std::string>({"Yes", "No"})
       );
@@ -161,23 +160,23 @@ void mods_preseter::select_mod_preset() {
     if(kDown != 0 or kHeld != 0 or is_first_loop){
       is_first_loop = false;
       consoleClear();
-      toolbox::print_right("SimpleModManager v"+toolbox::get_app_version());
-      std::cout << toolbox::red_bg << std::setw(toolbox::get_terminal_width()) << std::left;
-      std::cout << "Select mod preset" << toolbox::reset_color;
-      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
+      GenericToolbox::Switch::Printout::printRight("SimpleModManager v" + Toolbox::get_app_version());
+      std::cout << Toolbox::red_bg << std::setw(GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::left;
+      std::cout << "Select mod preset" << Toolbox::reset_color;
+      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       _selector_.print_selector();
-      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
-      toolbox::print_left("  Page (" + std::to_string(_selector_.get_current_page() + 1) + "/" + std::to_string(_selector_.get_nb_pages()) + ")");
-      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
-      toolbox::print_left_right(" A : Select mod preset", " X : Delete mod preset ");
-      toolbox::print_left_right(" Y : Edit preset", "+ : Create a preset ");
-      toolbox::print_left(" B : Go back");
+      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
+      GenericToolbox::Switch::Printout::printLeft("  Page (" + std::to_string(_selector_.get_current_page() + 1) + "/" + std::to_string(_selector_.get_nb_pages()) + ")");
+      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
+      GenericToolbox::Switch::Printout::printLeftRight(" A : Select mod preset", " X : Delete mod preset ");
+      GenericToolbox::Switch::Printout::printLeftRight(" Y : Edit preset", "+ : Create a preset ");
+      GenericToolbox::Switch::Printout::printLeft(" B : Go back");
       consoleUpdate(nullptr);
     }
 
   }
 }
-void mods_preseter::create_new_preset(){
+void ModsPreseter::create_new_preset(){
 
   int preset_id = 1;
   std::string default_preset_name;
@@ -190,7 +189,7 @@ void mods_preseter::create_new_preset(){
   edit_preset(default_preset_name, selected_mods_list);
 
 }
-void mods_preseter::delete_mod_preset(std::string preset_name_){
+void ModsPreseter::delete_mod_preset(std::string preset_name_){
 
   int itemToDeleteIndex = _selector_.get_entry(preset_name_);
   if(itemToDeleteIndex == -1) return;
@@ -202,11 +201,11 @@ void mods_preseter::delete_mod_preset(std::string preset_name_){
   read_parameter_file(_mod_folder_);
 
 }
-void mods_preseter::edit_preset(std::string preset_name_, std::vector<std::string> selected_mods_list_) {
+void ModsPreseter::edit_preset(std::string preset_name_, std::vector<std::string> selected_mods_list_) {
 
   std::vector<std::string> mods_list = GenericToolbox::getListOfFilesInSubFolders(_mod_folder_);
   std::sort(mods_list.begin(), mods_list.end());
-  selector sel;
+  Selector sel;
   sel.set_selection_list(mods_list);
 
   for(int i_entry = 0 ; i_entry < int(selected_mods_list_.size()) ; i_entry++){
@@ -269,15 +268,15 @@ void mods_preseter::edit_preset(std::string preset_name_, std::vector<std::strin
 
     if(kDown != 0 or kHeld != 0 or is_first_loop){
       consoleClear();
-      toolbox::print_right("SimpleModManager v"+toolbox::get_app_version());
-      std::cout << toolbox::red_bg << std::setw(toolbox::get_terminal_width()) << std::left;
+      GenericToolbox::Switch::Printout::printRight("SimpleModManager v" + Toolbox::get_app_version());
+      std::cout << Toolbox::red_bg << std::setw(GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::left;
       std::string header_title = "Creating preset : " + preset_name_ + ". Select the mods you want.";
-      std::cout << header_title << toolbox::reset_color;
-      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
+      std::cout << header_title << Toolbox::reset_color;
+      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       sel.print_selector();
-      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
-      toolbox::print_left_right(" A : Add mod", "X : Cancel mod ");
-      toolbox::print_left_right(" + : SAVE", "B : Abort / Go back ");
+      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
+      GenericToolbox::Switch::Printout::printLeftRight(" A : Add mod", "X : Cancel mod ");
+      GenericToolbox::Switch::Printout::printLeftRight(" + : SAVE", "B : Abort / Go back ");
       consoleUpdate(nullptr);
     }
   }
@@ -296,7 +295,7 @@ void mods_preseter::edit_preset(std::string preset_name_, std::vector<std::strin
   }
 
 
-  preset_name_ = toolbox::get_user_string(preset_name_);
+  preset_name_ = Toolbox::get_user_string(preset_name_);
   _presets_list_[preset_index] = preset_name_;
 
   for(int i_entry = 0 ; i_entry < int(selected_mods_list_.size()) ; i_entry++){
@@ -308,11 +307,11 @@ void mods_preseter::edit_preset(std::string preset_name_, std::vector<std::strin
 
 
 }
-void mods_preseter::show_conflicted_files(std::string &preset_name_) {
+void ModsPreseter::show_conflicted_files(std::string &preset_name_) {
 
   consoleClear();
 
-  toolbox::print_left("Scanning preset files...", toolbox::magenta_bg);
+  GenericToolbox::Switch::Printout::printLeft("Scanning preset files...", Toolbox::magenta_bg);
   consoleUpdate(nullptr);
 
   std::vector<std::string> complete_files_list;
@@ -321,14 +320,14 @@ void mods_preseter::show_conflicted_files(std::string &preset_name_) {
 
   for(int i_entry = 0 ; i_entry < int(_data_handler_[preset_name_].size()) ; i_entry++){
 
-    toolbox::print_left(" > Getting files for the mod: " + _data_handler_[preset_name_][i_entry], toolbox::magenta_bg);
+    GenericToolbox::Switch::Printout::printLeft(" > Getting files for the mod: " + _data_handler_[preset_name_][i_entry], Toolbox::magenta_bg);
     consoleUpdate(nullptr);
 
     std::string mod_folder_path = _mod_folder_ + "/" + _data_handler_[preset_name_][i_entry];
     auto mod_files_path_list = GenericToolbox::getListOfFilesInSubFolders(mod_folder_path);
     for(auto& mod_file_path: mod_files_path_list){
       std::string mod_file_full_path = mod_folder_path + "/" + mod_file_path;
-      files_size_map[mod_file_path] = toolbox::get_file_size(mod_file_full_path); // will overwrite when conflict
+      files_size_map[mod_file_path] = Toolbox::get_file_size(mod_file_full_path); // will overwrite when conflict
       if(not GenericToolbox::doesElementIsInVector(mod_file_path,complete_files_list)){
         complete_files_list.emplace_back(mod_file_path);
       }
@@ -343,7 +342,7 @@ void mods_preseter::show_conflicted_files(std::string &preset_name_) {
   for(auto& file_size : files_size_map){
     total_SD_size += file_size.second;
   }
-  std::string total_SD_size_str = toolbox::parse_size_unit(total_SD_size);
+  std::string total_SD_size_str = Toolbox::parse_size_unit(total_SD_size);
 
   std::vector<std::string> sel_conflict_file_list;
   std::vector<std::string> tag_mod_used_list;
@@ -359,10 +358,10 @@ void mods_preseter::show_conflicted_files(std::string &preset_name_) {
   }
 
 
-  selector sel;
+  Selector sel;
   sel.set_selection_list(sel_conflict_file_list);
   sel.set_tags_list(tag_mod_used_list);
-  sel.set_max_items_per_page(toolbox::get_terminal_height()-9);
+  sel.set_max_items_per_page(GenericToolbox::Switch::Hardware::getTerminalHeight() - 9);
 
   // Main loop
   u64 kDown = 1;
@@ -372,17 +371,17 @@ void mods_preseter::show_conflicted_files(std::string &preset_name_) {
 
     if(kDown != 0 or kHeld != 0){
       consoleClear();
-      toolbox::print_right("SimpleModManager v"+toolbox::get_app_version());
-      toolbox::print_left("Conflicted files for the preset \"" + preset_name_ + "\":", toolbox::red_bg);
-      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
+      GenericToolbox::Switch::Printout::printRight("SimpleModManager v" + Toolbox::get_app_version());
+      GenericToolbox::Switch::Printout::printLeft("Conflicted files for the preset \"" + preset_name_ + "\":", Toolbox::red_bg);
+      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       sel.print_selector();
-      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
-      toolbox::print_left("Total size of the preset:" + total_SD_size_str, toolbox::green_bg);
-      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
-      toolbox::print_left("Page (" + std::to_string(sel.get_current_page()+1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
-      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
-      toolbox::print_left(" A : OK");
-      if(sel.get_nb_pages() > 1) toolbox::print_left_right(" <- : Previous Page", "-> : Next Page ");
+      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
+      GenericToolbox::Switch::Printout::printLeft("Total size of the preset:" + total_SD_size_str, Toolbox::green_bg);
+      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
+      GenericToolbox::Switch::Printout::printLeft("Page (" + std::to_string(sel.get_current_page() + 1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
+      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
+      GenericToolbox::Switch::Printout::printLeft(" A : OK");
+      if(sel.get_nb_pages() > 1) GenericToolbox::Switch::Printout::printLeftRight(" <- : Previous Page", "-> : Next Page ");
       consoleUpdate(nullptr);
     }
 
@@ -403,14 +402,14 @@ void mods_preseter::show_conflicted_files(std::string &preset_name_) {
 
 }
 
-std::map<std::string, std::vector<std::string>> mods_preseter::get_conflicts_with_other_mods(const std::string& mod_name_) {
+std::map<std::string, std::vector<std::string>> ModsPreseter::get_conflicts_with_other_mods(const std::string& mod_name_) {
 
-  toolbox::print_left("Searching for conflicts with " + mod_name_, toolbox::magenta_bg);
+  GenericToolbox::Switch::Printout::printLeft("Searching for conflicts with " + mod_name_, Toolbox::magenta_bg);
   consoleUpdate(nullptr);
   std::map<std::string, std::vector<std::string>> conflicts_map;
 
   std::string mod_folder_path = _mod_folder_ + "/" + mod_name_;
-  toolbox::print_left(" > Getting list of files for " + mod_name_, toolbox::magenta_bg);
+  GenericToolbox::Switch::Printout::printLeft(" > Getting list of files for " + mod_name_, Toolbox::magenta_bg);
   consoleUpdate(nullptr);
   auto mod_files_path_list = GenericToolbox::getListOfFilesInSubFolders(mod_folder_path);
 
@@ -423,7 +422,7 @@ std::map<std::string, std::vector<std::string>> mods_preseter::get_conflicts_wit
     conflicts_map[other_mod_name] = std::vector<std::string>();
 
     std::string other_mod_folder_path = _mod_folder_ + "/" + other_mod_name;
-    toolbox::print_left(" > Scanning conflicts with " + other_mod_name, toolbox::magenta_bg);
+    GenericToolbox::Switch::Printout::printLeft(" > Scanning conflicts with " + other_mod_name, Toolbox::magenta_bg);
     consoleUpdate(nullptr);
     auto other_mod_files_path_list = GenericToolbox::getListOfFilesInSubFolders(other_mod_folder_path);
     for(auto& other_mod_file_path: other_mod_files_path_list){
@@ -443,18 +442,18 @@ std::map<std::string, std::vector<std::string>> mods_preseter::get_conflicts_wit
 
 }
 
-void mods_preseter::select_previous_mod_preset(){
+void ModsPreseter::select_previous_mod_preset(){
   if(_selected_mod_preset_index_ == -1) return;
   _selected_mod_preset_index_--;
   if(_selected_mod_preset_index_ < 0) _selected_mod_preset_index_ = int(_presets_list_.size()) - 1;
 }
-void mods_preseter::select_next_mod_preset(){
+void ModsPreseter::select_next_mod_preset(){
   if(_selected_mod_preset_index_ == -1) return;
   _selected_mod_preset_index_++;
   if(_selected_mod_preset_index_ >= int(_presets_list_.size())) _selected_mod_preset_index_ = 0;
 }
 
-void mods_preseter::fill_selector(){
+void ModsPreseter::fill_selector(){
   _selector_.reset();
   if(not _presets_list_.empty()){
     _selector_.set_selection_list(_presets_list_);
@@ -475,10 +474,10 @@ void mods_preseter::fill_selector(){
 
 }
 
-std::map<std::string, std::vector<std::string>> &mods_preseter::get_data_handler() {
+std::map<std::string, std::vector<std::string>> &ModsPreseter::get_data_handler() {
   return _data_handler_;
 }
 
-void mods_preseter::setSelector(selector selector) {
+void ModsPreseter::setSelector(Selector selector) {
   _selector_ = selector;
 }

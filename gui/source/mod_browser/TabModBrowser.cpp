@@ -18,7 +18,7 @@ LoggerInit([]{
 
 TabModBrowser::TabModBrowser() {
 
-  ext_GlobalObjects::setCurrentTabModBrowserPtr(this);
+  GuiGlobalObjects::setCurrentTabModBrowserPtr(this);
 
   this->triggerRecheckAllMods = false;
   this->triggerUpdateModsDisplayedStatus = false;
@@ -33,10 +33,10 @@ TabModBrowser::TabModBrowser() {
       auto* dialog = new brls::Dialog("Do you want to install \"" + selectedMod + "\" ?");
 
       dialog->addButton("Yes", [selectedMod, dialog](brls::View* view) {
-        if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
+        if(GuiGlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
           GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
-          ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selectedMod);
-          ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_apply_mod();
+          GuiGlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selectedMod);
+          GuiGlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_apply_mod();
         }
       });
       dialog->addButton("No", [dialog](brls::View* view) {
@@ -56,10 +56,10 @@ TabModBrowser::TabModBrowser() {
       auto* dialog = new brls::Dialog("Do you want to disable \"" + selectedMod + "\" ?");
 
       dialog->addButton("Yes", [selectedMod, dialog](brls::View* view) {
-        if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
+        if(GuiGlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
           GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
-          ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selectedMod);
-          ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_remove_mod();
+          GuiGlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selectedMod);
+          GuiGlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_remove_mod();
         }
       });
       dialog->addButton("No", [dialog](brls::View* view) {

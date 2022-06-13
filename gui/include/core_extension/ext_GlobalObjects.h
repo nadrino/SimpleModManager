@@ -8,7 +8,7 @@
 #include <TabModBrowser.h>
 #include <FrameModBrowser.h>
 
-namespace ext_GlobalObjects {
+namespace GuiGlobalObjects {
 
 
   void setCurrentTabModBrowserPtr(TabModBrowser* currentTabModBrowserPtr_);

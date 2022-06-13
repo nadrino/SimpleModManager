@@ -2,9 +2,9 @@
 // Created by Nadrino on 06/09/2019.
 //
 
-#include "mod_manager.h"
-#include <toolbox.h>
-#include <mod_browser.h>
+#include "ModManager.h"
+#include <Toolbox.h>
+#include <ModBrowser.h>
 #include "GlobalObjects.h"
 
 #include "GenericToolbox.Switch.h"
@@ -17,27 +17,27 @@
 #include <fstream>
 #include <utility>
 
-mod_manager::mod_manager() {
+ModManager::ModManager() {
 
   _internal_parameters_handler_ = false;
   reset();
 
 }
-mod_manager::~mod_manager(){
+ModManager::~ModManager(){
 
   reset();
 
 }
 
-void mod_manager::initialize() {
+void ModManager::initialize() {
 
   if(_parameters_handler_ptr_ == nullptr){
     _internal_parameters_handler_ = true;
-    _parameters_handler_ptr_ = new parameters_handler();
+    _parameters_handler_ptr_ = new ParametersHandler();
   }
 
 }
-void mod_manager::reset(){
+void ModManager::reset(){
 
   _install_mods_base_folder_ = "/atmosphere/"; // should not be used
   _current_mods_folder_path_ = "";
@@ -49,37 +49,37 @@ void mod_manager::reset(){
 
 }
 
-void mod_manager::set_install_mods_base_folder(std::string install_mods_base_folder_){
+void ModManager::set_install_mods_base_folder(std::string install_mods_base_folder_){
   _install_mods_base_folder_ = std::move(install_mods_base_folder_);
 }
-void mod_manager::set_use_cache_only_for_status_check(bool use_cache_only_for_status_check_){
+void ModManager::set_use_cache_only_for_status_check(bool use_cache_only_for_status_check_){
   _use_cache_only_for_status_check_ = use_cache_only_for_status_check_;
 }
-void mod_manager::set_ignored_file_list(std::vector<std::string>& ignored_file_list_){
+void ModManager::set_ignored_file_list(std::vector<std::string>& ignored_file_list_){
   _ignored_file_list_ = ignored_file_list_;
 }
 
-std::string mod_manager::get_install_mods_base_folder() {
+std::string ModManager::get_install_mods_base_folder() {
   return _install_mods_base_folder_;
 }
-std::string & mod_manager::get_current_mods_folder_path(){
+std::string & ModManager::get_current_mods_folder_path(){
   return _current_mods_folder_path_;
 }
-std::vector<std::string>& mod_manager::get_ignored_file_list(){
+std::vector<std::string>& ModManager::get_ignored_file_list(){
   return _ignored_file_list_;
 }
 
-void mod_manager::set_parameters_handler_ptr(parameters_handler *parameters_handler_ptr_){
+void ModManager::set_parameters_handler_ptr(ParametersHandler *parameters_handler_ptr_){
   _parameters_handler_ptr_ = parameters_handler_ptr_;
 }
-void mod_manager::set_current_mods_folder(std::string folder_path_) {
+void ModManager::set_current_mods_folder(std::string folder_path_) {
   _current_mods_folder_path_ = folder_path_;
 //  _relative_file_path_list_cache_.clear();
   _mods_status_cache_.clear();
   _mods_status_cache_fraction_.clear();
   load_mods_status_cache_file();
 }
-void mod_manager::load_mods_status_cache_file() {
+void ModManager::load_mods_status_cache_file() {
 
   _mods_status_cache_.clear();
   _mods_status_cache_fraction_.clear();
@@ -104,7 +104,7 @@ void mod_manager::load_mods_status_cache_file() {
   }
 
 }
-void mod_manager::save_mods_status_cache_file() {
+void ModManager::save_mods_status_cache_file() {
 
   std::string cache_file_path = _current_mods_folder_path_ + "/mods_status_cache.txt";
   std::string data_string;
@@ -123,11 +123,11 @@ void mod_manager::save_mods_status_cache_file() {
   GenericToolbox::dumpStringInFile(data_string, cache_file_path);
 
 }
-void mod_manager::reset_mod_cache_status(std::string mod_name_){
+void ModManager::reset_mod_cache_status(std::string mod_name_){
   _mods_status_cache_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_] = "";
   _mods_status_cache_fraction_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_] = -1;
 }
-void mod_manager::reset_all_mods_cache_status(){
+void ModManager::reset_all_mods_cache_status(){
 
   GenericToolbox::deleteFile(_current_mods_folder_path_ + "/mods_status_cache.txt");
   load_mods_status_cache_file();
@@ -140,11 +140,11 @@ void mod_manager::reset_all_mods_cache_status(){
 //  }
 }
 
-double mod_manager::get_mod_status_fraction(std::string mod_name_){
+double ModManager::get_mod_status_fraction(std::string mod_name_){
   get_mod_status(mod_name_);
   return _mods_status_cache_fraction_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_];
 }
-std::string mod_manager::get_mod_status(std::string mod_name_){
+std::string ModManager::get_mod_status(std::string mod_name_){
 
   // (XX/XX) Files Applied
   // ACTIVE
@@ -160,7 +160,7 @@ std::string mod_manager::get_mod_status(std::string mod_name_){
 
   int same_files_count = 0;
 
-  toolbox::print_left("   Checking : Listing mod files...", toolbox::magenta_bg, true);
+  GenericToolbox::Switch::Printout::printLeft("   Checking : Listing mod files...", Toolbox::magenta_bg, true);
   consoleUpdate(nullptr);
   std::vector<std::string> relative_file_path_list;
 //  if(_relative_file_path_list_cache_[mod_name_].empty()){
@@ -173,17 +173,17 @@ std::string mod_manager::get_mod_status(std::string mod_name_){
   relative_file_path_list = GenericToolbox::getListOfFilesInSubFolders(absolute_mod_folder_path);
 
   int total_files_count = relative_file_path_list.size();
-  toolbox::reset_last_displayed_value();
+  Toolbox::reset_last_displayed_value();
   for(int i_file = 0 ; i_file < total_files_count ; i_file++){
 
     std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path_list[i_file];
 
-    toolbox::display_loading(
-      i_file, total_files_count,
+    Toolbox::display_loading(
+        i_file, total_files_count,
       "Checking : (" + std::to_string(i_file + 1) + "/" + std::to_string(total_files_count) + ") " +
       GenericToolbox::getFileNameFromFilePath(absolute_file_path),
-      "   ",
-      toolbox::magenta_bg
+        "   ",
+        Toolbox::magenta_bg
       );
 
     if(GenericToolbox::Switch::IO::doFilesAreIdentical(
@@ -203,13 +203,13 @@ std::string mod_manager::get_mod_status(std::string mod_name_){
   return _mods_status_cache_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_];
 
 }
-void mod_manager::apply_mod(std::string mod_name_, bool force_) {
+void ModManager::apply_mod(std::string mod_name_, bool force_) {
 
-  toolbox::print_left("Applying : " + mod_name_ + "...", toolbox::green_bg);
+  GenericToolbox::Switch::Printout::printLeft("Applying : " + mod_name_ + "...", Toolbox::green_bg);
   std::string absolute_mod_folder_path = _current_mods_folder_path_ + "/" + mod_name_;
 
   std::vector<std::string> relative_file_path_list;
-  toolbox::print_left("   Getting files list...", toolbox::green_bg, true);
+  GenericToolbox::Switch::Printout::printLeft("   Getting files list...", Toolbox::green_bg, true);
 
 //  if(_relative_file_path_list_cache_[mod_name_].empty()){
 //    relative_file_path_list = GenericToolbox::getListFilesInSubfolders(absolute_mod_folder_path);
@@ -232,7 +232,7 @@ void mod_manager::apply_mod(std::string mod_name_, bool force_) {
   bool is_conflict;
   std::stringstream ss_files_list;
 
-  toolbox::reset_last_displayed_value();
+  Toolbox::reset_last_displayed_value();
   for(int i_file = 0 ; i_file < int(relative_file_path_list.size()) ; i_file++){
 
     if(relative_file_path_list[i_file][0] == '.'){
@@ -240,14 +240,14 @@ void mod_manager::apply_mod(std::string mod_name_, bool force_) {
       continue;
     }
     std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path_list[i_file];
-    std::string file_size = toolbox::get_file_size_string(absolute_file_path);
+    std::string file_size = Toolbox::get_file_size_string(absolute_file_path);
 
-    toolbox::display_loading(
-      i_file, int(relative_file_path_list.size()),
+    Toolbox::display_loading(
+        i_file, int(relative_file_path_list.size()),
       "(" + std::to_string(i_file + 1) + "/" + std::to_string(relative_file_path_list.size()) + ") " +
       GenericToolbox::getFileNameFromFilePath(relative_file_path_list[i_file]) + " (" + file_size + ")",
-      "   ",
-      toolbox::green_bg);
+        "   ",
+        Toolbox::green_bg);
 
     std::string install_path = _install_mods_base_folder_ + "/" + relative_file_path_list[i_file];
     if(GenericToolbox::doesPathIsFile(install_path)) {
@@ -273,7 +273,7 @@ void mod_manager::apply_mod(std::string mod_name_, bool force_) {
   reset_mod_cache_status(mod_name_);
 
 }
-void mod_manager::apply_mod_list(std::vector<std::string> &mod_names_list_){
+void ModManager::apply_mod_list(std::vector<std::string> &mod_names_list_){
 
   // checking for overwritten files in advance
   std::vector<std::string> applied_files_listing;
@@ -299,9 +299,9 @@ void mod_manager::apply_mod_list(std::vector<std::string> &mod_names_list_){
   }
 
 }
-void mod_manager::remove_mod(std::string mod_name_){
+void ModManager::remove_mod(std::string mod_name_){
 
-  toolbox::print_left("Disabling : " + mod_name_, toolbox::red_bg);
+  GenericToolbox::Switch::Printout::printLeft("Disabling : " + mod_name_, Toolbox::red_bg);
   std::string absolute_mod_folder_path = _current_mods_folder_path_ + "/" + mod_name_;
 
   std::vector<std::string> relative_file_path_list;
@@ -309,19 +309,19 @@ void mod_manager::remove_mod(std::string mod_name_){
   relative_file_path_list = GenericToolbox::getListOfFilesInSubFolders(absolute_mod_folder_path);
 
   int i_file=0;
-  toolbox::reset_last_displayed_value();
+  Toolbox::reset_last_displayed_value();
   for(auto &relative_file_path : relative_file_path_list){
 
     i_file++;
     std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path;
     absolute_file_path = GenericToolbox::removeRepeatedCharacters(absolute_file_path, "/");
-    std::string file_size = toolbox::get_file_size_string(absolute_file_path);
+    std::string file_size = Toolbox::get_file_size_string(absolute_file_path);
 
-    toolbox::display_loading(
-      i_file, relative_file_path_list.size(),
+    Toolbox::display_loading(
+        i_file, relative_file_path_list.size(),
       GenericToolbox::getFileNameFromFilePath(relative_file_path) + " (" + file_size + ")",
-      "   ",
-      toolbox::red_bg
+        "   ",
+        Toolbox::red_bg
       );
 
     std::string installed_file_path = _install_mods_base_folder_ + "/" + relative_file_path;
@@ -355,26 +355,26 @@ void mod_manager::remove_mod(std::string mod_name_){
 
 }
 
-void mod_manager::display_mod_files_status(std::string mod_folder_path_){
+void ModManager::display_mod_files_status(std::string mod_folder_path_){
 
   std::vector<std::string> file_path_list;
-  toolbox::print_left("Listing Files...", toolbox::red_bg);
+  GenericToolbox::Switch::Printout::printLeft("Listing Files...", Toolbox::red_bg);
   consoleUpdate(nullptr);
 
   file_path_list = GenericToolbox::getListOfFilesInSubFolders(mod_folder_path_);
-  selector sel;
+  Selector sel;
   sel.set_selection_list(file_path_list);
-  toolbox::print_left("Checking Files...", toolbox::red_bg);
+  GenericToolbox::Switch::Printout::printLeft("Checking Files...", Toolbox::red_bg);
   consoleUpdate(nullptr);
-  toolbox::reset_last_displayed_value();
+  Toolbox::reset_last_displayed_value();
   for(int i_file = 0 ; i_file < int(file_path_list.size()) ; i_file++){
 
-    toolbox::display_loading(
-      i_file, file_path_list.size(),
+    Toolbox::display_loading(
+        i_file, file_path_list.size(),
       "(" + std::to_string(i_file + 1) + "/" + std::to_string(file_path_list.size()) + ") " +
       GenericToolbox::getFileNameFromFilePath(file_path_list[i_file]),
-      "   ",
-      toolbox::red_bg
+        "   ",
+        Toolbox::red_bg
       );
 
     std::string installed_file_path = _install_mods_base_folder_ + "/" + file_path_list[i_file];
@@ -390,7 +390,7 @@ void mod_manager::display_mod_files_status(std::string mod_folder_path_){
     }
   }
 
-  sel.set_max_items_per_page(toolbox::get_terminal_height()-9);
+  sel.set_max_items_per_page(GenericToolbox::Switch::Hardware::getTerminalHeight() - 9);
 
   // Main loop
   u64 kDown = 1;
@@ -400,14 +400,14 @@ void mod_manager::display_mod_files_status(std::string mod_folder_path_){
 
     if(kDown != 0 or kHeld != 0){
       consoleClear();
-      toolbox::print_left(mod_folder_path_, toolbox::red_bg);
-      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
+      GenericToolbox::Switch::Printout::printLeft(mod_folder_path_, Toolbox::red_bg);
+      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       sel.print_selector();
-      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
-      toolbox::print_left("Page (" + std::to_string(sel.get_current_page()+1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
-      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
-      toolbox::print_left_right(" B : Go back", "");
-      if(sel.get_nb_pages() > 1) toolbox::print_left_right(" <- : Previous Page", "-> : Next Page ");
+      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
+      GenericToolbox::Switch::Printout::printLeft("Page (" + std::to_string(sel.get_current_page() + 1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
+      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
+      GenericToolbox::Switch::Printout::printLeftRight(" B : Go back", "");
+      if(sel.get_nb_pages() > 1) GenericToolbox::Switch::Printout::printLeftRight(" <- : Previous Page", "-> : Next Page ");
       consoleUpdate(nullptr);
     }
 
@@ -429,30 +429,30 @@ void mod_manager::display_mod_files_status(std::string mod_folder_path_){
 
 }
 
-std::string mod_manager::ask_to_replace(std::string path_) {
+std::string ModManager::ask_to_replace(std::string path_) {
 
   std::vector<std::string> options;
   options.emplace_back("Yes");
   options.emplace_back("Yes to all");
   options.emplace_back("No");
   options.emplace_back("No to all");
-  return toolbox::ask_question(path_ + " already exists. Replace ?", options);
+  return Toolbox::ask_question(path_ + " already exists. Replace ?", options);
 
 }
 
-std::map<std::string, std::string> & mod_manager::get_mods_status_cache() {
+std::map<std::string, std::string> & ModManager::get_mods_status_cache() {
   return _mods_status_cache_;
 }
 
-bool mod_manager::isUseCacheOnlyForStatusCheck() {
+bool ModManager::isUseCacheOnlyForStatusCheck() {
   return _use_cache_only_for_status_check_;
 }
 
-std::map<std::string, double> &mod_manager::getModsStatusCacheFraction() {
+std::map<std::string, double> &ModManager::getModsStatusCacheFraction() {
   return _mods_status_cache_fraction_;
 }
 
-parameters_handler *mod_manager::getParametersHandlerPtr() {
+ParametersHandler *ModManager::getParametersHandlerPtr() {
   return _parameters_handler_ptr_;
 }
 

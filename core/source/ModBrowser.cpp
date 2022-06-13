@@ -2,27 +2,27 @@
 // Created by Nadrino on 03/09/2019.
 //
 
-#include <mod_browser.h>
-#include <toolbox.h>
+#include <ModBrowser.h>
+#include <Toolbox.h>
 #include <GlobalObjects.h>
 
 #include "GenericToolbox.Switch.h"
 
-#include <iostream>
 #include <switch.h>
+
+#include <iostream>
 #include <algorithm>
-#include <iomanip>
 #include <utility>
 #include <cstring>
 
-mod_browser::mod_browser(){
+ModBrowser::ModBrowser(){
 
   reset();
 
 }
-mod_browser::~mod_browser() { reset(); }
+ModBrowser::~ModBrowser() { reset(); }
 
-void mod_browser::initialize(){
+void ModBrowser::initialize(){
 
   _selector_.set_max_items_per_page(30);
   _selector_.initialize();
@@ -40,7 +40,7 @@ void mod_browser::initialize(){
   _is_initialized_ = true;
 
 }
-void mod_browser::reset(){
+void ModBrowser::reset(){
 
   _is_initialized_ = false;
 
@@ -56,48 +56,48 @@ void mod_browser::reset(){
 
 }
 
-void mod_browser::set_base_folder(std::string base_folder_){
+void ModBrowser::set_base_folder(std::string base_folder_){
   _base_folder_ = std::move(base_folder_);
 }
-void mod_browser::set_max_relative_depth(int max_relative_depth_){
+void ModBrowser::set_max_relative_depth(int max_relative_depth_){
   _max_relative_depth_ = max_relative_depth_;
 }
-void mod_browser::set_only_show_folders(bool only_show_folders_){
+void ModBrowser::set_only_show_folders(bool only_show_folders_){
   _only_show_folders_ = only_show_folders_;
 }
 
-bool mod_browser::is_initialized(){
+bool ModBrowser::is_initialized(){
   return _is_initialized_;
 }
-int mod_browser::get_current_relative_depth(){
+int ModBrowser::get_current_relative_depth(){
   return _current_relative_depth_;
 }
-int mod_browser::get_max_relative_depth(){
+int ModBrowser::get_max_relative_depth(){
   return _max_relative_depth_;
 }
-std::string mod_browser::get_current_directory(){
+std::string ModBrowser::get_current_directory(){
   return _current_directory_;
 }
-std::string mod_browser::get_base_folder(){
+std::string ModBrowser::get_base_folder(){
   return _base_folder_;
 }
-std::string mod_browser::get_main_config_preset(){
+std::string ModBrowser::get_main_config_preset(){
   return _main_config_preset_;
 }
-parameters_handler &mod_browser::get_parameters_handler(){
+ParametersHandler &ModBrowser::get_parameters_handler(){
   return _parameters_handler_;
 }
-selector &mod_browser::getSelector(){
+Selector &ModBrowser::getSelector(){
   return _selector_;
 }
-mods_preseter &mod_browser::get_mods_preseter(){
+ModsPreseter &ModBrowser::get_mods_preseter(){
   return _mods_preseter_;
 }
-mod_manager &mod_browser::get_mod_manager(){
+ModManager &ModBrowser::get_mod_manager(){
   return _mod_manager_;
 }
 
-void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
+void ModBrowser::scan_inputs(u64 kDown, u64 kHeld){
 
   _selector_.scan_inputs(kDown, kHeld);
 
@@ -108,7 +108,7 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
       // make mod action (ACTIVATE OR DEACTIVATE)
       _mod_manager_.apply_mod(_selector_.get_selected_string());
 
-      toolbox::print_left("Checking...", toolbox::magenta_bg, true);
+      GenericToolbox::Switch::Printout::printLeft("Checking...", Toolbox::magenta_bg, true);
       _selector_.set_tag(
         _selector_.get_selected_entry(),
         _mod_manager_.get_mod_status(_selector_.get_selected_string())
@@ -125,7 +125,7 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
     else if(kDown & HidNpadButton_Y){ // mod detailed infos
       std::string display_mod_files_status_str ="Show the status of each mod files";
       std::string display_mod_files_conflicts_str = "Show the list of conflicts";
-      auto answer = toolbox::ask_question(
+      auto answer = Toolbox::ask_question(
         "Mod options:",
         {
           display_mod_files_status_str,
@@ -143,7 +143,7 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
       std::string recheck_all_mods_answer = "Reset mods status cache and recheck all mods";
       std::string disable_all_mods_answer = "Disable all mods";
       std::string set_install_preset_answer = "Attribute a config preset for this folder";
-      auto menu_answer = toolbox::ask_question(
+      auto menu_answer = Toolbox::ask_question(
         "Options for this folder:",
         {
           recheck_all_mods_answer,
@@ -153,7 +153,7 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
       );
 
       if(menu_answer == recheck_all_mods_answer){
-        auto answer = toolbox::ask_question("Do you which to recheck all mods ?",
+        auto answer = Toolbox::ask_question("Do you which to recheck all mods ?",
                                             std::vector<std::string>({"Yes", "No"}));
         if(answer == "Yes"){
           _mod_manager_.reset_all_mods_cache_status();
@@ -183,7 +183,7 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
           );
         }
 
-        auto answer = toolbox::ask_question("Please select the config preset you want for this folder:",
+        auto answer = Toolbox::ask_question("Please select the config preset you want for this folder:",
                                             config_presets_list, config_presets_description_list);
 
         // overwriting
@@ -205,7 +205,7 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
       _mods_preseter_.select_mod_preset();
     }
     else if(kDown & HidNpadButton_Plus){ // Apply a mods preset
-      std::string answer = toolbox::ask_question(
+      std::string answer = Toolbox::ask_question(
         "Do you want to apply " + _mods_preseter_.get_selected_mod_preset() + " ?",
         std::vector<std::string>({"Yes", "No"})
       );
@@ -243,7 +243,7 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
       }
     }
     else if(kDown & HidNpadButton_ZL or kDown & HidNpadButton_ZR){ // switch between config preset
-      auto answer = toolbox::ask_question(
+      auto answer = Toolbox::ask_question(
         "Do you want to switch back to the GUI ?",
         std::vector<std::string>({"Yes", "No"})
       );
@@ -263,47 +263,47 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
   print_menu();
 
 }
-void mod_browser::print_menu(){
+void ModBrowser::print_menu(){
   consoleClear();
-  toolbox::print_right("SimpleModManager v"+toolbox::get_app_version());
+  GenericToolbox::Switch::Printout::printRight("SimpleModManager v" + Toolbox::get_app_version());
 
   // ls
-  toolbox::print_left("Current Folder : " + _current_directory_, toolbox::red_bg);
-  std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
+  GenericToolbox::Switch::Printout::printLeft("Current Folder : " + _current_directory_, Toolbox::red_bg);
+  std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
   _selector_.print_selector();
-  std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
+  std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
 
   std::cout << "  Page (" << _selector_.get_current_page() + 1 << "/" << _selector_.get_nb_pages() << ")" << std::endl;
-  std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
+  std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
   if(get_current_relative_depth() == get_max_relative_depth())
-    toolbox::print_left("Mod preset : " + _mods_preseter_.get_selected_mod_preset());
-  toolbox::print_left(
-    "Configuration preset : "
-    + toolbox::green_bg
-    + _parameters_handler_.get_current_config_preset_name()
-    + toolbox::reset_color
+    GenericToolbox::Switch::Printout::printLeft("Mod preset : " + _mods_preseter_.get_selected_mod_preset());
+  GenericToolbox::Switch::Printout::printLeft(
+      "Configuration preset : "
+      + Toolbox::green_bg
+      + _parameters_handler_.get_current_config_preset_name()
+      + Toolbox::reset_color
     );
-  toolbox::print_left("install-mods-base-folder = " + _mod_manager_.get_install_mods_base_folder());
-  std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
+  GenericToolbox::Switch::Printout::printLeft("install-mods-base-folder = " + _mod_manager_.get_install_mods_base_folder());
+  std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
   if(get_current_relative_depth() == get_max_relative_depth()){
-    toolbox::print_left_right(" ZL : Rescan all mods", "ZR : Disable all mods ");
-    toolbox::print_left_right(" A/X : Apply/Disable mod", "L/R : Previous/Next preset ");
-    toolbox::print_left_right(" -/+ : Select/Apply mod preset", "Y : Mod options ");
+    GenericToolbox::Switch::Printout::printLeftRight(" ZL : Rescan all mods", "ZR : Disable all mods ");
+    GenericToolbox::Switch::Printout::printLeftRight(" A/X : Apply/Disable mod", "L/R : Previous/Next preset ");
+    GenericToolbox::Switch::Printout::printLeftRight(" -/+ : Select/Apply mod preset", "Y : Mod options ");
   }
   else{
-    toolbox::print_left_right(" A : Select folder", "Y : Change config preset ");
-    toolbox::print_left_right(" B : Quit", "ZL/ZR : Switch back to the GUI ");
+    GenericToolbox::Switch::Printout::printLeftRight(" A : Select folder", "Y : Change config preset ");
+    GenericToolbox::Switch::Printout::printLeftRight(" B : Quit", "ZL/ZR : Switch back to the GUI ");
   }
-  if(get_current_relative_depth() > 0) toolbox::print_left(" B : Go back");
+  if(get_current_relative_depth() > 0) GenericToolbox::Switch::Printout::printLeft(" B : Go back");
 //  toolbox::print_left_right(
-//    toolbox::get_RAM_info_string("applet"),
-//    toolbox::get_RAM_info_string("system"),
+//    GenericToolbox::Switch::Hardware::getMemoryUsageStr(GenericToolbox::Switch::Hardware::Applet),
+//    GenericToolbox::Switch::Hardware::getMemoryUsageStr(GenericToolbox::Switch::Hardware::System),
 //    toolbox::green_bg
 //    );
   consoleUpdate(nullptr);
 
 }
-void mod_browser::display_conflicts_with_other_mods(std::string selected_mod_){
+void ModBrowser::display_conflicts_with_other_mods(const std::string &selected_mod_){
 
   consoleClear();
 
@@ -321,11 +321,11 @@ void mod_browser::display_conflicts_with_other_mods(std::string selected_mod_){
     }
   }
 
-  selector sel;
+  Selector sel;
   sel.set_selection_list(sel_list);
   sel.set_description_list(mods_conflict_files_list);
 
-  sel.set_max_items_per_page(toolbox::get_terminal_height()-9);
+  sel.set_max_items_per_page(GenericToolbox::Switch::Hardware::getTerminalHeight() - 9);
 
   // Main loop
   u64 kDown = 1;
@@ -335,14 +335,14 @@ void mod_browser::display_conflicts_with_other_mods(std::string selected_mod_){
 
     if(kDown != 0 or kHeld != 0){
       consoleClear();
-      toolbox::print_left("Conflicts with " +   selected_mod_, toolbox::red_bg);
-      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
+      GenericToolbox::Switch::Printout::printLeft("Conflicts with " + selected_mod_, Toolbox::red_bg);
+      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       sel.print_selector();
-      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
-      toolbox::print_left("Page (" + std::to_string(sel.get_current_page()+1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
-      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
-      toolbox::print_left_right(" B : Go back", "");
-      if(sel.get_nb_pages() > 1) toolbox::print_left_right(" <- : Previous Page", "-> : Next Page ");
+      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
+      GenericToolbox::Switch::Printout::printLeft("Page (" + std::to_string(sel.get_current_page() + 1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
+      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
+      GenericToolbox::Switch::Printout::printLeftRight(" B : Go back", "");
+      if(sel.get_nb_pages() > 1) GenericToolbox::Switch::Printout::printLeftRight(" <- : Previous Page", "-> : Next Page ");
       consoleUpdate(nullptr);
     }
 
@@ -364,7 +364,7 @@ void mod_browser::display_conflicts_with_other_mods(std::string selected_mod_){
 
 
 }
-void mod_browser::check_mods_status(){
+void ModBrowser::check_mods_status(){
   if(get_current_relative_depth() != get_max_relative_depth()) return;
   _selector_.reset_tags_list();
   auto mods_list = _selector_.getSelectionList();
@@ -377,12 +377,12 @@ void mod_browser::check_mods_status(){
     print_menu();
     std::stringstream ss;
     ss << "Checking ("<< i_mod+1 << "/" << mods_list.size() << ") : " << mods_list[i_mod] << "...";
-    toolbox::print_left(ss.str(), toolbox::magenta_bg);
+    GenericToolbox::Switch::Printout::printLeft(ss.str(), Toolbox::magenta_bg);
     consoleUpdate(nullptr);
     _selector_.set_tag(i_mod, _mod_manager_.get_mod_status(mods_list[i_mod]));
   }
 }
-bool mod_browser::change_directory(std::string new_directory_){
+bool ModBrowser::change_directory(std::string new_directory_){
 
   // removing trailing /
   if(new_directory_.size() != 1 and new_directory_[new_directory_.size()-1] == '/'){ // remove '/' tail unless "/" is the whole path
@@ -443,7 +443,7 @@ bool mod_browser::change_directory(std::string new_directory_){
 
   return true;
 }
-void mod_browser::change_config_preset(std::string new_config_preset_){
+void ModBrowser::change_config_preset(std::string new_config_preset_){
 
   _parameters_handler_.set_current_config_preset_name(new_config_preset_);
   _mod_manager_.set_install_mods_base_folder(
@@ -451,12 +451,12 @@ void mod_browser::change_config_preset(std::string new_config_preset_){
   );
 
 }
-bool mod_browser::go_to_selected_directory(){
+bool ModBrowser::go_to_selected_directory(){
   std::string new_path = _current_directory_ + "/" + _selector_.get_selected_string();
   new_path = GenericToolbox::removeRepeatedCharacters(new_path, "/");
   return change_directory(new_path);
 }
-bool mod_browser::go_back(){
+bool ModBrowser::go_back(){
 
   if(get_relative_path_depth(_current_directory_) <= 0 or _current_directory_ == "/") return false; // already at maximum root
 
@@ -470,20 +470,20 @@ bool mod_browser::go_back(){
   return change_directory(new_path);
 
 }
-int mod_browser::get_relative_path_depth(std::string& path_){
+int ModBrowser::get_relative_path_depth(std::string& path_){
   int path_depth = get_path_depth(path_);
   int base_depth = get_path_depth(_base_folder_);
   int relative_path_depth = path_depth - base_depth;
   return relative_path_depth;
 }
-int mod_browser::get_path_depth(std::string& path_){
+int ModBrowser::get_path_depth(std::string& path_){
   int path_depth = (GenericToolbox::splitString(path_, "/")).size() ;
   if(GenericToolbox::doesStringStartsWithSubstring(path_, "/")) path_depth--;
   if(GenericToolbox::doesStringEndsWithSubstring(path_, "/")) path_depth--;
   return path_depth;
 }
 
-uint8_t* mod_browser::get_folder_icon(std::string game_folder_){
+uint8_t* ModBrowser::get_folder_icon(std::string game_folder_){
   uint8_t* icon = nullptr;
 
   if(get_current_relative_depth() == get_max_relative_depth()-1){
@@ -494,12 +494,12 @@ uint8_t* mod_browser::get_folder_icon(std::string game_folder_){
   return icon;
 }
 
-void mod_browser::remove_all_mods(bool force_){
+void ModBrowser::remove_all_mods(bool force_){
   std::string answer;
-  bool CRC_check_state = toolbox::get_CRC_check_is_enabled();
-  toolbox::set_CRC_check_is_enabled(false);
+  bool CRC_check_state = Toolbox::get_CRC_check_is_enabled();
+  Toolbox::set_CRC_check_is_enabled(false);
   if(not force_){
-    answer = toolbox::ask_question(
+    answer = Toolbox::ask_question(
       "Do you want to disable all mods ?",
       std::vector<std::string>({"Yes", "No"})
     );
@@ -511,5 +511,5 @@ void mod_browser::remove_all_mods(bool force_){
       _mod_manager_.remove_mod(_selector_.getSelectionList()[i_mod]);
     }
   }
-  toolbox::set_CRC_check_is_enabled(CRC_check_state);
+  Toolbox::set_CRC_check_is_enabled(CRC_check_state);
 }

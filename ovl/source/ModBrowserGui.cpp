@@ -3,7 +3,7 @@
 //
 
 #include <ModBrowserGui.h>
-#include <toolbox.h>
+#include <Toolbox.h>
 #include <GlobalObjects.h>
 #include <ChangeConfigPresetGui.h>
 

@@ -5,17 +5,17 @@
 #ifndef MODAPPLIER_SELECTOR_H
 #define MODAPPLIER_SELECTOR_H
 
+#include <switch/types.h>
 
 #include <vector>
 #include <string>
-#include <switch/types.h>
 
-class selector {
+class Selector {
 
 public:
 
-  selector();
-  ~selector();
+  Selector();
+  ~Selector();
 
   void initialize();
   void reset();

@@ -5,7 +5,7 @@
 #include "ThumbnailPresetEditor.h"
 #include <GlobalObjects.h>
 #include <ext_GlobalObjects.h>
-#include "toolbox.h"
+#include "Toolbox.h"
 
 #include "GenericToolbox.h"
 
@@ -125,7 +125,7 @@ void ThumbnailPresetEditor::save() {
     (*PresetsListPtr).emplace_back(_presetName_);
   }
 
-  _presetName_ = toolbox::get_user_string(_presetName_);
+  _presetName_ = Toolbox::get_user_string(_presetName_);
   (*PresetsListPtr)[preset_index] = _presetName_;
 
   for(int i_entry = 0 ; i_entry < int(_selectedModsList_.size()) ; i_entry++){
@@ -139,7 +139,7 @@ void ThumbnailPresetEditor::save() {
   GlobalObjects::getModBrowser().get_mods_preseter().recreate_preset_file();
   GlobalObjects::getModBrowser().get_mods_preseter().read_parameter_file();
 
-  ext_GlobalObjects::getCurrentTabModPresetPtr()->updatePresetItems();
+  GuiGlobalObjects::getCurrentTabModPresetPtr()->updatePresetItems();
 
   brls::Application::popView(brls::ViewAnimation::FADE);
   brls::Application::unblockInputs();

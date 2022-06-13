@@ -3,9 +3,9 @@
 //
 
 #include "GlobalObjects.h"
-#include <toolbox.h>
+#include <Toolbox.h>
 #include <version_config.h>
-#include <selector.h>
+#include <Selector.h>
 
 #include "GenericToolbox.Switch.h"
 
@@ -26,7 +26,7 @@
 #include <chrono>
 #include <unistd.h>
 
-namespace toolbox{
+namespace Toolbox{
 
   static std::time_t _last_timestamp_;
   static double _last_displayed_value_ = -1;
@@ -59,65 +59,10 @@ namespace toolbox{
       _last_displayed_value_ = percent;
       std::stringstream ss;
       ss << prefix_ << percent << "% / " << title_;
-      print_left(ss.str(), color_str_, true);
+      GenericToolbox::Switch::Printout::printLeft(ss.str(), color_str_, true);
       consoleUpdate(nullptr);
     }
 
-  }
-  void display_second_level_loading(int current_index_, int end_index_){
-
-  }
-  void print_right(std::string input_, std::string color_, bool flush_){
-    std::string stripped_input_ = toolbox::remove_color_codes_in_string(input_);
-    int nb_space_left = get_terminal_width() - input_.size();
-    if(nb_space_left <= 0){ // cut the string
-      input_ = input_.substr(0, input_.size() + nb_space_left - int(flush_)); // remove extra char if flush
-      stripped_input_ = toolbox::remove_color_codes_in_string(input_);
-      nb_space_left = get_terminal_width() - input_.size();
-    }
-    if(flush_){
-      nb_space_left-=1;
-      std::cout << "\r";
-    }
-    std::cout << color_ << repeat_string(" ", nb_space_left) << input_ << reset_color;
-    if(flush_) std::cout << "\r";
-    else if(int(input_.size()) > get_terminal_width()) std::cout << std::endl;
-  }
-  void print_left(std::string input_, std::string color_, bool flush_){
-    std::string stripped_input_ = toolbox::remove_color_codes_in_string(input_);
-    int nb_space_left = get_terminal_width() - stripped_input_.size();
-    if(nb_space_left <= 0){ // cut the string
-      input_ = input_.substr(0, input_.size() + nb_space_left - int(flush_)); // remove extra char if flush
-//     input_ = input_.substr(-nb_space_left, input_.size() + nb_space_left); // NO because can't display the cursor properly
-      stripped_input_ = toolbox::remove_color_codes_in_string(input_);
-      nb_space_left = get_terminal_width() - stripped_input_.size();
-    }
-    if(flush_){
-      nb_space_left-=1;
-      std::cout << "\r";
-    }
-    std::cout << color_ << input_ << repeat_string(" ", nb_space_left) << reset_color;
-    if(flush_) std::cout << "\r";
-    else if(int(input_.size()) > get_terminal_width()) std::cout << std::endl;
-  }
-  void print_left_right(std::string input_left_, std::string input_right_, std::string color_){
-    std::string stripped_input_left_ = toolbox::remove_color_codes_in_string(input_left_);
-    std::string stripped_input_right_ = toolbox::remove_color_codes_in_string(input_right_);
-
-    int nb_space_left = get_terminal_width() - stripped_input_left_.size() - stripped_input_right_.size();
-    if(nb_space_left <= 0){
-      input_left_ = input_left_.substr(0, input_left_.size() + nb_space_left);
-//      input_left_ = input_left_.substr(-nb_space_left, input_left_.size() + nb_space_left); // NO because can't display the cursor properly
-      stripped_input_left_ = toolbox::remove_color_codes_in_string(input_left_);
-//      stripped_input_right_ = toolbox::remove_color_codes_in_string(input_right_);
-      nb_space_left = get_terminal_width() - stripped_input_left_.size() - stripped_input_right_.size();
-    }
-
-    std::cout << color_ << input_left_;
-    std::cout << repeat_string(" ", nb_space_left);
-    std::cout << input_right_;
-    std::cout << reset_color;
-    if(get_terminal_width() < int(input_left_.size()) + int(input_right_.size())) std::cout << std::endl;
   }
   void make_pause(){
 
@@ -222,16 +167,16 @@ namespace toolbox{
     std::vector<std::vector<std::string>> descriptions_) {
 
     std::string answer;
-    auto sel = selector();
+    auto sel = Selector();
 
     int nb_lines_layout = 0;
     nb_lines_layout++; // toolbox::print_right("SimpleModManager v"+toolbox::get_app_version());
     nb_lines_layout++; // std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
-    nb_lines_layout += int(question_.size()) / toolbox::get_terminal_width();
+    nb_lines_layout += int(question_.size()) / GenericToolbox::Switch::Hardware::getTerminalWidth();
     nb_lines_layout++; // std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
     nb_lines_layout++; // std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
-    nb_lines_layout++; // toolbox::print_left_right(" A: Select", "B: Back ");
-    sel.set_max_items_per_page(toolbox::get_terminal_height() - nb_lines_layout);
+    nb_lines_layout++; // toolbox::printLeft_right(" A: Select", "B: Back ");
+    sel.set_max_items_per_page(GenericToolbox::Switch::Hardware::getTerminalHeight() - nb_lines_layout);
 
     sel.set_selection_list(answers_);
     if(not descriptions_.empty() and descriptions_.size() == answers_.size()){
@@ -243,13 +188,13 @@ namespace toolbox{
 
       if(kDown != 0) {
         consoleClear();
-        toolbox::print_right("SimpleModManager v"+toolbox::get_app_version());
-        std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
+        GenericToolbox::Switch::Printout::printRight("SimpleModManager v" + Toolbox::get_app_version());
+        std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
         std::cout << question_ << std::endl;
-        std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
+        std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
         sel.print_selector();
-        std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
-        toolbox::print_left_right(" A: Select", "B: Back ");
+        std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
+        GenericToolbox::Switch::Printout::printLeftRight(" A: Select", "B: Back ");
         consoleUpdate(nullptr);
       }
 
@@ -277,8 +222,8 @@ namespace toolbox{
 
   std::string remove_color_codes_in_string(std::string &input_string_){
     std::string stripped_str(input_string_);
-    for(auto &color_code : toolbox::colors_list){
-      stripped_str = toolbox::replace_substring_in_string(stripped_str, color_code, "");
+    for(auto &color_code : Toolbox::colors_list){
+      stripped_str = Toolbox::replace_substring_in_string(stripped_str, color_code, "");
     }
     return stripped_str;
   }
@@ -324,34 +269,6 @@ namespace toolbox{
   }
 
 
-  //! generic tools functions
-  bool to_bool(std::string str) {
-    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
-    std::istringstream is(str);
-    bool b;
-    is >> std::boolalpha >> b;
-    return b;
-  }
-  bool do_string_contains_substring(std::string string_, std::string substring_){
-    if(substring_.size() > string_.size()) return false;
-    if(string_.find(substring_) != std::string::npos) return true;
-    else return false;
-  }
-  bool do_string_starts_with_substring(std::string string_, std::string substring_){
-    if(substring_.size() > string_.size()) return false;
-    return (not string_.compare(0, substring_.size(), substring_));
-  }
-  bool do_string_ends_with_substring(std::string string_, std::string substring_){
-    if(substring_.size() > string_.size()) return false;
-    return (not string_.compare(string_.size() - substring_.size(), substring_.size(), substring_));
-  }
-  bool do_string_in_vector(std::string &str_, std::vector<std::string>& vector_){
-    for(auto const &element : vector_){
-      if(element == str_) return true;
-    }
-    return false;
-  }
-
   std::string get_folder_path_from_file_path(std::string file_path_){
     std::string folder_path;
     if(file_path_[0] == '/') folder_path += "/";
@@ -363,17 +280,6 @@ namespace toolbox{
       int(splitted_path.size()) - 1
     );
     return folder_path;
-  }
-  std::string get_filename_from_file_path(std::string file_path_){
-    auto splitted_path = split_string(file_path_, "/");
-    return splitted_path.back();
-  }
-  std::string get_head_path_element_name(std::string folder_path_){
-    auto elements = GenericToolbox::splitString(folder_path_, "/");
-    for(int i_element = elements.size()-1; i_element >= 0 ; i_element--){
-      if(not elements[i_element].empty()) return elements[i_element];
-    }
-    return "";
   }
   std::string join_vector_string(std::vector<std::string> string_list_, std::string delimiter_, int begin_index_, int end_index_) {
 
@@ -389,21 +295,6 @@ namespace toolbox{
     }
 
     return joined_string;
-  }
-  std::string remove_extra_doubled_characters(std::string input_str_, std::string doubled_char_){
-
-    std::vector<std::string> substr_list = split_string(input_str_, doubled_char_);
-    std::vector<std::string> cleaned_substr_list;
-    for(int i_substr = 0 ; i_substr < int(substr_list.size()) ; i_substr++){
-      if(not substr_list[i_substr].empty())
-        cleaned_substr_list.emplace_back(substr_list[i_substr]);
-    }
-    std::string cleaned_input_str;
-    if(do_string_starts_with_substring(input_str_, doubled_char_)) cleaned_input_str += doubled_char_;
-    cleaned_input_str += join_vector_string(cleaned_substr_list, doubled_char_);
-    if(do_string_ends_with_substring(input_str_, doubled_char_)) cleaned_input_str += doubled_char_;
-    return cleaned_input_str;
-
   }
   std::string repeat_string(std::string str_, int n_times_){
     std::string out_str;
@@ -454,52 +345,6 @@ namespace toolbox{
 
 
   //! Hardware functions :
-  int get_terminal_width(){
-    return consoleGetDefault()->consoleWidth;
-  }
-  int get_terminal_height(){
-    return consoleGetDefault()->consoleHeight;
-  }
-
-  unsigned long get_RAM_info(std::string component_name_) {
-    u64 used_ram = 0;
-    if(component_name_ == "Total_application"){
-      svcGetSystemInfo(&used_ram, 0, INVALID_HANDLE, 0);
-    }
-    else if(component_name_ == "Total_applet"){
-      svcGetSystemInfo(&used_ram, 0, INVALID_HANDLE, 1);
-    }
-    else if(component_name_ == "Total_system"){
-      svcGetSystemInfo(&used_ram, 0, INVALID_HANDLE, 2);
-    }
-    else if(component_name_ == "Total_systemunsafe"){
-      svcGetSystemInfo(&used_ram, 0, INVALID_HANDLE, 3);
-    }
-    else if(component_name_ == "Used_application"){
-      svcGetSystemInfo(&used_ram, 1, INVALID_HANDLE, 0);
-    }
-    else if(component_name_ == "Used_applet"){
-      svcGetSystemInfo(&used_ram, 1, INVALID_HANDLE, 1);
-    }
-    else if(component_name_ == "Used_system"){
-      svcGetSystemInfo(&used_ram, 1, INVALID_HANDLE, 2);
-    }
-    else if(component_name_ == "Used_systemunsafe"){
-      svcGetSystemInfo(&used_ram, 1, INVALID_HANDLE, 3);
-    }
-    return used_ram;
-  }
-  std::string get_RAM_info_string(std::string component_name_){
-    std::string out;
-    unsigned long total = get_RAM_info("Total_" + component_name_);
-    unsigned long used = get_RAM_info("Used_" + component_name_);
-    out += component_name_;
-    out += ": ";
-    out += toolbox::parse_size_unit(used);
-    out += "/";
-    out += toolbox::parse_size_unit(total);
-    return out;
-  }
 
   //! direct filesystem functions :
   void setFileSystemBuffer(FsFileSystem* FileSystemBuffer_){
@@ -617,9 +462,9 @@ namespace toolbox{
     if(not _native_switch_FS_is_enabled_){
       if(not do_path_is_file(file1_path_)) return false;
       if(not do_path_is_file(file2_path_)) return false;
-      if(toolbox::get_file_size(file1_path_) != toolbox::get_file_size(file2_path_)) return false; // very fast
+      if(Toolbox::get_file_size(file1_path_) != Toolbox::get_file_size(file2_path_)) return false; // very fast
       if(_CRC_check_is_enabled_){
-        if(toolbox::get_hash_CRC32(file1_path_) != toolbox::get_hash_CRC32(file2_path_)) return false;
+        if(Toolbox::get_hash_CRC32(file1_path_) != Toolbox::get_hash_CRC32(file2_path_)) return false;
       }
       file_are_same = true;
     }
@@ -661,7 +506,7 @@ namespace toolbox{
                   s64 expected_total_count = s64(size_file1 / copy_buffer_size_s64);
                   do {
 
-                    toolbox::fill_progress_map("do_files_are_the_same", double(counts)/double(expected_total_count));
+                    Toolbox::fill_progress_map("do_files_are_the_same", double(counts) / double(expected_total_count));
                     counts++;
 
                     // buffering file1
@@ -712,7 +557,7 @@ namespace toolbox{
 
     } // switch fs
 
-    toolbox::fill_progress_map("do_files_are_the_same", 1.);
+    Toolbox::fill_progress_map("do_files_are_the_same", 1.);
     return file_are_same;
 
   }
@@ -812,7 +657,7 @@ namespace toolbox{
               s64 expected_total_count = s64(source_size/copy_buffer_size_s64) + 1;
               do {
 
-                toolbox::fill_progress_map("copy_file", double(counts)/double(expected_total_count));
+                Toolbox::fill_progress_map("copy_file", double(counts) / double(expected_total_count));
                 counts+=1;
 
                 // buffering source file
@@ -843,7 +688,7 @@ namespace toolbox{
 
     }
 
-    toolbox::fill_progress_map("copy_file", 1.);
+    Toolbox::fill_progress_map("copy_file", 1.);
     return do_copy_is_success;
   }
   bool mv_file(std::string &source_file_path_, std::string &destination_file_path_){
@@ -974,7 +819,7 @@ namespace toolbox{
     unsigned long output_crc = crc32(0L, Z_NULL, 0);
     if(not _native_switch_FS_is_enabled_){
       if(GenericToolbox::doesPathIsFile(file_path_)){
-        std::string data = toolbox::dump_file_as_string(file_path_);
+        std::string data = Toolbox::dump_file_as_string(file_path_);
         if(not data.empty()){
           output_crc = crc32(0L, Z_NULL, 0);
           output_crc = crc32(output_crc, (const unsigned char*)data.c_str(), data.size());
@@ -1070,7 +915,7 @@ namespace toolbox{
   std::vector<std::string> dump_file_as_vector_string(std::string file_path_){
     std::vector<std::string> lines;
     if(do_path_is_file(file_path_)){
-      std::string data = toolbox::dump_file_as_string(file_path_);
+      std::string data = Toolbox::dump_file_as_string(file_path_);
       lines = GenericToolbox::splitString(data, "\n");
     }
     return lines;

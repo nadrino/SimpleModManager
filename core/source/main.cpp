@@ -1,15 +1,15 @@
 #include <switch.h>
 
-#include <toolbox.h>
+#include <Toolbox.h>
 #include <GlobalObjects.h>
 
-#include "GenericToolbox.h"
+#include "GenericToolbox.Switch.h"
 
 // MAIN
 int main(int argc, char **argv){
 
   consoleInit(nullptr);
-  toolbox::enableEmbeddedSwitchFS();
+  Toolbox::enableEmbeddedSwitchFS();
 
   // Configure our supported input layout: a single player with standard controller styles
   padConfigureInput(1, HidNpadStyleSet_NpadStandard);
@@ -17,24 +17,24 @@ int main(int argc, char **argv){
   // Initialize the default gamepad (which reads handheld mode inputs as well as the first connected controller)
   padInitializeDefault(&GlobalObjects::gPad);
 
-  std::string old_config_path = toolbox::get_working_directory() + "/parameters.ini"; // before 1.5.0
+  std::string old_config_path = Toolbox::get_working_directory() + "/parameters.ini"; // before 1.5.0
   if(GenericToolbox::doesPathIsFile(old_config_path)){
-    parameters_handler p;
+    ParametersHandler p;
     p.initialize();
     std::string new_param_file = p.get_parameters_file_path();
-    toolbox::print_left("");
-    toolbox::print_left("Welcome in SimpleModManager v" + toolbox::get_app_version(), toolbox::green_bg);
-    toolbox::print_left("");
-    toolbox::print_left("");
-    toolbox::print_left("");
-    toolbox::print_left("");
-    toolbox::print_left(" > Looks like you've been running on a version <= " + toolbox::get_app_version());
-    toolbox::print_left(" > Now parameters.ini is read from : " + new_param_file);
-    toolbox::print_left(" > The old file will be moved to this location.");
-    toolbox::print_left("");
-    toolbox::print_left("");
-    toolbox::ask_question("Confirm by pressing A.", {"Ok"});
-    toolbox::mv_file(old_config_path, new_param_file);
+    GenericToolbox::Switch::Printout::printLeft("");
+    GenericToolbox::Switch::Printout::printLeft("Welcome in SimpleModManager v" + Toolbox::get_app_version(), Toolbox::green_bg);
+    GenericToolbox::Switch::Printout::printLeft("");
+    GenericToolbox::Switch::Printout::printLeft("");
+    GenericToolbox::Switch::Printout::printLeft("");
+    GenericToolbox::Switch::Printout::printLeft("");
+    GenericToolbox::Switch::Printout::printLeft(" > Looks like you've been running on a version <= " + Toolbox::get_app_version());
+    GenericToolbox::Switch::Printout::printLeft(" > Now parameters.ini is read from : " + new_param_file);
+    GenericToolbox::Switch::Printout::printLeft(" > The old file will be moved to this location.");
+    GenericToolbox::Switch::Printout::printLeft("");
+    GenericToolbox::Switch::Printout::printLeft("");
+    Toolbox::ask_question("Confirm by pressing A.", {"Ok"});
+    Toolbox::mv_file(old_config_path, new_param_file);
   }
 
   int max_depth = 1; // could be a parameter in the future
@@ -65,7 +65,7 @@ int main(int argc, char **argv){
 
   } // while
 
-  toolbox::disableEmbeddedSwitchFS();
+  Toolbox::disableEmbeddedSwitchFS();
   consoleExit(nullptr);
   return EXIT_SUCCESS;
 

@@ -80,7 +80,7 @@ void TabModOptions::buildFolderInstallPresetItem() {
         this->_itemFolderInstallPreset_->setValue(_inheritedTitle_);
       }
 
-      if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
+      if(GuiGlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
         GuiModManager::setOnCallBackFunction([](){brls::Application::popView(brls::ViewAnimation::FADE);});
         GlobalObjects::getModBrowser().get_mod_manager().reset_all_mods_cache_status();
 //        ext_GlobalObjects::getCurrentTabModBrowserPtr()->refreshModsStatus();
@@ -114,10 +114,10 @@ void TabModOptions::buildResetModsCacheItem() {
     auto* dialog = new brls::Dialog("Do you want to reset mods cache status and recheck all mod files ?");
 
     dialog->addButton("Yes", [this, dialog](brls::View* view) {
-      if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
+      if(GuiGlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
         GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
         GlobalObjects::getModBrowser().get_mod_manager().reset_all_mods_cache_status();
-        ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_check_all_mods();
+        GuiGlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_check_all_mods();
 //        ext_GlobalObjects::getCurrentTabModBrowserPtr()->refreshModsStatus();
       }
     });
@@ -145,9 +145,9 @@ void TabModOptions::buildDisableAllMods() {
     auto* dialog = new brls::Dialog("Do you want to disable all mods ?");
 
     dialog->addButton("Yes", [dialog](brls::View* view) {
-      if(ext_GlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
+      if(GuiGlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
         GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
-        ext_GlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_remove_all_mods();
+        GuiGlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_remove_all_mods();
       }
     });
     dialog->addButton("No", [dialog](brls::View* view) {
@@ -167,11 +167,11 @@ void TabModOptions::buildGameIdentificationItem(){
     "",
     "Current value :"
   );
-  if(ext_GlobalObjects::getCurrentFrameModBrowserPtr()->getIcon() != nullptr){
-    _itemGameIdentification_->setValue(ext_GlobalObjects::getCurrentFrameModBrowserPtr()->getTitleid());
+  if(GuiGlobalObjects::getCurrentFrameModBrowserPtr()->getIcon() != nullptr){
+    _itemGameIdentification_->setValue(GuiGlobalObjects::getCurrentFrameModBrowserPtr()->getTitleid());
     _itemGameIdentification_->setThumbnail(
-      ext_GlobalObjects::getCurrentFrameModBrowserPtr()->getIcon(),
-      0x20000
+        GuiGlobalObjects::getCurrentFrameModBrowserPtr()->getIcon(),
+        0x20000
     );
   }
   else{

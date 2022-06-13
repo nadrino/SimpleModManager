@@ -5,18 +5,21 @@
 #ifndef SIMPLEMODMANAGER_GLOBALOBJECTS_H
 #define SIMPLEMODMANAGER_GLOBALOBJECTS_H
 
-#include <mod_browser.h>
-#include <sstream>
+#include <ModBrowser.h>
+
 #include "switch.h"
+
+#include <sstream>
+#include "string"
 
 namespace GlobalObjects {
 
-  static mod_browser _mod_browser_;
+  static ModBrowser _mod_browser_;
   extern std::string _version_str_;
   static std::string _triggerSwitchUI_;
   extern PadState gPad;
 
-  mod_browser& getModBrowser();
+  ModBrowser& getModBrowser();
 
   void setTriggerSwitchUI(bool triggerSwitchUI_);
   bool doTriggerSwitchUI();

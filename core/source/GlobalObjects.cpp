@@ -3,17 +3,17 @@
 //
 
 #include "GlobalObjects.h"
-#include "toolbox.h"
+#include "Toolbox.h"
 
 #include "GenericToolbox.h"
 
 namespace GlobalObjects{
 
   static bool _quit_now_triggered_ = false;
-  std::string _version_str_ = "v" + toolbox::get_app_version();
+  std::string _version_str_ = "v" + Toolbox::get_app_version();
   PadState gPad{};
 
-  mod_browser &getModBrowser() {
+  ModBrowser &getModBrowser() {
     return _mod_browser_;
   }
 

@@ -5,20 +5,21 @@
 #ifndef SWITCHTEMPLATE_BROWSER_H
 #define SWITCHTEMPLATE_BROWSER_H
 
-#include <selector.h>
-#include <mod_manager.h>
-#include <parameters_handler.h>
-#include <mods_preseter.h>
+#include <Selector.h>
+#include <ModManager.h>
+#include <ParametersHandler.h>
+#include <ModsPreseter.h>
 
-#include <string>
 #include <switch.h>
 
-class mod_browser{
+#include <string>
+
+class ModBrowser{
 
 public:
 
-  mod_browser();
-  ~mod_browser();
+  ModBrowser();
+  ~ModBrowser();
 
   void initialize();
   void reset();
@@ -33,14 +34,14 @@ public:
   std::string get_current_directory();
   std::string get_base_folder();
   std::string get_main_config_preset();
-  parameters_handler &get_parameters_handler();
-  selector &getSelector();
-  mods_preseter &get_mods_preseter();
-  mod_manager &get_mod_manager();
+  ParametersHandler &get_parameters_handler();
+  Selector &getSelector();
+  ModsPreseter &get_mods_preseter();
+  ModManager &get_mod_manager();
 
   void scan_inputs(u64 kDown, u64 kHeld);
   void print_menu();
-  void display_conflicts_with_other_mods(std::string selected_mod_);
+  void display_conflicts_with_other_mods(const std::string &selected_mod_);
   void check_mods_status();
   bool change_directory(std::string new_directory_);
   void change_config_preset(std::string new_config_preset_);
@@ -69,10 +70,10 @@ private:
   std::string _base_folder_;
   std::string _main_config_preset_;
 
-  selector _selector_;
-  mod_manager _mod_manager_;
-  parameters_handler _parameters_handler_;
-  mods_preseter _mods_preseter_;
+  Selector _selector_;
+  ModManager _mod_manager_;
+  ParametersHandler _parameters_handler_;
+  ModsPreseter _mods_preseter_;
 
 };
 

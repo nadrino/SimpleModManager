@@ -9,7 +9,7 @@
 #include <TabModPresets.h>
 #include <TabModOptions.h>
 #include <ext_GlobalObjects.h>
-#include "toolbox.h"
+#include "Toolbox.h"
 
 #include "GenericToolbox.Switch.h"
 #include "Logger.h"
@@ -20,7 +20,7 @@ LoggerInit([]{
 
 FrameModBrowser::FrameModBrowser(std::string folder_){
 
-  ext_GlobalObjects::setCurrentFrameModBrowserPtr(this);
+  GuiGlobalObjects::setCurrentFrameModBrowserPtr(this);
 
   std::string game_path = GlobalObjects::getModBrowser().get_current_directory() + "/" + folder_;
 

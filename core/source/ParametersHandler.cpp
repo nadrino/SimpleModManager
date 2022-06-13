@@ -2,31 +2,18 @@
 // Created by Nadrino on 16/10/2019.
 //
 
-#include "parameters_handler.h"
-#include "toolbox.h"
+#include "ParametersHandler.h"
+#include "Toolbox.h"
 
 #include "GenericToolbox.Switch.h"
 
-#include <switch/services/hid.h>
-
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <algorithm>
 
 
-parameters_handler::parameters_handler() {
+ParametersHandler::ParametersHandler() { reset(); }
+ParametersHandler::~ParametersHandler() { reset(); }
 
-  reset();
-
-}
-parameters_handler::~parameters_handler() {
-
-  reset();
-
-}
-
-void parameters_handler::initialize() {
+void ParametersHandler::initialize() {
 
   if(not GenericToolbox::doesPathIsFile(_parameters_file_path_)){
     recreate_parameters_file(); // create file with default parameters
@@ -38,7 +25,7 @@ void parameters_handler::initialize() {
   set_current_config_preset_name(_data_handler_["last-preset-used"]);
 
 }
-void parameters_handler::reset() {
+void ParametersHandler::reset() {
 
   _parameters_file_path_ = "/config/SimpleModManager/parameters.ini";
   _data_handler_.clear();
@@ -47,16 +34,16 @@ void parameters_handler::reset() {
 
 }
 
-void parameters_handler::set_parameters_file_path(std::string parameters_file_path_) {
+void ParametersHandler::setParametersFilePath(const std::string &parameters_file_path_) {
   _parameters_file_path_ = parameters_file_path_;
 }
-void parameters_handler::set_current_config_preset_id(int selected_preset_id_){
+void ParametersHandler::setCurrentConfigPresetId(int selected_preset_id_){
   if(selected_preset_id_ < 0 or selected_preset_id_ >= int(_presets_list_.size())) _current_config_preset_id_ = 0; // reset;
   else _current_config_preset_id_ = selected_preset_id_;
   fill_current_preset_parameters();
   recreate_parameters_file(); // save last-preset-used
 }
-void parameters_handler::set_current_config_preset_name(std::string preset_name_){
+void ParametersHandler::set_current_config_preset_name(const std::string &preset_name_){
   int preset_id = -1;
   for(int i_preset = 0 ; i_preset < int(_presets_list_.size()) ; i_preset++){
     if(preset_name_ == _presets_list_[i_preset]){
@@ -64,37 +51,37 @@ void parameters_handler::set_current_config_preset_name(std::string preset_name_
       break;
     }
   }
-  set_current_config_preset_id(preset_id);
+  setCurrentConfigPresetId(preset_id);
 }
-void parameters_handler::set_parameter(std::string parameter_name_, std::string value_){
-  _data_handler_[parameter_name_] = std::move(value_);
+void ParametersHandler::set_parameter(const std::string &parameter_name_, const std::string &value_){
+  _data_handler_[parameter_name_] = value_;
   recreate_parameters_file();
 }
 
-int parameters_handler::get_current_config_preset_id(){
+int ParametersHandler::get_current_config_preset_id() const{
   return _current_config_preset_id_;
 }
-std::string parameters_handler::get_parameter(std::string parameter_name_) {
+std::string ParametersHandler::get_parameter(const std::string& parameter_name_) {
   return _data_handler_[parameter_name_];
 }
-std::string parameters_handler::get_parameters_file_path(){
+std::string ParametersHandler::get_parameters_file_path(){
   return _parameters_file_path_;
 }
-std::string parameters_handler::get_current_config_preset_name(){
+std::string ParametersHandler::get_current_config_preset_name(){
   return _presets_list_[_current_config_preset_id_];
 }
 
-std::vector<std::string> & parameters_handler::get_presets_list(){
+std::vector<std::string> & ParametersHandler::get_presets_list(){
   return _presets_list_;
 }
 
-void parameters_handler::increment_selected_preset_id(){
+void ParametersHandler::increment_selected_preset_id(){
   int next_preset_id = _current_config_preset_id_ + 1;
-  if(next_preset_id >= int(_presets_list_.size())) set_current_config_preset_id(0);
-  else set_current_config_preset_id(next_preset_id);
+  if(next_preset_id >= int(_presets_list_.size())) setCurrentConfigPresetId(0);
+  else setCurrentConfigPresetId(next_preset_id);
 }
 
-void parameters_handler::set_default_parameters() {
+void ParametersHandler::set_default_parameters() {
 
   _data_handler_["stored-mods-base-folder"] = "/mods/";
   _data_handler_["use-gui"] = "1";
@@ -116,7 +103,7 @@ void parameters_handler::set_default_parameters() {
   _data_handler_[_presets_list_.back() + "-install-mods-base-folder"] = "/";
 
 }
-void parameters_handler::recreate_parameters_file() {
+void ParametersHandler::recreate_parameters_file() {
 
   GenericToolbox::mkdirPath(GenericToolbox::getFolderPathFromFilePath(_parameters_file_path_));
 
@@ -141,14 +128,14 @@ void parameters_handler::recreate_parameters_file() {
     parameter_file << std::endl;
   }
   parameter_file << "# DO NOT TOUCH THIS : used to recognise the last version of the program config" << std::endl;
-  parameter_file << "last-program-version = " << toolbox::get_app_version() << std::endl;
+  parameter_file << "last-program-version = " << Toolbox::get_app_version() << std::endl;
   parameter_file << std::endl;
 
   std::string data = parameter_file.str();
   GenericToolbox::dumpStringInFile(data, _parameters_file_path_);
 
 }
-void parameters_handler::read_parameters() {
+void ParametersHandler::read_parameters() {
 
   auto lines = GenericToolbox::dumpFileAsVectorString(_parameters_file_path_);
 
@@ -195,7 +182,7 @@ void parameters_handler::read_parameters() {
 
 }
 
-void parameters_handler::fill_current_preset_parameters(){
+void ParametersHandler::fill_current_preset_parameters(){
 
   _data_handler_["last-preset-used"] = _presets_list_[_current_config_preset_id_];
   _data_handler_["install-mods-base-folder"] = _data_handler_[_presets_list_[_current_config_preset_id_] + "-install-mods-base-folder"];

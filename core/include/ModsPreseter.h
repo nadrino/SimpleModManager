@@ -2,25 +2,25 @@
 // Created by Nadrino on 13/02/2020.
 //
 
-#ifndef SIMPLEMODMANAGER_MODS_PRESETER_H
-#define SIMPLEMODMANAGER_MODS_PRESETER_H
+#ifndef SIMPLEMODMANAGER_MODSPRESETER_H
+#define SIMPLEMODMANAGER_MODSPRESETER_H
 
+#include "Selector.h"
 
 #include <string>
 #include <map>
-#include "selector.h"
 
-class mods_preseter {
+class ModsPreseter {
 
 public:
 
-  mods_preseter();
-  virtual ~mods_preseter();
+  ModsPreseter();
+  virtual ~ModsPreseter();
 
   void initialize();
   void reset();
 
-  void setSelector(selector selector);
+  void setSelector(Selector selector);
 
   int get_selected_mod_preset_index();
   std::string get_selected_mod_preset();
@@ -46,14 +46,14 @@ public:
 
 private:
 
-  int _selected_mod_preset_index_;
+  int _selected_mod_preset_index_{-1};
   std::string _preset_file_path_;
   std::string _mod_folder_;
   std::map<std::string, std::vector<std::string>> _data_handler_;
   std::vector<std::string> _presets_list_;
-  selector _selector_;
+  Selector _selector_;
 
 };
 
 
-#endif //SIMPLEMODMANAGER_MODS_PRESETER_H
+#endif //SIMPLEMODMANAGER_MODSPRESETER_H
