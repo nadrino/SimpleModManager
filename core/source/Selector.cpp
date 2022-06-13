@@ -3,6 +3,7 @@
 //
 
 #include "Selector.h"
+#include "GlobalObjects.h"
 #include <Toolbox.h>
 
 #include "GenericToolbox.Switch.h"
@@ -174,7 +175,7 @@ void Selector::process_page_numbering(){
 //    std::stringstream ss;
 //    ss << "page_lines_buffer=" << page_lines_buffer << " / i_entry=" << i_entry << "/" << _selection_list_[i_entry];
 //    toolbox::print_left(ss.str());
-//    toolbox::make_pause();
+//    GenericToolbox::Switch::Printout::makePause();
     _item_list_for_each_page_.back().emplace_back(i_entry);
 //    page_lines_buffer += 1 + int(_descriptions_list_[i_entry].size()); // space taken by i_entry
   }
@@ -227,4 +228,64 @@ std::string Selector::get_selected_string(){
   if(get_selected_entry() < 0 or get_selected_entry() >= int(_selection_list_.size()))
     return ""; // sanity check : cursor out of bounds
   return _selection_list_[get_selected_entry()];
+}
+
+std::string Selector::ask_question(const std::string& question_, const std::vector<std::string>& answers_,
+                                const std::vector<std::vector<std::string>>& descriptions_ ) {
+
+  std::string answer;
+  auto sel = Selector();
+
+  int nb_lines_layout = 0;
+  nb_lines_layout++; // toolbox::print_right("SimpleModManager v"+toolbox::get_app_version());
+  nb_lines_layout++; // std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
+  nb_lines_layout += int(question_.size()) / GenericToolbox::Switch::Hardware::getTerminalWidth();
+  nb_lines_layout++; // std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
+  nb_lines_layout++; // std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
+  nb_lines_layout++; // toolbox::printLeft_right(" A: Select", "B: Back ");
+  sel.set_max_items_per_page(GenericToolbox::Switch::Hardware::getTerminalHeight() - nb_lines_layout);
+
+  sel.set_selection_list(answers_);
+  if(not descriptions_.empty() and descriptions_.size() == answers_.size()){
+    sel.set_description_list(descriptions_);
+  }
+
+  u64 kDown = 1;
+  while(appletMainLoop()){
+
+    if(kDown != 0) {
+      consoleClear();
+      GenericToolbox::Switch::Printout::printRight("SimpleModManager v" + Toolbox::get_app_version());
+      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
+      std::cout << question_ << std::endl;
+      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
+      sel.print_selector();
+      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
+      GenericToolbox::Switch::Printout::printLeftRight(" A: Select", "B: Back ");
+      consoleUpdate(nullptr);
+    }
+
+    //Scan all the inputs. This should be done once for each frame
+    padUpdate(&GlobalObjects::gPad);;
+
+    //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
+    kDown = padGetButtonsDown(&GlobalObjects::gPad);
+
+    if     (kDown & HidNpadButton_AnyDown){
+      sel.increment_cursor_position();
+    }
+    else if(kDown & HidNpadButton_AnyUp){
+      sel.decrement_cursor_position();
+    }
+    else if(kDown & HidNpadButton_A){
+      answer = sel.get_selected_string();
+      break;
+    }
+    else if(kDown & HidNpadButton_B){
+      break;
+    }
+
+  }
+  consoleClear();
+  return answer;
 }

@@ -120,7 +120,7 @@ void ModManager::save_mods_status_cache_file() {
     }
   }
 
-  GenericToolbox::dumpStringInFile(data_string, cache_file_path);
+  GenericToolbox::dumpStringInFile(cache_file_path, data_string);
 
 }
 void ModManager::reset_mod_cache_status(std::string mod_name_){
@@ -160,7 +160,7 @@ std::string ModManager::get_mod_status(std::string mod_name_){
 
   int same_files_count = 0;
 
-  GenericToolbox::Switch::Printout::printLeft("   Checking : Listing mod files...", Toolbox::magenta_bg, true);
+  GenericToolbox::Switch::Printout::printLeft("   Checking : Listing mod files...", GenericToolbox::ColorCodes::magentaBackground, true);
   consoleUpdate(nullptr);
   std::vector<std::string> relative_file_path_list;
 //  if(_relative_file_path_list_cache_[mod_name_].empty()){
@@ -178,12 +178,10 @@ std::string ModManager::get_mod_status(std::string mod_name_){
 
     std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path_list[i_file];
 
-    Toolbox::display_loading(
+    GenericToolbox::Switch::Printout::displayProgressBar(
         i_file, total_files_count,
       "Checking : (" + std::to_string(i_file + 1) + "/" + std::to_string(total_files_count) + ") " +
-      GenericToolbox::getFileNameFromFilePath(absolute_file_path),
-        "   ",
-        Toolbox::magenta_bg
+      GenericToolbox::getFileNameFromFilePath(absolute_file_path)
       );
 
     if(GenericToolbox::Switch::IO::doFilesAreIdentical(
@@ -205,11 +203,11 @@ std::string ModManager::get_mod_status(std::string mod_name_){
 }
 void ModManager::apply_mod(std::string mod_name_, bool force_) {
 
-  GenericToolbox::Switch::Printout::printLeft("Applying : " + mod_name_ + "...", Toolbox::green_bg);
+  GenericToolbox::Switch::Printout::printLeft("Applying : " + mod_name_ + "...", GenericToolbox::ColorCodes::greenBackground);
   std::string absolute_mod_folder_path = _current_mods_folder_path_ + "/" + mod_name_;
 
   std::vector<std::string> relative_file_path_list;
-  GenericToolbox::Switch::Printout::printLeft("   Getting files list...", Toolbox::green_bg, true);
+  GenericToolbox::Switch::Printout::printLeft("   Getting files list...", GenericToolbox::ColorCodes::greenBackground, true);
 
 //  if(_relative_file_path_list_cache_[mod_name_].empty()){
 //    relative_file_path_list = GenericToolbox::getListFilesInSubfolders(absolute_mod_folder_path);
@@ -240,14 +238,13 @@ void ModManager::apply_mod(std::string mod_name_, bool force_) {
       continue;
     }
     std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path_list[i_file];
-    std::string file_size = Toolbox::get_file_size_string(absolute_file_path);
 
-    Toolbox::display_loading(
+    std::string file_size = GenericToolbox::parseSizeUnits(double(GenericToolbox::getFileSize(absolute_file_path)));
+
+    GenericToolbox::Switch::Printout::displayProgressBar(
         i_file, int(relative_file_path_list.size()),
       "(" + std::to_string(i_file + 1) + "/" + std::to_string(relative_file_path_list.size()) + ") " +
-      GenericToolbox::getFileNameFromFilePath(relative_file_path_list[i_file]) + " (" + file_size + ")",
-        "   ",
-        Toolbox::green_bg);
+      GenericToolbox::getFileNameFromFilePath(relative_file_path_list[i_file]) + " (" + file_size + ")");
 
     std::string install_path = _install_mods_base_folder_ + "/" + relative_file_path_list[i_file];
     if(GenericToolbox::doesPathIsFile(install_path)) {
@@ -301,7 +298,7 @@ void ModManager::apply_mod_list(std::vector<std::string> &mod_names_list_){
 }
 void ModManager::remove_mod(std::string mod_name_){
 
-  GenericToolbox::Switch::Printout::printLeft("Disabling : " + mod_name_, Toolbox::red_bg);
+  GenericToolbox::Switch::Printout::printLeft("Disabling : " + mod_name_, GenericToolbox::ColorCodes::redBackground);
   std::string absolute_mod_folder_path = _current_mods_folder_path_ + "/" + mod_name_;
 
   std::vector<std::string> relative_file_path_list;
@@ -315,13 +312,11 @@ void ModManager::remove_mod(std::string mod_name_){
     i_file++;
     std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path;
     absolute_file_path = GenericToolbox::removeRepeatedCharacters(absolute_file_path, "/");
-    std::string file_size = Toolbox::get_file_size_string(absolute_file_path);
+    std::string file_size = GenericToolbox::parseSizeUnits(double(GenericToolbox::getFileSize(absolute_file_path)));
 
-    Toolbox::display_loading(
+    GenericToolbox::Switch::Printout::displayProgressBar(
         i_file, relative_file_path_list.size(),
-      GenericToolbox::getFileNameFromFilePath(relative_file_path) + " (" + file_size + ")",
-        "   ",
-        Toolbox::red_bg
+      GenericToolbox::getFileNameFromFilePath(relative_file_path) + " (" + file_size + ")"
       );
 
     std::string installed_file_path = _install_mods_base_folder_ + "/" + relative_file_path;
@@ -358,23 +353,21 @@ void ModManager::remove_mod(std::string mod_name_){
 void ModManager::display_mod_files_status(std::string mod_folder_path_){
 
   std::vector<std::string> file_path_list;
-  GenericToolbox::Switch::Printout::printLeft("Listing Files...", Toolbox::red_bg);
+  GenericToolbox::Switch::Printout::printLeft("Listing Files...", GenericToolbox::ColorCodes::redBackground);
   consoleUpdate(nullptr);
 
   file_path_list = GenericToolbox::getListOfFilesInSubFolders(mod_folder_path_);
   Selector sel;
   sel.set_selection_list(file_path_list);
-  GenericToolbox::Switch::Printout::printLeft("Checking Files...", Toolbox::red_bg);
+  GenericToolbox::Switch::Printout::printLeft("Checking Files...", GenericToolbox::ColorCodes::redBackground);
   consoleUpdate(nullptr);
   Toolbox::reset_last_displayed_value();
   for(int i_file = 0 ; i_file < int(file_path_list.size()) ; i_file++){
 
-    Toolbox::display_loading(
+    GenericToolbox::Switch::Printout::displayProgressBar(
         i_file, file_path_list.size(),
       "(" + std::to_string(i_file + 1) + "/" + std::to_string(file_path_list.size()) + ") " +
-      GenericToolbox::getFileNameFromFilePath(file_path_list[i_file]),
-        "   ",
-        Toolbox::red_bg
+      GenericToolbox::getFileNameFromFilePath(file_path_list[i_file])
       );
 
     std::string installed_file_path = _install_mods_base_folder_ + "/" + file_path_list[i_file];
@@ -400,7 +393,7 @@ void ModManager::display_mod_files_status(std::string mod_folder_path_){
 
     if(kDown != 0 or kHeld != 0){
       consoleClear();
-      GenericToolbox::Switch::Printout::printLeft(mod_folder_path_, Toolbox::red_bg);
+      GenericToolbox::Switch::Printout::printLeft(mod_folder_path_, GenericToolbox::ColorCodes::redBackground);
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       sel.print_selector();
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
@@ -436,7 +429,7 @@ std::string ModManager::ask_to_replace(std::string path_) {
   options.emplace_back("Yes to all");
   options.emplace_back("No");
   options.emplace_back("No to all");
-  return Toolbox::ask_question(path_ + " already exists. Replace ?", options);
+  return Selector::ask_question(path_ + " already exists. Replace ?", options);
 
 }
 

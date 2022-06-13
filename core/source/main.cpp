@@ -9,7 +9,6 @@
 int main(int argc, char **argv){
 
   consoleInit(nullptr);
-  Toolbox::enableEmbeddedSwitchFS();
 
   // Configure our supported input layout: a single player with standard controller styles
   padConfigureInput(1, HidNpadStyleSet_NpadStandard);
@@ -17,13 +16,13 @@ int main(int argc, char **argv){
   // Initialize the default gamepad (which reads handheld mode inputs as well as the first connected controller)
   padInitializeDefault(&GlobalObjects::gPad);
 
-  std::string old_config_path = Toolbox::get_working_directory() + "/parameters.ini"; // before 1.5.0
+  std::string old_config_path = GenericToolbox::getCurrentWorkingDirectory() + "/parameters.ini"; // before 1.5.0
   if(GenericToolbox::doesPathIsFile(old_config_path)){
     ParametersHandler p;
     p.initialize();
     std::string new_param_file = p.get_parameters_file_path();
     GenericToolbox::Switch::Printout::printLeft("");
-    GenericToolbox::Switch::Printout::printLeft("Welcome in SimpleModManager v" + Toolbox::get_app_version(), Toolbox::green_bg);
+    GenericToolbox::Switch::Printout::printLeft("Welcome in SimpleModManager v" + Toolbox::get_app_version(), GenericToolbox::ColorCodes::greenBackground);
     GenericToolbox::Switch::Printout::printLeft("");
     GenericToolbox::Switch::Printout::printLeft("");
     GenericToolbox::Switch::Printout::printLeft("");
@@ -33,8 +32,8 @@ int main(int argc, char **argv){
     GenericToolbox::Switch::Printout::printLeft(" > The old file will be moved to this location.");
     GenericToolbox::Switch::Printout::printLeft("");
     GenericToolbox::Switch::Printout::printLeft("");
-    Toolbox::ask_question("Confirm by pressing A.", {"Ok"});
-    Toolbox::mv_file(old_config_path, new_param_file);
+    Selector::ask_question("Confirm by pressing A.", {"Ok"});
+    GenericToolbox::mvFile(old_config_path, new_param_file, true);
   }
 
   int max_depth = 1; // could be a parameter in the future
@@ -65,7 +64,6 @@ int main(int argc, char **argv){
 
   } // while
 
-  Toolbox::disableEmbeddedSwitchFS();
   consoleExit(nullptr);
   return EXIT_SUCCESS;
 

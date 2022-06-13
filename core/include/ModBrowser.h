@@ -44,13 +44,13 @@ public:
   void display_conflicts_with_other_mods(const std::string &selected_mod_);
   void check_mods_status();
   bool change_directory(std::string new_directory_);
-  void change_config_preset(std::string new_config_preset_);
+  void change_config_preset(const std::string& new_config_preset_);
   bool go_to_selected_directory();
   bool go_back();
   int get_relative_path_depth(std::string& path_);
   int get_path_depth(std::string& path_);
 
-  uint8_t* get_folder_icon(std::string game_folder_);
+  uint8_t* get_folder_icon(const std::string& game_folder_);
 
   void remove_all_mods(bool force_ = false);
 

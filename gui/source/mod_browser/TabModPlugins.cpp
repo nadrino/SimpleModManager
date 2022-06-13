@@ -2,13 +2,12 @@
 // Created by Adrien BLANCHET on 21/06/2020.
 //
 
-#include <ext_GlobalObjects.h>
 #include <GlobalObjects.h>
 #include "TabModPlugins.h"
-#include "Toolbox.h"
 
 #include <PopupLoading.h>
 #include "Logger.h"
+#include "GenericToolbox.h"
 
 #include <switch.h>
 
@@ -28,7 +27,7 @@ TabModPlugins::TabModPlugins()
 	this->frameCounter = -1;
 
 	// Setup the list
-	auto plugin_nros_list = Toolbox::get_list_of_entries_in_folder(
+	auto plugin_nros_list = GenericToolbox::getListOfEntriesInFolder(
       GlobalObjects::getModBrowser().get_current_directory() + "/.plugins");
 	plugin_nros_list.erase(std::remove_if(plugin_nros_list.begin(), plugin_nros_list.end(), [this](std::string &x) {
 							   return get_extension(x) != ".smm"; // put your condition here

@@ -132,7 +132,7 @@ void ParametersHandler::recreate_parameters_file() {
   parameter_file << std::endl;
 
   std::string data = parameter_file.str();
-  GenericToolbox::dumpStringInFile(data, _parameters_file_path_);
+  GenericToolbox::dumpStringInFile(_parameters_file_path_, data);
 
 }
 void ParametersHandler::read_parameters() {

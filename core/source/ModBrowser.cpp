@@ -108,7 +108,7 @@ void ModBrowser::scan_inputs(u64 kDown, u64 kHeld){
       // make mod action (ACTIVATE OR DEACTIVATE)
       _mod_manager_.apply_mod(_selector_.get_selected_string());
 
-      GenericToolbox::Switch::Printout::printLeft("Checking...", Toolbox::magenta_bg, true);
+      GenericToolbox::Switch::Printout::printLeft("Checking...", GenericToolbox::ColorCodes::magentaBackground, true);
       _selector_.set_tag(
         _selector_.get_selected_entry(),
         _mod_manager_.get_mod_status(_selector_.get_selected_string())
@@ -125,7 +125,7 @@ void ModBrowser::scan_inputs(u64 kDown, u64 kHeld){
     else if(kDown & HidNpadButton_Y){ // mod detailed infos
       std::string display_mod_files_status_str ="Show the status of each mod files";
       std::string display_mod_files_conflicts_str = "Show the list of conflicts";
-      auto answer = Toolbox::ask_question(
+      auto answer = Selector::ask_question(
         "Mod options:",
         {
           display_mod_files_status_str,
@@ -143,7 +143,7 @@ void ModBrowser::scan_inputs(u64 kDown, u64 kHeld){
       std::string recheck_all_mods_answer = "Reset mods status cache and recheck all mods";
       std::string disable_all_mods_answer = "Disable all mods";
       std::string set_install_preset_answer = "Attribute a config preset for this folder";
-      auto menu_answer = Toolbox::ask_question(
+      auto menu_answer = Selector::ask_question(
         "Options for this folder:",
         {
           recheck_all_mods_answer,
@@ -153,7 +153,7 @@ void ModBrowser::scan_inputs(u64 kDown, u64 kHeld){
       );
 
       if(menu_answer == recheck_all_mods_answer){
-        auto answer = Toolbox::ask_question("Do you which to recheck all mods ?",
+        auto answer = Selector::ask_question("Do you which to recheck all mods ?",
                                             std::vector<std::string>({"Yes", "No"}));
         if(answer == "Yes"){
           _mod_manager_.reset_all_mods_cache_status();
@@ -183,14 +183,14 @@ void ModBrowser::scan_inputs(u64 kDown, u64 kHeld){
           );
         }
 
-        auto answer = Toolbox::ask_question("Please select the config preset you want for this folder:",
+        auto answer = Selector::ask_question("Please select the config preset you want for this folder:",
                                             config_presets_list, config_presets_description_list);
 
         // overwriting
         std::string this_folder_config_file_path = _current_directory_ + "/this_folder_config.txt";
         GenericToolbox::deleteFile(this_folder_config_file_path);
         if(answer != null_preset){
-          GenericToolbox::dumpStringInFile(answer, this_folder_config_file_path);
+          GenericToolbox::dumpStringInFile(this_folder_config_file_path, answer);
           change_config_preset(answer);
         }
         else{
@@ -205,7 +205,7 @@ void ModBrowser::scan_inputs(u64 kDown, u64 kHeld){
       _mods_preseter_.select_mod_preset();
     }
     else if(kDown & HidNpadButton_Plus){ // Apply a mods preset
-      std::string answer = Toolbox::ask_question(
+      std::string answer = Selector::ask_question(
         "Do you want to apply " + _mods_preseter_.get_selected_mod_preset() + " ?",
         std::vector<std::string>({"Yes", "No"})
       );
@@ -243,7 +243,7 @@ void ModBrowser::scan_inputs(u64 kDown, u64 kHeld){
       }
     }
     else if(kDown & HidNpadButton_ZL or kDown & HidNpadButton_ZR){ // switch between config preset
-      auto answer = Toolbox::ask_question(
+      auto answer = Selector::ask_question(
         "Do you want to switch back to the GUI ?",
         std::vector<std::string>({"Yes", "No"})
       );
@@ -268,7 +268,7 @@ void ModBrowser::print_menu(){
   GenericToolbox::Switch::Printout::printRight("SimpleModManager v" + Toolbox::get_app_version());
 
   // ls
-  GenericToolbox::Switch::Printout::printLeft("Current Folder : " + _current_directory_, Toolbox::red_bg);
+  GenericToolbox::Switch::Printout::printLeft("Current Folder : " + _current_directory_, GenericToolbox::ColorCodes::redBackground);
   std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
   _selector_.print_selector();
   std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
@@ -278,10 +278,10 @@ void ModBrowser::print_menu(){
   if(get_current_relative_depth() == get_max_relative_depth())
     GenericToolbox::Switch::Printout::printLeft("Mod preset : " + _mods_preseter_.get_selected_mod_preset());
   GenericToolbox::Switch::Printout::printLeft(
-      "Configuration preset : "
-      + Toolbox::green_bg
+      std::string("Configuration preset : ")
+      + GenericToolbox::ColorCodes::greenBackground
       + _parameters_handler_.get_current_config_preset_name()
-      + Toolbox::reset_color
+      + GenericToolbox::ColorCodes::resetColor
     );
   GenericToolbox::Switch::Printout::printLeft("install-mods-base-folder = " + _mod_manager_.get_install_mods_base_folder());
   std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
@@ -335,7 +335,7 @@ void ModBrowser::display_conflicts_with_other_mods(const std::string &selected_m
 
     if(kDown != 0 or kHeld != 0){
       consoleClear();
-      GenericToolbox::Switch::Printout::printLeft("Conflicts with " + selected_mod_, Toolbox::red_bg);
+      GenericToolbox::Switch::Printout::printLeft("Conflicts with " + selected_mod_, GenericToolbox::ColorCodes::redBackground);
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       sel.print_selector();
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
@@ -377,7 +377,7 @@ void ModBrowser::check_mods_status(){
     print_menu();
     std::stringstream ss;
     ss << "Checking ("<< i_mod+1 << "/" << mods_list.size() << ") : " << mods_list[i_mod] << "...";
-    GenericToolbox::Switch::Printout::printLeft(ss.str(), Toolbox::magenta_bg);
+    GenericToolbox::Switch::Printout::printLeft(ss.str(), GenericToolbox::ColorCodes::magentaBackground);
     consoleUpdate(nullptr);
     _selector_.set_tag(i_mod, _mod_manager_.get_mod_status(mods_list[i_mod]));
   }
@@ -443,7 +443,7 @@ bool ModBrowser::change_directory(std::string new_directory_){
 
   return true;
 }
-void ModBrowser::change_config_preset(std::string new_config_preset_){
+void ModBrowser::change_config_preset(const std::string& new_config_preset_){
 
   _parameters_handler_.set_current_config_preset_name(new_config_preset_);
   _mod_manager_.set_install_mods_base_folder(
@@ -483,7 +483,7 @@ int ModBrowser::get_path_depth(std::string& path_){
   return path_depth;
 }
 
-uint8_t* ModBrowser::get_folder_icon(std::string game_folder_){
+uint8_t* ModBrowser::get_folder_icon(const std::string& game_folder_){
   uint8_t* icon = nullptr;
 
   if(get_current_relative_depth() == get_max_relative_depth()-1){
@@ -496,10 +496,9 @@ uint8_t* ModBrowser::get_folder_icon(std::string game_folder_){
 
 void ModBrowser::remove_all_mods(bool force_){
   std::string answer;
-  bool CRC_check_state = Toolbox::get_CRC_check_is_enabled();
-  Toolbox::set_CRC_check_is_enabled(false);
+  GenericToolbox::Switch::IO::p.useCrcCheck = false;
   if(not force_){
-    answer = Toolbox::ask_question(
+    answer = Selector::ask_question(
       "Do you want to disable all mods ?",
       std::vector<std::string>({"Yes", "No"})
     );
@@ -511,5 +510,5 @@ void ModBrowser::remove_all_mods(bool force_){
       _mod_manager_.remove_mod(_selector_.getSelectionList()[i_mod]);
     }
   }
-  Toolbox::set_CRC_check_is_enabled(CRC_check_state);
+  GenericToolbox::Switch::IO::p.useCrcCheck = true;
 }

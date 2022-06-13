@@ -32,8 +32,6 @@ int main(int argc, char* argv[]){
 //  const auto username = config["username"].as<std::string>();
 //  const auto password = config["password"].as<std::string>();
 
-  Toolbox::enableEmbeddedSwitchFS();
-
   int max_depth = 1; // could be a parameter in the future
   GlobalObjects::getModBrowser().set_only_show_folders(true);
   GlobalObjects::getModBrowser().set_max_relative_depth(max_depth);
@@ -45,8 +43,6 @@ int main(int argc, char* argv[]){
   else{
     runConsole();
   }
-
-  Toolbox::disableEmbeddedSwitchFS();
 
   // Exit
   return EXIT_SUCCESS;
@@ -105,7 +101,7 @@ void runConsole(){
   );
   if(lastVersion != this_version){
     GenericToolbox::Switch::Printout::printLeft("");
-    GenericToolbox::Switch::Printout::printLeft("Welcome in SimpleModManager v" + Toolbox::get_app_version(), Toolbox::green_bg);
+    GenericToolbox::Switch::Printout::printLeft("Welcome in SimpleModManager v" + Toolbox::get_app_version(), GenericToolbox::ColorCodes::greenBackground);
     GenericToolbox::Switch::Printout::printLeft("");
     GenericToolbox::Switch::Printout::printLeft("");
     GenericToolbox::Switch::Printout::printLeft("");
@@ -113,7 +109,7 @@ void runConsole(){
     GenericToolbox::Switch::Printout::printLeft(" > The application have successfully been upgraded.");
     GenericToolbox::Switch::Printout::printLeft("");
     GenericToolbox::Switch::Printout::printLeft("");
-    Toolbox::ask_question("To continue, press A.", {"Ok"});
+    Selector::ask_question("To continue, press A.", {"Ok"});
   }
 
   GlobalObjects::getModBrowser().print_menu();

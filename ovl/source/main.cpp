@@ -12,8 +12,6 @@ public:
   // libtesla already initialized fs, hid, pl, pmdmnt, hid:sys and set:sys
   void initServices() override {
 
-    Toolbox::enableEmbeddedSwitchFS();
-
     GlobalObjects::getModBrowser().set_only_show_folders(true);
     GlobalObjects::getModBrowser().set_max_relative_depth(1);
     GlobalObjects::getModBrowser().initialize();
@@ -23,9 +21,6 @@ public:
 
   }  // Called at the start_apply_mod to initialize all services necessary for this Overlay
   void exitServices() override {
-
-    Toolbox::disableEmbeddedSwitchFS();
-
   }  // Callet at the end to clean up all services previously initialized
 
   void onShow() override {}    // Called before overlay wants to change from invisible to visible state

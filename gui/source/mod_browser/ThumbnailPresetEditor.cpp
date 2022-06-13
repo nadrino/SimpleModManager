@@ -7,7 +7,7 @@
 #include <ext_GlobalObjects.h>
 #include "Toolbox.h"
 
-#include "GenericToolbox.h"
+#include "GenericToolbox.Switch.h"
 
 void ThumbnailPresetEditor::initialize() {
 
@@ -125,7 +125,7 @@ void ThumbnailPresetEditor::save() {
     (*PresetsListPtr).emplace_back(_presetName_);
   }
 
-  _presetName_ = Toolbox::get_user_string(_presetName_);
+  _presetName_ = GenericToolbox::Switch::UI::openKeyboardUi(_presetName_);
   (*PresetsListPtr)[preset_index] = _presetName_;
 
   for(int i_entry = 0 ; i_entry < int(_selectedModsList_.size()) ; i_entry++){

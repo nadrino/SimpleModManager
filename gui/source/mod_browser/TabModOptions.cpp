@@ -63,9 +63,8 @@ void TabModOptions::buildFolderInstallPresetItem() {
       GenericToolbox::deleteFile(this_folder_config_file_path);
       if(result > 0){
         // then a preset has been specified
-        GenericToolbox::dumpStringInFile(
-            GlobalObjects::getModBrowser().get_parameters_handler().get_presets_list()[result - 1],
-          this_folder_config_file_path
+        GenericToolbox::dumpStringInFile(this_folder_config_file_path,
+            GlobalObjects::getModBrowser().get_parameters_handler().get_presets_list()[result - 1]
         );
         GlobalObjects::getModBrowser().change_config_preset(
             GlobalObjects::getModBrowser().get_parameters_handler().get_presets_list()[result - 1]

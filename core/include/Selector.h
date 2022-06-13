@@ -13,6 +13,10 @@
 class Selector {
 
 public:
+  static std::string ask_question(const std::string& question_, const std::vector<std::string>& answers_,
+                                         const std::vector<std::vector<std::string>>& descriptions_={});
+
+public:
 
   Selector();
   ~Selector();
