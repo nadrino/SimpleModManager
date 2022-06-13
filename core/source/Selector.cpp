@@ -101,23 +101,22 @@ std::vector<std::string> & Selector::getSelectionList(){
 void Selector::print_selector() {
 
   std::string prefix_string;
-  std::string color;
   for(int i_entry = 0 ; i_entry < int(_item_list_for_each_page_[_current_page_].size()) ; i_entry++){
     int selection_list_entry = _item_list_for_each_page_[_current_page_][i_entry];
 
     prefix_string = "";
     if(i_entry == _cursor_position_) prefix_string += _cursor_marker_; else prefix_string += " ";
     prefix_string += " ";
-    if(i_entry == _cursor_position_) color = Toolbox::blue_bg; else color = "";
-//    _selection_list_[selection_list_entry];
     GenericToolbox::Switch::Printout::printLeftRight(
       prefix_string + _selection_list_[selection_list_entry],
       _tags_list_[selection_list_entry] + " ",
-      color
+      (i_entry == _cursor_position_? GenericToolbox::ColorCodes::blueBackground: "")
       );
     if(not _descriptions_list_[selection_list_entry].empty()){
       for(int i_desc_line = 0 ; i_desc_line < int(_descriptions_list_[selection_list_entry].size()) ; i_desc_line++){
-        GenericToolbox::Switch::Printout::printLeft(_descriptions_list_[selection_list_entry][i_desc_line], color);
+        GenericToolbox::Switch::Printout::printLeft(
+            _descriptions_list_[selection_list_entry][i_desc_line],
+            (i_entry == _cursor_position_? GenericToolbox::ColorCodes::blueBackground: ""));
       }
     }
 
