@@ -28,7 +28,7 @@ parameters_handler::~parameters_handler() {
 
 void parameters_handler::initialize() {
 
-  if(not toolbox::do_path_is_file(_parameters_file_path_)){
+  if(not GenericToolbox::doesPathIsFile(_parameters_file_path_)){
     recreate_parameters_file(); // create file with default parameters
   }
 
@@ -118,7 +118,7 @@ void parameters_handler::set_default_parameters() {
 }
 void parameters_handler::recreate_parameters_file() {
 
-  toolbox::mkdir_path(toolbox::get_folder_path_from_file_path(_parameters_file_path_));
+  GenericToolbox::mkdirPath(GenericToolbox::getFolderPathFromFilePath(_parameters_file_path_));
 
   std::stringstream parameter_file;
   parameter_file << "# This is a config file" << std::endl;
@@ -145,12 +145,12 @@ void parameters_handler::recreate_parameters_file() {
   parameter_file << std::endl;
 
   std::string data = parameter_file.str();
-  toolbox::dump_string_in_file(data, _parameters_file_path_);
+  GenericToolbox::dumpStringInFile(data, _parameters_file_path_);
 
 }
 void parameters_handler::read_parameters() {
 
-  auto lines = toolbox::dump_file_as_vector_string(_parameters_file_path_);
+  auto lines = GenericToolbox::dumpFileAsVectorString(_parameters_file_path_);
 
   // specifying first preset to keep compatibility with older versions
   // where presets were not implemented yet (1.2.0)
@@ -176,7 +176,7 @@ void parameters_handler::read_parameters() {
     //
     if(line_elements[0] == "preset"){
       current_preset = line_elements[1];
-      if(not toolbox::do_string_in_vector(line_elements[1], _presets_list_) ){
+      if(not GenericToolbox::doesElementIsInVector(line_elements[1], _presets_list_) ){
         _presets_list_.emplace_back(current_preset);
       }
     } else {

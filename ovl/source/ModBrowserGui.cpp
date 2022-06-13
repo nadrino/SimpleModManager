@@ -20,7 +20,7 @@ tsl::elm::Element *ModBrowserGui::createUI() {
   _frame_ = new tsl::elm::OverlayFrame("SimpleModManager", GlobalObjects::_version_str_);
 
   std::string new_path = GlobalObjects::getModBrowser().get_current_directory() + "/" + _current_sub_folder_;
-  new_path = toolbox::remove_extra_doubled_characters(new_path, "/");
+  new_path = GenericToolbox::removeRepeatedCharacters(new_path, "/");
 
   GlobalObjects::getModBrowser().change_directory(new_path);
   GlobalObjects::getModBrowser().get_mod_manager().set_current_mods_folder(new_path);

@@ -188,9 +188,9 @@ void mod_browser::scan_inputs(u64 kDown, u64 kHeld){
 
         // overwriting
         std::string this_folder_config_file_path = _current_directory_ + "/this_folder_config.txt";
-        toolbox::delete_file(this_folder_config_file_path);
+        GenericToolbox::deleteFile(this_folder_config_file_path);
         if(answer != null_preset){
-          toolbox::dump_string_in_file(answer, this_folder_config_file_path);
+          GenericToolbox::dumpStringInFile(answer, this_folder_config_file_path);
           change_config_preset(answer);
         }
         else{
@@ -269,12 +269,12 @@ void mod_browser::print_menu(){
 
   // ls
   toolbox::print_left("Current Folder : " + _current_directory_, toolbox::red_bg);
-  std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+  std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
   _selector_.print_selector();
-  std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+  std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
 
   std::cout << "  Page (" << _selector_.get_current_page() + 1 << "/" << _selector_.get_nb_pages() << ")" << std::endl;
-  std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+  std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
   if(get_current_relative_depth() == get_max_relative_depth())
     toolbox::print_left("Mod preset : " + _mods_preseter_.get_selected_mod_preset());
   toolbox::print_left(
@@ -284,7 +284,7 @@ void mod_browser::print_menu(){
     + toolbox::reset_color
     );
   toolbox::print_left("install-mods-base-folder = " + _mod_manager_.get_install_mods_base_folder());
-  std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+  std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
   if(get_current_relative_depth() == get_max_relative_depth()){
     toolbox::print_left_right(" ZL : Rescan all mods", "ZR : Disable all mods ");
     toolbox::print_left_right(" A/X : Apply/Disable mod", "L/R : Previous/Next preset ");
@@ -336,11 +336,11 @@ void mod_browser::display_conflicts_with_other_mods(std::string selected_mod_){
     if(kDown != 0 or kHeld != 0){
       consoleClear();
       toolbox::print_left("Conflicts with " +   selected_mod_, toolbox::red_bg);
-      std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
       sel.print_selector();
-      std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
       toolbox::print_left("Page (" + std::to_string(sel.get_current_page()+1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
-      std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
       toolbox::print_left_right(" B : Go back", "");
       if(sel.get_nb_pages() > 1) toolbox::print_left_right(" <- : Previous Page", "-> : Next Page ");
       consoleUpdate(nullptr);
@@ -390,7 +390,7 @@ bool mod_browser::change_directory(std::string new_directory_){
   }
 
   // sanity check
-  if(not toolbox::do_path_is_folder(new_directory_)) return false;
+  if(not GenericToolbox::doesPathIsFolder(new_directory_)) return false;
   auto new_path_relative_depth = get_relative_path_depth(new_directory_);
   if(new_path_relative_depth != -1 and new_path_relative_depth > _max_relative_depth_) return false;
 
@@ -409,8 +409,8 @@ bool mod_browser::change_directory(std::string new_directory_){
 
   // update list of entries
   std::vector<std::string> selection_list;
-  if(not _only_show_folders_) { selection_list = GenericToolbox::Switch::IO::getListOfEntriesInFolder(_current_directory_); }
-  else                        { selection_list = GenericToolbox::Switch::IO::getListOfSubFoldersInFolder(_current_directory_); }
+  if(not _only_show_folders_) { selection_list = GenericToolbox::getListOfEntriesInFolder(_current_directory_); }
+  else                        { selection_list = GenericToolbox::getListOfSubFoldersInFolder(_current_directory_); }
 
   selection_list.erase(std::remove(selection_list.begin(), selection_list.end(), ".plugins"), selection_list.end());
   std::sort(selection_list.begin(), selection_list.end());
@@ -427,14 +427,11 @@ bool mod_browser::change_directory(std::string new_directory_){
   }
 
   if(new_path_relative_depth == _max_relative_depth_){
-    std::string this_folder_config_file_path = _current_directory_ + "/this_folder_config.txt";
-    if(toolbox::do_path_is_file(this_folder_config_file_path)){
+    std::string thisFolderConfigFilePath = _current_directory_ + "/this_folder_config.txt";
+    if(GenericToolbox::doesPathIsFile(thisFolderConfigFilePath)){
       _main_config_preset_ = _parameters_handler_.get_current_config_preset_name(); // backup
-      auto vector_this_folder_config = toolbox::dump_file_as_vector_string(this_folder_config_file_path);
-      if(not vector_this_folder_config.empty()){
-        std::string this_folder_config = toolbox::dump_file_as_vector_string(this_folder_config_file_path)[0];
-        change_config_preset(this_folder_config);
-      }
+      auto vector_this_folder_config = GenericToolbox::dumpFileAsVectorString(thisFolderConfigFilePath);
+      if(not vector_this_folder_config.empty()){ this->change_config_preset(vector_this_folder_config[0]); }
     }
   }
   else{
@@ -456,7 +453,7 @@ void mod_browser::change_config_preset(std::string new_config_preset_){
 }
 bool mod_browser::go_to_selected_directory(){
   std::string new_path = _current_directory_ + "/" + _selector_.get_selected_string();
-  new_path = toolbox::remove_extra_doubled_characters(new_path, "/");
+  new_path = GenericToolbox::removeRepeatedCharacters(new_path, "/");
   return change_directory(new_path);
 }
 bool mod_browser::go_back(){
@@ -465,8 +462,8 @@ bool mod_browser::go_back(){
 
   auto folder_elements = GenericToolbox::splitString(_current_directory_, "/");
   auto new_path = "/" + GenericToolbox::joinVectorString(folder_elements, "/", 0, folder_elements.size()-1);
-  new_path = toolbox::remove_extra_doubled_characters(new_path, "/");
-  if(not toolbox::do_path_is_folder(new_path)){
+  new_path = GenericToolbox::removeRepeatedCharacters(new_path, "/");
+  if(not GenericToolbox::doesPathIsFolder(new_path)){
     std::cerr << "Can't go back, \"" << new_path << "\" is not a folder" << std::endl;
     return false;
   }
@@ -481,52 +478,20 @@ int mod_browser::get_relative_path_depth(std::string& path_){
 }
 int mod_browser::get_path_depth(std::string& path_){
   int path_depth = (GenericToolbox::splitString(path_, "/")).size() ;
-  if(toolbox::do_string_starts_with_substring(path_, "/")) path_depth--;
-  if(toolbox::do_string_ends_with_substring(path_, "/")) path_depth--;
+  if(GenericToolbox::doesStringStartsWithSubstring(path_, "/")) path_depth--;
+  if(GenericToolbox::doesStringEndsWithSubstring(path_, "/")) path_depth--;
   return path_depth;
 }
 
 uint8_t* mod_browser::get_folder_icon(std::string game_folder_){
-
   uint8_t* icon = nullptr;
 
   if(get_current_relative_depth() == get_max_relative_depth()-1){
-
     std::string game_folder_path = get_current_directory() + "/" + game_folder_;
-    std::string tid_str = toolbox::recursive_search_for_subfolder_name_like_tid(game_folder_path);
-    icon = get_folder_icon_from_titleid(tid_str);
-
+    icon = GenericToolbox::Switch::Utils::getFolderIconFromTitleId(GenericToolbox::Switch::Utils::lookForTidInSubFolders(game_folder_path));
   }
 
   return icon;
-
-}
-uint8_t* mod_browser::get_folder_icon_from_titleid(std::string titleid_){
-
-  uint8_t* icon = nullptr;
-
-  if(not titleid_.empty()){
-
-    NsApplicationControlData controlData;
-    size_t controlSize  = 0;
-    uint64_t tid;
-
-    std::istringstream buffer(titleid_);
-    buffer >> std::hex >> tid;
-
-    Result rc;
-    rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, tid, &controlData, sizeof(controlData), &controlSize);
-    if (R_FAILED(rc)){
-      return nullptr;
-    }
-
-    icon = new uint8_t[0x20000];
-    memcpy(icon, controlData.icon, 0x20000);
-
-  }
-
-  return icon;
-
 }
 
 void mod_browser::remove_all_mods(bool force_){

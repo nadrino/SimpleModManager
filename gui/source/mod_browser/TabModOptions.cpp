@@ -5,7 +5,9 @@
 #include "TabModOptions.h"
 #include <GlobalObjects.h>
 #include <ext_GlobalObjects.h>
-#include <toolbox.h>
+
+#include "GenericToolbox.h"
+
 
 TabModOptions::TabModOptions() {
 
@@ -28,7 +30,7 @@ void TabModOptions::buildFolderInstallPresetItem() {
 
   // Find the current selection
   std::string folderConfigFilePath = GlobalObjects::getModBrowser().get_current_directory() + "/this_folder_config.txt";
-  if(toolbox::do_path_is_file(folderConfigFilePath)){
+  if(GenericToolbox::doesPathIsFile(folderConfigFilePath)){
     _preSelection_ = 1 + GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_id();
     _itemFolderInstallPreset_->setValue(GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name());
   }
@@ -58,10 +60,10 @@ void TabModOptions::buildFolderInstallPresetItem() {
       // overwriting
       std::string this_folder_config_file_path =
           GlobalObjects::getModBrowser().get_current_directory() + "/this_folder_config.txt";
-      toolbox::delete_file(this_folder_config_file_path);
+      GenericToolbox::deleteFile(this_folder_config_file_path);
       if(result > 0){
         // then a preset has been specified
-        toolbox::dump_string_in_file(
+        GenericToolbox::dumpStringInFile(
             GlobalObjects::getModBrowser().get_parameters_handler().get_presets_list()[result - 1],
           this_folder_config_file_path
         );

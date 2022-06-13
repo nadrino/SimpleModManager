@@ -21,7 +21,7 @@ TabGames::TabGames() {
 
     std::string selectedFolder = modsList[i_folder];
 
-    size_t nb_mods = GenericToolbox::Switch::IO::getListOfSubFoldersInFolder(
+    size_t nb_mods = GenericToolbox::getListOfSubFoldersInFolder(
         GlobalObjects::getModBrowser().get_current_directory() + "/" + selectedFolder).size();
     auto* item = new brls::ListItem(selectedFolder, "", std::to_string(nb_mods) + " mod(s) available.");
     item->setValue(GlobalObjects::getModBrowser().getSelector().get_tag(i_folder));

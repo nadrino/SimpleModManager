@@ -11,6 +11,7 @@
 #include <ext_GlobalObjects.h>
 #include "toolbox.h"
 
+#include "GenericToolbox.Switch.h"
 #include "Logger.h"
 
 LoggerInit([]{
@@ -26,8 +27,8 @@ FrameModBrowser::FrameModBrowser(std::string folder_){
   _icon_ = nullptr;
 
   this->setTitle(folder_);
-  _titleid_ = toolbox::recursive_search_for_subfolder_name_like_tid(game_path);
-  _icon_ = GlobalObjects::getModBrowser().get_folder_icon_from_titleid(_titleid_);
+  _titleid_ = GenericToolbox::Switch::Utils::lookForTidInSubFolders(game_path);
+  _icon_ = GlobalObjects::getModBrowser().get_folder_icon(_titleid_);
   if(_icon_ != nullptr){
     this->setIcon(_icon_, 0x20000);
   }

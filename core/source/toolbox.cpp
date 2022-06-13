@@ -226,10 +226,10 @@ namespace toolbox{
 
     int nb_lines_layout = 0;
     nb_lines_layout++; // toolbox::print_right("SimpleModManager v"+toolbox::get_app_version());
-    nb_lines_layout++; // std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+    nb_lines_layout++; // std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
     nb_lines_layout += int(question_.size()) / toolbox::get_terminal_width();
-    nb_lines_layout++; // std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
-    nb_lines_layout++; // std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+    nb_lines_layout++; // std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
+    nb_lines_layout++; // std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
     nb_lines_layout++; // toolbox::print_left_right(" A: Select", "B: Back ");
     sel.set_max_items_per_page(toolbox::get_terminal_height() - nb_lines_layout);
 
@@ -244,11 +244,11 @@ namespace toolbox{
       if(kDown != 0) {
         consoleClear();
         toolbox::print_right("SimpleModManager v"+toolbox::get_app_version());
-        std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+        std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
         std::cout << question_ << std::endl;
-        std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+        std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
         sel.print_selector();
-        std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+        std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
         toolbox::print_left_right(" A: Select", "B: Back ");
         consoleUpdate(nullptr);
       }
@@ -526,8 +526,8 @@ namespace toolbox{
 
   void dump_string_in_file(std::string str_, std::string& path_){ // don't use ref for str_ : str_ is modified
 
-    if(toolbox::do_path_is_file(path_)){
-      toolbox::delete_file(path_);
+    if(GenericToolbox::doesPathIsFile(path_)){
+      GenericToolbox::deleteFile(path_);
     }
 
     if(not _native_switch_FS_is_enabled_){
@@ -864,7 +864,7 @@ namespace toolbox{
 
     if(not _native_switch_FS_is_enabled_){
       std::rename(source_file_path_.c_str(), destination_file_path_.c_str());
-      if(not toolbox::do_path_is_file(destination_file_path_) or toolbox::do_path_is_file(source_file_path_)){
+      if(not GenericToolbox::doesPathIsFile(destination_file_path_) or GenericToolbox::doesPathIsFile(source_file_path_)){
         return false;
       }
     }
@@ -906,7 +906,7 @@ namespace toolbox{
     {
       current_level += level; // append folder to the current level
       if(current_level.empty()) current_level = "/";
-      current_level = toolbox::remove_extra_doubled_characters(current_level, "/");
+      current_level = GenericToolbox::removeRepeatedCharacters(current_level, "/");
       // create current level
       if(not do_path_is_folder(current_level)){
         if(not _native_switch_FS_is_enabled_) {
@@ -973,7 +973,7 @@ namespace toolbox{
 
     unsigned long output_crc = crc32(0L, Z_NULL, 0);
     if(not _native_switch_FS_is_enabled_){
-      if(toolbox::do_path_is_file(file_path_)){
+      if(GenericToolbox::doesPathIsFile(file_path_)){
         std::string data = toolbox::dump_file_as_string(file_path_);
         if(not data.empty()){
           output_crc = crc32(0L, Z_NULL, 0);
@@ -1062,7 +1062,7 @@ namespace toolbox{
     getcwd(cwd, sizeof(cwd));
     std::string output_cwd(cwd);
     std::string prefix = "sdmc:";
-    if(toolbox::do_string_starts_with_substring(output_cwd, prefix)){
+    if(GenericToolbox::doesStringStartsWithSubstring(output_cwd, prefix)){
       output_cwd = output_cwd.substr(prefix.size(), output_cwd.size());
     }
     return output_cwd;
@@ -1301,7 +1301,7 @@ namespace toolbox{
         relative_subfile_path += subfolder_name;
         relative_subfile_path += "/";
         relative_subfile_path += subfile_name;
-        output_file_paths.emplace_back(toolbox::remove_extra_doubled_characters(relative_subfile_path, "/"));
+        output_file_paths.emplace_back(GenericToolbox::removeRepeatedCharacters(relative_subfile_path, "/"));
       }
     }
 

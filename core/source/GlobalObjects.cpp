@@ -5,6 +5,8 @@
 #include "GlobalObjects.h"
 #include "toolbox.h"
 
+#include "GenericToolbox.h"
+
 namespace GlobalObjects{
 
   static bool _quit_now_triggered_ = false;
@@ -20,7 +22,7 @@ namespace GlobalObjects{
   }
 
   bool doTriggerSwitchUI(){
-    return toolbox::to_bool(GlobalObjects::_triggerSwitchUI_);
+    return GenericToolbox::toBool(GlobalObjects::_triggerSwitchUI_);
   }
 
   void set_quit_now_triggered(bool value_){

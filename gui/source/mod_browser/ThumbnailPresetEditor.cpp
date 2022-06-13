@@ -7,6 +7,8 @@
 #include <ext_GlobalObjects.h>
 #include "toolbox.h"
 
+#include "GenericToolbox.h"
+
 void ThumbnailPresetEditor::initialize() {
 
   if(_presetName_.empty()){
@@ -65,7 +67,7 @@ void ThumbnailPresetEditor::initialize() {
   this->registerAction("", brls::Key::PLUS, []{return true;}, true);
 //  this->updateActionHint(brls::Key::PLUS, ""); // make the change visible
 
-  if(toolbox::do_string_in_vector(_presetName_, GlobalObjects::getModBrowser().get_mods_preseter().get_presets_list())){
+  if(GenericToolbox::doesElementIsInVector(_presetName_, GlobalObjects::getModBrowser().get_mods_preseter().get_presets_list())){
     _selectedModsList_ = GlobalObjects::getModBrowser().get_mods_preseter().get_mods_list(_presetName_);
   }
   this->process_tags();
@@ -149,7 +151,7 @@ void ThumbnailPresetEditor::autoAssignPresetName() {
   std::string autoName = "new-preset";
   _presetName_ = autoName;
   int count = 0;
-  while(toolbox::do_string_in_vector(_presetName_, GlobalObjects::getModBrowser().get_mods_preseter().get_presets_list())){
+  while(GenericToolbox::doesElementIsInVector(_presetName_, GlobalObjects::getModBrowser().get_mods_preseter().get_presets_list())){
     _presetName_ = autoName + "-" + std::to_string(count);
     count++;
   }

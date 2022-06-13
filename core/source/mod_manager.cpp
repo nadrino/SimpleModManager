@@ -84,9 +84,9 @@ void mod_manager::load_mods_status_cache_file() {
   _mods_status_cache_.clear();
   _mods_status_cache_fraction_.clear();
   std::string cache_file_path = _current_mods_folder_path_ + "/mods_status_cache.txt";
-  if(toolbox::do_path_is_file(cache_file_path)){
+  if(GenericToolbox::doesPathIsFile(cache_file_path)){
 
-    auto lines = toolbox::dump_file_as_vector_string(cache_file_path);
+    auto lines = GenericToolbox::dumpFileAsVectorString(cache_file_path);
     for(int i_line = 0 ; i_line < int(lines.size()) ; i_line++){
       auto line_elements = GenericToolbox::splitString(lines[i_line], "=");
       if(line_elements.size() < 2) continue; // useless entry
@@ -120,7 +120,7 @@ void mod_manager::save_mods_status_cache_file() {
     }
   }
 
-  toolbox::dump_string_in_file(data_string, cache_file_path);
+  GenericToolbox::dumpStringInFile(data_string, cache_file_path);
 
 }
 void mod_manager::reset_mod_cache_status(std::string mod_name_){
@@ -129,11 +129,11 @@ void mod_manager::reset_mod_cache_status(std::string mod_name_){
 }
 void mod_manager::reset_all_mods_cache_status(){
 
-  toolbox::delete_file(_current_mods_folder_path_ + "/mods_status_cache.txt");
+  GenericToolbox::deleteFile(_current_mods_folder_path_ + "/mods_status_cache.txt");
   load_mods_status_cache_file();
 
 //  for(auto &mod_status_cache : _mods_status_cache_){
-//    if(toolbox::do_string_starts_with_substring(mod_status_cache.first, _parameters_handler_ptr_->get_selected_install_preset_name())){
+//    if(GenericToolbox::doesStringStartsWithSubstring(mod_status_cache.first, _parameters_handler_ptr_->get_selected_install_preset_name())){
 //      _mods_status_cache_[mod_status_cache.first] = "";
 //      _mods_status_cache_fraction_[mod_status_cache.first] = -1;
 //    }
@@ -170,7 +170,7 @@ std::string mod_manager::get_mod_status(std::string mod_name_){
 //    relative_file_path_list = _relative_file_path_list_cache_[mod_name_];
 //  }
 
-  relative_file_path_list = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(absolute_mod_folder_path);
+  relative_file_path_list = GenericToolbox::getListOfFilesInSubFolders(absolute_mod_folder_path);
 
   int total_files_count = relative_file_path_list.size();
   toolbox::reset_last_displayed_value();
@@ -181,7 +181,7 @@ std::string mod_manager::get_mod_status(std::string mod_name_){
     toolbox::display_loading(
       i_file, total_files_count,
       "Checking : (" + std::to_string(i_file + 1) + "/" + std::to_string(total_files_count) + ") " +
-      toolbox::get_filename_from_file_path(absolute_file_path),
+      GenericToolbox::getFileNameFromFilePath(absolute_file_path),
       "   ",
       toolbox::magenta_bg
       );
@@ -218,11 +218,11 @@ void mod_manager::apply_mod(std::string mod_name_, bool force_) {
 //    relative_file_path_list = _relative_file_path_list_cache_[mod_name_];
 //  }
 
-  relative_file_path_list = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(absolute_mod_folder_path);
+  relative_file_path_list = GenericToolbox::getListOfFilesInSubFolders(absolute_mod_folder_path);
 
   // deleting ignored entries
   for(int i_mod = int(relative_file_path_list.size())-1 ; i_mod >= 0 ; i_mod--){
-    if(toolbox::do_string_in_vector(relative_file_path_list[i_mod], _ignored_file_list_)){
+    if(GenericToolbox::doesElementIsInVector(relative_file_path_list[i_mod], _ignored_file_list_)){
       relative_file_path_list.erase(relative_file_path_list.begin() + i_mod);
     }
   }
@@ -245,12 +245,12 @@ void mod_manager::apply_mod(std::string mod_name_, bool force_) {
     toolbox::display_loading(
       i_file, int(relative_file_path_list.size()),
       "(" + std::to_string(i_file + 1) + "/" + std::to_string(relative_file_path_list.size()) + ") " +
-      toolbox::get_filename_from_file_path(relative_file_path_list[i_file]) + " (" + file_size + ")",
+      GenericToolbox::getFileNameFromFilePath(relative_file_path_list[i_file]) + " (" + file_size + ")",
       "   ",
       toolbox::green_bg);
 
     std::string install_path = _install_mods_base_folder_ + "/" + relative_file_path_list[i_file];
-    if(toolbox::do_path_is_file(install_path)) {
+    if(GenericToolbox::doesPathIsFile(install_path)) {
       is_conflict = true;
       if (replace_option == "Yes to all") {
         // remove log entry ? if log enabled
@@ -280,9 +280,9 @@ void mod_manager::apply_mod_list(std::vector<std::string> &mod_names_list_){
   std::vector<std::vector<std::string>> mods_ignored_files_list(mod_names_list_.size());
   for(int i_mod = int(mod_names_list_.size())-1 ; i_mod >= 0 ; i_mod--){
     std::string mod_path = _current_mods_folder_path_ + "/" + mod_names_list_[i_mod];
-    auto mod_files_list = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(mod_path);
+    auto mod_files_list = GenericToolbox::getListOfFilesInSubFolders(mod_path);
     for(auto& mod_file : mod_files_list){
-      if(toolbox::do_string_in_vector(mod_file, applied_files_listing)){
+      if(GenericToolbox::doesElementIsInVector(mod_file, applied_files_listing)){
         mods_ignored_files_list[i_mod].emplace_back(mod_file);
       }
       else {
@@ -306,7 +306,7 @@ void mod_manager::remove_mod(std::string mod_name_){
 
   std::vector<std::string> relative_file_path_list;
 
-  relative_file_path_list = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(absolute_mod_folder_path);
+  relative_file_path_list = GenericToolbox::getListOfFilesInSubFolders(absolute_mod_folder_path);
 
   int i_file=0;
   toolbox::reset_last_displayed_value();
@@ -314,29 +314,29 @@ void mod_manager::remove_mod(std::string mod_name_){
 
     i_file++;
     std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path;
-    absolute_file_path = toolbox::remove_extra_doubled_characters(absolute_file_path, "/");
+    absolute_file_path = GenericToolbox::removeRepeatedCharacters(absolute_file_path, "/");
     std::string file_size = toolbox::get_file_size_string(absolute_file_path);
 
     toolbox::display_loading(
       i_file, relative_file_path_list.size(),
-      toolbox::get_filename_from_file_path(relative_file_path) + " (" + file_size + ")",
+      GenericToolbox::getFileNameFromFilePath(relative_file_path) + " (" + file_size + ")",
       "   ",
       toolbox::red_bg
       );
 
     std::string installed_file_path = _install_mods_base_folder_ + "/" + relative_file_path;
-    installed_file_path = toolbox::remove_extra_doubled_characters(installed_file_path, "/");
+    installed_file_path = GenericToolbox::removeRepeatedCharacters(installed_file_path, "/");
     // Check if the installed mod belongs to the selected mod
     if( GenericToolbox::Switch::IO::doFilesAreIdentical( absolute_file_path, installed_file_path ) ){
 
       // Remove the mod file
-      toolbox::delete_file(installed_file_path);
+      GenericToolbox::deleteFile(installed_file_path);
 
       // Delete the folder if no other files is present
-      std::string empty_folder_path_candidate = toolbox::get_folder_path_from_file_path(installed_file_path);
-      while( toolbox::do_folder_is_empty( empty_folder_path_candidate ) ) {
+      std::string empty_folder_path_candidate = GenericToolbox::getFolderPathFromFilePath(installed_file_path);
+      while( GenericToolbox::isFolderEmpty( empty_folder_path_candidate ) ) {
 
-        toolbox::delete_directory(empty_folder_path_candidate);
+        GenericToolbox::deleteEmptyDirectory(empty_folder_path_candidate);
 
         std::vector<std::string> sub_folder_list = GenericToolbox::splitString(empty_folder_path_candidate, "/");
         if(sub_folder_list.empty()) break; // virtually impossible -> would mean everything has been deleted on the sd
@@ -361,7 +361,7 @@ void mod_manager::display_mod_files_status(std::string mod_folder_path_){
   toolbox::print_left("Listing Files...", toolbox::red_bg);
   consoleUpdate(nullptr);
 
-  file_path_list = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(mod_folder_path_);
+  file_path_list = GenericToolbox::getListOfFilesInSubFolders(mod_folder_path_);
   selector sel;
   sel.set_selection_list(file_path_list);
   toolbox::print_left("Checking Files...", toolbox::red_bg);
@@ -372,7 +372,7 @@ void mod_manager::display_mod_files_status(std::string mod_folder_path_){
     toolbox::display_loading(
       i_file, file_path_list.size(),
       "(" + std::to_string(i_file + 1) + "/" + std::to_string(file_path_list.size()) + ") " +
-      toolbox::get_filename_from_file_path(file_path_list[i_file]),
+      GenericToolbox::getFileNameFromFilePath(file_path_list[i_file]),
       "   ",
       toolbox::red_bg
       );
@@ -383,7 +383,7 @@ void mod_manager::display_mod_files_status(std::string mod_folder_path_){
         installed_file_path
         )){
       sel.set_tag(i_file, "-> Installed");
-    } else if(toolbox::do_path_is_file(installed_file_path)){
+    } else if(GenericToolbox::doesPathIsFile(installed_file_path)){
       sel.set_tag(i_file, "-> Not Same");
     } else {
       sel.set_tag(i_file, "-> Not Installed");
@@ -401,11 +401,11 @@ void mod_manager::display_mod_files_status(std::string mod_folder_path_){
     if(kDown != 0 or kHeld != 0){
       consoleClear();
       toolbox::print_left(mod_folder_path_, toolbox::red_bg);
-      std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
       sel.print_selector();
-      std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
       toolbox::print_left("Page (" + std::to_string(sel.get_current_page()+1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
-      std::cout << toolbox::repeat_string("*",toolbox::get_terminal_width());
+      std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
       toolbox::print_left_right(" B : Go back", "");
       if(sel.get_nb_pages() > 1) toolbox::print_left_right(" <- : Previous Page", "-> : Next Page ");
       consoleUpdate(nullptr);

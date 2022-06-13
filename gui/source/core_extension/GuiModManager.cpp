@@ -30,7 +30,7 @@ void GuiModManager::applyMod(std::string &modName_, bool force_) {
 
   std::string modPath = GlobalObjects::getModBrowser().get_mod_manager().get_current_mods_folder_path() + "/" + modName_;
 
-  std::vector<std::string> modFilesList = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(modPath);
+  std::vector<std::string> modFilesList = GenericToolbox::getListOfFilesInSubFolders(modPath);
 
   // deleting ignored entries
   for(int i_mod = int(modFilesList.size()) - 1 ; i_mod >= 0 ; i_mod--){
@@ -53,15 +53,15 @@ void GuiModManager::applyMod(std::string &modName_, bool force_) {
 
     std::string filePath = modPath + "/" + modFilesList[iFile];
     GenericToolbox::removeRepeatedCharacters(filePath, "/");
-    std::string fileSizeStr = GenericToolbox::parseSizeUnits(double(GenericToolbox::Switch::IO::getFileSize(filePath)));
+    std::string fileSizeStr = GenericToolbox::parseSizeUnits(double(GenericToolbox::getFileSize(filePath)));
 
-    toolbox::fill_str_buffer_map("ext_mod_manager::applyMod:current_file", toolbox::get_filename_from_file_path(modFilesList[iFile]) + " (" + fileSizeStr + ")");
+    toolbox::fill_str_buffer_map("ext_mod_manager::applyMod:current_file", GenericToolbox::getFileNameFromFilePath(modFilesList[iFile]) + " (" + fileSizeStr + ")");
     toolbox::fill_progress_map("ext_mod_manager::applyMod", double(iFile + 1) / double(modFilesList.size()));
 
     std::string install_path =
         GlobalObjects::getModBrowser().get_mod_manager().get_install_mods_base_folder() + "/" + modFilesList[iFile];
     GenericToolbox::removeRepeatedCharInsideInputStr(install_path, "/");
-    GenericToolbox::Switch::IO::doesPathIsFile(install_path) ? is_conflict = true: is_conflict = false;
+    GenericToolbox::doesPathIsFile(install_path) ? is_conflict = true: is_conflict = false;
     if(not is_conflict or replace_option == "Yes to all" or replace_option == "Yes"){
       GenericToolbox::Switch::IO::copyFile(filePath, install_path);
     }
@@ -91,7 +91,7 @@ std::string GuiModManager::getModStatus(const std::string &modName_) {
     int same_files_count = 0;
 
     toolbox::fill_str_buffer_map("ext_mod_manager::getModStatus:current_file", "Listing mod files...");
-    std::vector<std::string> relative_file_path_list = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(
+    std::vector<std::string> relative_file_path_list = GenericToolbox::getListOfFilesInSubFolders(
         absolute_mod_folder_path);
 
     int total_files_count = relative_file_path_list.size();
@@ -99,7 +99,7 @@ std::string GuiModManager::getModStatus(const std::string &modName_) {
 
       std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path_list[i_file];
 
-      toolbox::fill_str_buffer_map("ext_mod_manager::getModStatus:current_file", toolbox::get_filename_from_file_path(relative_file_path_list[i_file]));
+      toolbox::fill_str_buffer_map("ext_mod_manager::getModStatus:current_file", GenericToolbox::getFileNameFromFilePath(relative_file_path_list[i_file]));
       toolbox::fill_progress_map("ext_mod_manager::getModStatus", (i_file+1.)/double(total_files_count));
 
       if(GenericToolbox::Switch::IO::doFilesAreIdentical(
@@ -135,7 +135,7 @@ void GuiModManager::removeMod(std::string &modName_){
 
   std::vector<std::string> relative_file_path_list;
 
-  relative_file_path_list = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(absolute_mod_folder_path);
+  relative_file_path_list = GenericToolbox::getListOfFilesInSubFolders(absolute_mod_folder_path);
 
   int i_file=0;
   toolbox::reset_last_displayed_value();
@@ -143,27 +143,27 @@ void GuiModManager::removeMod(std::string &modName_){
 
     std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path;
     toolbox::fill_str_buffer_map("ext_mod_manager::removeMod:current_file",
-      toolbox::get_filename_from_file_path(relative_file_path)
+      GenericToolbox::getFileNameFromFilePath(relative_file_path)
       + " (" + toolbox::get_file_size_string(absolute_file_path) + ")");
     toolbox::fill_progress_map("ext_mod_manager::removeMod", (i_file+1.)/double(relative_file_path_list.size()));
 
     i_file++;
-    absolute_file_path = toolbox::remove_extra_doubled_characters(absolute_file_path, "/");
+    absolute_file_path = GenericToolbox::removeRepeatedCharacters(absolute_file_path, "/");
     std::string file_size = toolbox::get_file_size_string(absolute_file_path);
 
     std::string installed_file_path = mod_manager->get_install_mods_base_folder() + "/" + relative_file_path;
-    installed_file_path = toolbox::remove_extra_doubled_characters(installed_file_path, "/");
+    installed_file_path = GenericToolbox::removeRepeatedCharacters(installed_file_path, "/");
     // Check if the installed mod belongs to the selected mod
     if( GenericToolbox::Switch::IO::doFilesAreIdentical( absolute_file_path, installed_file_path ) ){
 
       // Remove the mod file
-      GenericToolbox::Switch::IO::deleteFile(installed_file_path);
+      GenericToolbox::deleteFile(installed_file_path);
 
       // Delete the folder if no other files is present
-      std::string empty_folder_path_candidate = toolbox::get_folder_path_from_file_path(installed_file_path);
-      while( toolbox::do_folder_is_empty( empty_folder_path_candidate ) ) {
+      std::string empty_folder_path_candidate = GenericToolbox::getFolderPathFromFilePath(installed_file_path);
+      while( GenericToolbox::isFolderEmpty( empty_folder_path_candidate ) ) {
 
-        toolbox::delete_directory(empty_folder_path_candidate);
+        GenericToolbox::deleteEmptyDirectory(empty_folder_path_candidate);
 
         std::vector<std::string> sub_folder_list = GenericToolbox::splitString(empty_folder_path_candidate, "/");
         if(sub_folder_list.empty()) break; // virtually impossible -> would mean everything has been deleted on the sd
@@ -216,7 +216,7 @@ void GuiModManager::apply_mods_list(std::vector<std::string>& modsList_){
   std::vector<std::vector<std::string>> mods_ignored_files_list(modsList_.size());
   for(int i_mod = int(modsList_.size())-1 ; i_mod >= 0 ; i_mod--){
     std::string mod_path = mod_browser->get_current_directory() + "/" + modsList_[i_mod];
-    auto mod_files_list = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(mod_path);
+    auto mod_files_list = GenericToolbox::getListOfFilesInSubFolders(mod_path);
     for(auto& mod_file : mod_files_list){
       if(GenericToolbox::doesElementIsInVector(mod_file, applied_files_listing)){
         mods_ignored_files_list[i_mod].emplace_back(mod_file);
@@ -248,7 +248,7 @@ void GuiModManager::checkAllMods() {
   for(int i_mod = 0 ; i_mod < int(mods_list.size()) ; i_mod++){
 
     toolbox::fill_str_buffer_map("ext_mod_manager::checkAllMods:current_mod",
-      toolbox::get_filename_from_file_path(mods_list[i_mod]) + " (" + std::to_string(i_mod+1) + "/" + std::to_string(mods_list.size()) + ")");
+      GenericToolbox::getFileNameFromFilePath(mods_list[i_mod]) + " (" + std::to_string(i_mod+1) + "/" + std::to_string(mods_list.size()) + ")");
     toolbox::fill_progress_map("ext_mod_manager::checkAllMods", (i_mod+1.)/double(mods_list.size()));
 
     // IU update

@@ -3,6 +3,8 @@
 #include <toolbox.h>
 #include <GlobalObjects.h>
 
+#include "GenericToolbox.h"
+
 // MAIN
 int main(int argc, char **argv){
 
@@ -16,7 +18,7 @@ int main(int argc, char **argv){
   padInitializeDefault(&GlobalObjects::gPad);
 
   std::string old_config_path = toolbox::get_working_directory() + "/parameters.ini"; // before 1.5.0
-  if(toolbox::do_path_is_file(old_config_path)){
+  if(GenericToolbox::doesPathIsFile(old_config_path)){
     parameters_handler p;
     p.initialize();
     std::string new_param_file = p.get_parameters_file_path();
