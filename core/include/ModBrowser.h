@@ -50,7 +50,7 @@ public:
   int get_relative_path_depth(std::string& path_);
   int get_path_depth(std::string& path_);
 
-  uint8_t* get_folder_icon(const std::string& game_folder_);
+  uint8_t* getFolderIcon(const std::string& gameFolder_);
 
   void remove_all_mods(bool force_ = false);
 

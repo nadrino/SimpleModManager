@@ -167,7 +167,7 @@ void TabModOptions::buildGameIdentificationItem(){
     "Current value :"
   );
   if(GuiGlobals::getCurrentFrameModBrowserPtr()->getIcon() != nullptr){
-    _itemGameIdentification_->setValue(GuiGlobals::getCurrentFrameModBrowserPtr()->getTitleid());
+    _itemGameIdentification_->setValue(GuiGlobals::getCurrentFrameModBrowserPtr()->getTitleId());
     _itemGameIdentification_->setThumbnail(
         GuiGlobals::getCurrentFrameModBrowserPtr()->getIcon(),
         0x20000

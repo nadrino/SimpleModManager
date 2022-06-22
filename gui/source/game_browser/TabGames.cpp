@@ -25,7 +25,7 @@ TabGames::TabGames() {
         GlobalObjects::getModBrowser().get_current_directory() + "/" + selectedFolder).size();
     auto* item = new brls::ListItem(selectedFolder, "", std::to_string(nb_mods) + " mod(s) available.");
     item->setValue(GlobalObjects::getModBrowser().getSelector().get_tag(i_folder));
-    auto* icon = GlobalObjects::getModBrowser().get_folder_icon(selectedFolder);
+    auto* icon = GlobalObjects::getModBrowser().getFolderIcon(selectedFolder);
     if(icon != nullptr){ item->setThumbnail(icon, 0x20000); }
     item->getClickEvent()->subscribe([selectedFolder](View* view) {
       LogDebug << "Opening \"" << selectedFolder << "\"" << std::endl;

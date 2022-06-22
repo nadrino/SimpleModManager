@@ -483,11 +483,11 @@ int ModBrowser::get_path_depth(std::string& path_){
   return path_depth;
 }
 
-uint8_t* ModBrowser::get_folder_icon(const std::string& game_folder_){
+uint8_t* ModBrowser::getFolderIcon(const std::string& gameFolder_){
   uint8_t* icon = nullptr;
 
   if(get_current_relative_depth() == get_max_relative_depth()-1){
-    std::string game_folder_path = get_current_directory() + "/" + game_folder_;
+    std::string game_folder_path = get_current_directory() + "/" + gameFolder_;
     icon = GenericToolbox::Switch::Utils::getFolderIconFromTitleId(GenericToolbox::Switch::Utils::lookForTidInSubFolders(game_folder_path));
   }
 

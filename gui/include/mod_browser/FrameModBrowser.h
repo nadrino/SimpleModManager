@@ -19,7 +19,7 @@ public:
   bool onCancel() override;
 
   uint8_t *getIcon();
-  std::string getTitleid();
+  std::string getTitleId();
 
 private:
   TabModBrowser* _tabModBrowser_{nullptr};

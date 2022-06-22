@@ -20,19 +20,18 @@ LoggerInit([]{
 FrameModBrowser::FrameModBrowser(const std::string& folder_){
 
   GuiGlobals::setCurrentFrameModBrowserPtr(this);
-
-  std::string game_path = GlobalObjects::getModBrowser().get_current_directory() + "/" + folder_;
-
   this->setTitle(folder_);
-  _titleId_ = GenericToolbox::Switch::Utils::lookForTidInSubFolders(game_path);
-  _icon_ = GlobalObjects::getModBrowser().get_folder_icon(_titleId_);
+
+  std::string gamePath = GlobalObjects::getModBrowser().get_current_directory() + "/" + folder_;
+  _titleId_ = GenericToolbox::Switch::Utils::lookForTidInSubFolders(gamePath);
+  _icon_ = GlobalObjects::getModBrowser().getFolderIcon(folder_);
   if(_icon_ != nullptr){ this->setIcon(_icon_, 0x20000); }
   this->setFooterText("SimpleModManager");
 
-  if(GlobalObjects::getModBrowser().change_directory(game_path) ){
+  if(GlobalObjects::getModBrowser().change_directory(gamePath) ){
 
-    GlobalObjects::getModBrowser().get_mod_manager().set_current_mods_folder(game_path);
-    GlobalObjects::getModBrowser().get_mods_preseter().read_parameter_file(game_path);
+    GlobalObjects::getModBrowser().get_mod_manager().set_current_mods_folder(gamePath);
+    GlobalObjects::getModBrowser().get_mods_preseter().read_parameter_file(gamePath);
 
     auto* parametersTabList = new brls::List();
     GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name();
@@ -56,8 +55,8 @@ FrameModBrowser::FrameModBrowser(const std::string& folder_){
   }
   else{
     auto* list = new brls::List();
-    LogError("Can't open: %s", game_path.c_str());
-    auto* item = new brls::ListItem("Error: Can't open " + game_path , "", "");
+    LogError("Can't open: %s", gamePath.c_str());
+    auto* item = new brls::ListItem("Error: Can't open " + gamePath , "", "");
     list->addView(item);
     this->addTab("Mod Browser", list);
   }
@@ -84,6 +83,6 @@ uint8_t *FrameModBrowser::getIcon() {
   return _icon_;
 }
 
-std::string FrameModBrowser::getTitleid() {
+std::string FrameModBrowser::getTitleId() {
   return _titleId_;
 }
