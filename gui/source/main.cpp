@@ -100,15 +100,15 @@ void runConsole(){
       )
   );
   if(lastVersion != this_version){
-    GenericToolbox::Switch::Printout::printLeft("");
-    GenericToolbox::Switch::Printout::printLeft("Welcome in SimpleModManager v" + Toolbox::get_app_version(), GenericToolbox::ColorCodes::greenBackground);
-    GenericToolbox::Switch::Printout::printLeft("");
-    GenericToolbox::Switch::Printout::printLeft("");
-    GenericToolbox::Switch::Printout::printLeft("");
-    GenericToolbox::Switch::Printout::printLeft("");
-    GenericToolbox::Switch::Printout::printLeft(" > The application have successfully been upgraded.");
-    GenericToolbox::Switch::Printout::printLeft("");
-    GenericToolbox::Switch::Printout::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft("Welcome in SimpleModManager v" + Toolbox::get_app_version(), GenericToolbox::ColorCodes::greenBackground);
+    GenericToolbox::Switch::Terminal::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft(" > The application have successfully been upgraded.");
+    GenericToolbox::Switch::Terminal::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft("");
     Selector::ask_question("To continue, press A.", {"Ok"});
   }
 

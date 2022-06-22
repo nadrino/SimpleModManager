@@ -108,14 +108,14 @@ void Selector::print_selector() {
     prefix_string = "";
     if(i_entry == _cursor_position_) prefix_string += _cursor_marker_; else prefix_string += " ";
     prefix_string += " ";
-    GenericToolbox::Switch::Printout::printLeftRight(
+    GenericToolbox::Switch::Terminal::printLeftRight(
       prefix_string + _selection_list_[selection_list_entry],
       _tags_list_[selection_list_entry] + " ",
       (i_entry == _cursor_position_? GenericToolbox::ColorCodes::blueBackground: "")
       );
     if(not _descriptions_list_[selection_list_entry].empty()){
       for(int i_desc_line = 0 ; i_desc_line < int(_descriptions_list_[selection_list_entry].size()) ; i_desc_line++){
-        GenericToolbox::Switch::Printout::printLeft(
+        GenericToolbox::Switch::Terminal::printLeft(
             _descriptions_list_[selection_list_entry][i_desc_line],
             (i_entry == _cursor_position_? GenericToolbox::ColorCodes::blueBackground: ""));
       }
@@ -255,13 +255,13 @@ std::string Selector::ask_question(const std::string& question_, const std::vect
 
     if(kDown != 0) {
       consoleClear();
-      GenericToolbox::Switch::Printout::printRight("SimpleModManager v" + Toolbox::get_app_version());
+      GenericToolbox::Switch::Terminal::printRight("SimpleModManager v" + Toolbox::get_app_version());
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       std::cout << question_ << std::endl;
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       sel.print_selector();
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      GenericToolbox::Switch::Printout::printLeftRight(" A: Select", "B: Back ");
+      GenericToolbox::Switch::Terminal::printLeftRight(" A: Select", "B: Back ");
       consoleUpdate(nullptr);
     }
 

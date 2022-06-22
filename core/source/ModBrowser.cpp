@@ -108,7 +108,7 @@ void ModBrowser::scan_inputs(u64 kDown, u64 kHeld){
       // make mod action (ACTIVATE OR DEACTIVATE)
       _mod_manager_.apply_mod(_selector_.get_selected_string());
 
-      GenericToolbox::Switch::Printout::printLeft("Checking...", GenericToolbox::ColorCodes::magentaBackground, true);
+      GenericToolbox::Switch::Terminal::printLeft("Checking...", GenericToolbox::ColorCodes::magentaBackground, true);
       _selector_.set_tag(
         _selector_.get_selected_entry(),
         _mod_manager_.get_mod_status(_selector_.get_selected_string())
@@ -265,10 +265,10 @@ void ModBrowser::scan_inputs(u64 kDown, u64 kHeld){
 }
 void ModBrowser::print_menu(){
   consoleClear();
-  GenericToolbox::Switch::Printout::printRight("SimpleModManager v" + Toolbox::get_app_version());
+  GenericToolbox::Switch::Terminal::printRight("SimpleModManager v" + Toolbox::get_app_version());
 
   // ls
-  GenericToolbox::Switch::Printout::printLeft("Current Folder : " + _current_directory_, GenericToolbox::ColorCodes::redBackground);
+  GenericToolbox::Switch::Terminal::printLeft("Current Folder : " + _current_directory_, GenericToolbox::ColorCodes::redBackground);
   std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
   _selector_.print_selector();
   std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
@@ -276,25 +276,25 @@ void ModBrowser::print_menu(){
   std::cout << "  Page (" << _selector_.get_current_page() + 1 << "/" << _selector_.get_nb_pages() << ")" << std::endl;
   std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
   if(get_current_relative_depth() == get_max_relative_depth())
-    GenericToolbox::Switch::Printout::printLeft("Mod preset : " + _mods_preseter_.get_selected_mod_preset());
-  GenericToolbox::Switch::Printout::printLeft(
+    GenericToolbox::Switch::Terminal::printLeft("Mod preset : " + _mods_preseter_.get_selected_mod_preset());
+  GenericToolbox::Switch::Terminal::printLeft(
       std::string("Configuration preset : ")
       + GenericToolbox::ColorCodes::greenBackground
       + _parameters_handler_.get_current_config_preset_name()
       + GenericToolbox::ColorCodes::resetColor
     );
-  GenericToolbox::Switch::Printout::printLeft("install-mods-base-folder = " + _mod_manager_.get_install_mods_base_folder());
+  GenericToolbox::Switch::Terminal::printLeft("install-mods-base-folder = " + _mod_manager_.get_install_mods_base_folder());
   std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
   if(get_current_relative_depth() == get_max_relative_depth()){
-    GenericToolbox::Switch::Printout::printLeftRight(" ZL : Rescan all mods", "ZR : Disable all mods ");
-    GenericToolbox::Switch::Printout::printLeftRight(" A/X : Apply/Disable mod", "L/R : Previous/Next preset ");
-    GenericToolbox::Switch::Printout::printLeftRight(" -/+ : Select/Apply mod preset", "Y : Mod options ");
+    GenericToolbox::Switch::Terminal::printLeftRight(" ZL : Rescan all mods", "ZR : Disable all mods ");
+    GenericToolbox::Switch::Terminal::printLeftRight(" A/X : Apply/Disable mod", "L/R : Previous/Next preset ");
+    GenericToolbox::Switch::Terminal::printLeftRight(" -/+ : Select/Apply mod preset", "Y : Mod options ");
   }
   else{
-    GenericToolbox::Switch::Printout::printLeftRight(" A : Select folder", "Y : Change config preset ");
-    GenericToolbox::Switch::Printout::printLeftRight(" B : Quit", "ZL/ZR : Switch back to the GUI ");
+    GenericToolbox::Switch::Terminal::printLeftRight(" A : Select folder", "Y : Change config preset ");
+    GenericToolbox::Switch::Terminal::printLeftRight(" B : Quit", "ZL/ZR : Switch back to the GUI ");
   }
-  if(get_current_relative_depth() > 0) GenericToolbox::Switch::Printout::printLeft(" B : Go back");
+  if(get_current_relative_depth() > 0) GenericToolbox::Switch::Terminal::printLeft(" B : Go back");
 //  toolbox::print_left_right(
 //    GenericToolbox::Switch::Hardware::getMemoryUsageStr(GenericToolbox::Switch::Hardware::Applet),
 //    GenericToolbox::Switch::Hardware::getMemoryUsageStr(GenericToolbox::Switch::Hardware::System),
@@ -335,14 +335,14 @@ void ModBrowser::display_conflicts_with_other_mods(const std::string &selected_m
 
     if(kDown != 0 or kHeld != 0){
       consoleClear();
-      GenericToolbox::Switch::Printout::printLeft("Conflicts with " + selected_mod_, GenericToolbox::ColorCodes::redBackground);
+      GenericToolbox::Switch::Terminal::printLeft("Conflicts with " + selected_mod_, GenericToolbox::ColorCodes::redBackground);
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       sel.print_selector();
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      GenericToolbox::Switch::Printout::printLeft("Page (" + std::to_string(sel.get_current_page() + 1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
+      GenericToolbox::Switch::Terminal::printLeft("Page (" + std::to_string(sel.get_current_page() + 1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      GenericToolbox::Switch::Printout::printLeftRight(" B : Go back", "");
-      if(sel.get_nb_pages() > 1) GenericToolbox::Switch::Printout::printLeftRight(" <- : Previous Page", "-> : Next Page ");
+      GenericToolbox::Switch::Terminal::printLeftRight(" B : Go back", "");
+      if(sel.get_nb_pages() > 1) GenericToolbox::Switch::Terminal::printLeftRight(" <- : Previous Page", "-> : Next Page ");
       consoleUpdate(nullptr);
     }
 
@@ -377,7 +377,7 @@ void ModBrowser::check_mods_status(){
     print_menu();
     std::stringstream ss;
     ss << "Checking ("<< i_mod+1 << "/" << mods_list.size() << ") : " << mods_list[i_mod] << "...";
-    GenericToolbox::Switch::Printout::printLeft(ss.str(), GenericToolbox::ColorCodes::magentaBackground);
+    GenericToolbox::Switch::Terminal::printLeft(ss.str(), GenericToolbox::ColorCodes::magentaBackground);
     consoleUpdate(nullptr);
     _selector_.set_tag(i_mod, _mod_manager_.get_mod_status(mods_list[i_mod]));
   }

@@ -5,13 +5,13 @@
 #include "TabModPresets.h"
 #include <borealis.hpp>
 #include <GlobalObjects.h>
-#include <ext_GlobalObjects.h>
+#include <GuiGlobals.h>
 #include <GuiModManager.h>
 #include <ThumbnailPresetEditor.h>
 
 TabModPresets::TabModPresets() {
 
-  GuiGlobalObjects::setCurrentTabModPresetPtr(this);
+  GuiGlobals::setCurrentTabModPresetPtr(this);
 
   _maxNbPresetsSlots_ = 20;
   _nbFreeSlots_ = 0;
@@ -39,9 +39,9 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
       auto* dialog = new brls::Dialog("Do you want disable all mods and apply the preset \"" + item->getLabel() + "\" ?");
 
       dialog->addButton("Yes", [dialog, item](brls::View* view) {
-        if(GuiGlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
+        if(GuiGlobals::getCurrentTabModBrowserPtr() != nullptr){
           GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
-          GuiGlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_apply_mod_preset(item->getLabel());
+          GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().start_apply_mod_preset(item->getLabel());
         }
       });
       dialog->addButton("No", [dialog](brls::View* view) {
@@ -81,7 +81,7 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
       editor->setPresetName(item->getLabel());
       editor->initialize();
 
-      auto* icon = GuiGlobalObjects::getCurrentFrameModBrowserPtr()->getIcon();
+      auto* icon = GuiGlobals::getCurrentFrameModBrowserPtr()->getIcon();
       if(icon != nullptr){
         brls::PopupFrame::open("Preset Editor", icon, 0x20000, editor, "Please select the mods you want to install", "The mods will be applied in the same order.");
       }
@@ -106,7 +106,7 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
       auto* editor = new ThumbnailPresetEditor();
       editor->initialize();
 
-      auto* icon = GuiGlobalObjects::getCurrentFrameModBrowserPtr()->getIcon();
+      auto* icon = GuiGlobals::getCurrentFrameModBrowserPtr()->getIcon();
       if(icon != nullptr){
         brls::PopupFrame::open("Preset Editor", icon, 0x20000, editor, "Please select the mods you want to install", "The mods will be applied in the same order.");
       }

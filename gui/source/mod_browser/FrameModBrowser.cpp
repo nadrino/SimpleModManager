@@ -8,8 +8,7 @@
 #include <TabModPlugins.h>
 #include <TabModPresets.h>
 #include <TabModOptions.h>
-#include <ext_GlobalObjects.h>
-#include "Toolbox.h"
+#include <GuiGlobals.h>
 
 #include "GenericToolbox.Switch.h"
 #include "Logger.h"
@@ -18,20 +17,16 @@ LoggerInit([]{
   Logger::setUserHeaderStr("[FrameModBrowser]");
 });
 
-FrameModBrowser::FrameModBrowser(std::string folder_){
+FrameModBrowser::FrameModBrowser(const std::string& folder_){
 
-  GuiGlobalObjects::setCurrentFrameModBrowserPtr(this);
+  GuiGlobals::setCurrentFrameModBrowserPtr(this);
 
   std::string game_path = GlobalObjects::getModBrowser().get_current_directory() + "/" + folder_;
 
-  _icon_ = nullptr;
-
   this->setTitle(folder_);
-  _titleid_ = GenericToolbox::Switch::Utils::lookForTidInSubFolders(game_path);
-  _icon_ = GlobalObjects::getModBrowser().get_folder_icon(_titleid_);
-  if(_icon_ != nullptr){
-    this->setIcon(_icon_, 0x20000);
-  }
+  _titleId_ = GenericToolbox::Switch::Utils::lookForTidInSubFolders(game_path);
+  _icon_ = GlobalObjects::getModBrowser().get_folder_icon(_titleId_);
+  if(_icon_ != nullptr){ this->setIcon(_icon_, 0x20000); }
   this->setFooterText("SimpleModManager");
 
   if(GlobalObjects::getModBrowser().change_directory(game_path) ){
@@ -90,5 +85,5 @@ uint8_t *FrameModBrowser::getIcon() {
 }
 
 std::string FrameModBrowser::getTitleid() {
-  return _titleid_;
+  return _titleId_;
 }

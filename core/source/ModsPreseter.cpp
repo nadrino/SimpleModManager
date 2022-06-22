@@ -160,17 +160,17 @@ void ModsPreseter::select_mod_preset() {
     if(kDown != 0 or kHeld != 0 or is_first_loop){
       is_first_loop = false;
       consoleClear();
-      GenericToolbox::Switch::Printout::printRight("SimpleModManager v" + Toolbox::get_app_version());
+      GenericToolbox::Switch::Terminal::printRight("SimpleModManager v" + Toolbox::get_app_version());
       std::cout << GenericToolbox::ColorCodes::redBackground << std::setw(GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::left;
       std::cout << "Select mod preset" << GenericToolbox::ColorCodes::resetColor;
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       _selector_.print_selector();
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      GenericToolbox::Switch::Printout::printLeft("  Page (" + std::to_string(_selector_.get_current_page() + 1) + "/" + std::to_string(_selector_.get_nb_pages()) + ")");
+      GenericToolbox::Switch::Terminal::printLeft("  Page (" + std::to_string(_selector_.get_current_page() + 1) + "/" + std::to_string(_selector_.get_nb_pages()) + ")");
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      GenericToolbox::Switch::Printout::printLeftRight(" A : Select mod preset", " X : Delete mod preset ");
-      GenericToolbox::Switch::Printout::printLeftRight(" Y : Edit preset", "+ : Create a preset ");
-      GenericToolbox::Switch::Printout::printLeft(" B : Go back");
+      GenericToolbox::Switch::Terminal::printLeftRight(" A : Select mod preset", " X : Delete mod preset ");
+      GenericToolbox::Switch::Terminal::printLeftRight(" Y : Edit preset", "+ : Create a preset ");
+      GenericToolbox::Switch::Terminal::printLeft(" B : Go back");
       consoleUpdate(nullptr);
     }
 
@@ -268,15 +268,15 @@ void ModsPreseter::edit_preset(std::string preset_name_, std::vector<std::string
 
     if(kDown != 0 or kHeld != 0 or is_first_loop){
       consoleClear();
-      GenericToolbox::Switch::Printout::printRight("SimpleModManager v" + Toolbox::get_app_version());
+      GenericToolbox::Switch::Terminal::printRight("SimpleModManager v" + Toolbox::get_app_version());
       std::cout << GenericToolbox::ColorCodes::redBackground << std::setw(GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::left;
       std::string header_title = "Creating preset : " + preset_name_ + ". Select the mods you want.";
       std::cout << header_title << GenericToolbox::ColorCodes::resetColor;
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       sel.print_selector();
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      GenericToolbox::Switch::Printout::printLeftRight(" A : Add mod", "X : Cancel mod ");
-      GenericToolbox::Switch::Printout::printLeftRight(" + : SAVE", "B : Abort / Go back ");
+      GenericToolbox::Switch::Terminal::printLeftRight(" A : Add mod", "X : Cancel mod ");
+      GenericToolbox::Switch::Terminal::printLeftRight(" + : SAVE", "B : Abort / Go back ");
       consoleUpdate(nullptr);
     }
   }
@@ -311,7 +311,7 @@ void ModsPreseter::show_conflicted_files(std::string &preset_name_) {
 
   consoleClear();
 
-  GenericToolbox::Switch::Printout::printLeft("Scanning preset files...", GenericToolbox::ColorCodes::magentaBackground);
+  GenericToolbox::Switch::Terminal::printLeft("Scanning preset files...", GenericToolbox::ColorCodes::magentaBackground);
   consoleUpdate(nullptr);
 
   std::vector<std::string> complete_files_list;
@@ -320,7 +320,7 @@ void ModsPreseter::show_conflicted_files(std::string &preset_name_) {
 
   for(int i_entry = 0 ; i_entry < int(_data_handler_[preset_name_].size()) ; i_entry++){
 
-    GenericToolbox::Switch::Printout::printLeft(" > Getting files for the mod: " + _data_handler_[preset_name_][i_entry], GenericToolbox::ColorCodes::magentaBackground);
+    GenericToolbox::Switch::Terminal::printLeft(" > Getting files for the mod: " + _data_handler_[preset_name_][i_entry], GenericToolbox::ColorCodes::magentaBackground);
     consoleUpdate(nullptr);
 
     std::string mod_folder_path = _mod_folder_ + "/" + _data_handler_[preset_name_][i_entry];
@@ -371,17 +371,17 @@ void ModsPreseter::show_conflicted_files(std::string &preset_name_) {
 
     if(kDown != 0 or kHeld != 0){
       consoleClear();
-      GenericToolbox::Switch::Printout::printRight("SimpleModManager v" + Toolbox::get_app_version());
-      GenericToolbox::Switch::Printout::printLeft("Conflicted files for the preset \"" + preset_name_ + "\":", GenericToolbox::ColorCodes::redBackground);
+      GenericToolbox::Switch::Terminal::printRight("SimpleModManager v" + Toolbox::get_app_version());
+      GenericToolbox::Switch::Terminal::printLeft("Conflicted files for the preset \"" + preset_name_ + "\":", GenericToolbox::ColorCodes::redBackground);
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       sel.print_selector();
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      GenericToolbox::Switch::Printout::printLeft("Total size of the preset:" + total_SD_size_str, GenericToolbox::ColorCodes::greenBackground);
+      GenericToolbox::Switch::Terminal::printLeft("Total size of the preset:" + total_SD_size_str, GenericToolbox::ColorCodes::greenBackground);
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      GenericToolbox::Switch::Printout::printLeft("Page (" + std::to_string(sel.get_current_page() + 1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
+      GenericToolbox::Switch::Terminal::printLeft("Page (" + std::to_string(sel.get_current_page() + 1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      GenericToolbox::Switch::Printout::printLeft(" A : OK");
-      if(sel.get_nb_pages() > 1) GenericToolbox::Switch::Printout::printLeftRight(" <- : Previous Page", "-> : Next Page ");
+      GenericToolbox::Switch::Terminal::printLeft(" A : OK");
+      if(sel.get_nb_pages() > 1) GenericToolbox::Switch::Terminal::printLeftRight(" <- : Previous Page", "-> : Next Page ");
       consoleUpdate(nullptr);
     }
 
@@ -404,12 +404,12 @@ void ModsPreseter::show_conflicted_files(std::string &preset_name_) {
 
 std::map<std::string, std::vector<std::string>> ModsPreseter::get_conflicts_with_other_mods(const std::string& mod_name_) {
 
-  GenericToolbox::Switch::Printout::printLeft("Searching for conflicts with " + mod_name_, GenericToolbox::ColorCodes::magentaBackground);
+  GenericToolbox::Switch::Terminal::printLeft("Searching for conflicts with " + mod_name_, GenericToolbox::ColorCodes::magentaBackground);
   consoleUpdate(nullptr);
   std::map<std::string, std::vector<std::string>> conflicts_map;
 
   std::string mod_folder_path = _mod_folder_ + "/" + mod_name_;
-  GenericToolbox::Switch::Printout::printLeft(" > Getting list of files for " + mod_name_, GenericToolbox::ColorCodes::magentaBackground);
+  GenericToolbox::Switch::Terminal::printLeft(" > Getting list of files for " + mod_name_, GenericToolbox::ColorCodes::magentaBackground);
   consoleUpdate(nullptr);
   auto mod_files_path_list = GenericToolbox::getListOfFilesInSubFolders(mod_folder_path);
 
@@ -422,7 +422,7 @@ std::map<std::string, std::vector<std::string>> ModsPreseter::get_conflicts_with
     conflicts_map[other_mod_name] = std::vector<std::string>();
 
     std::string other_mod_folder_path = _mod_folder_ + "/" + other_mod_name;
-    GenericToolbox::Switch::Printout::printLeft(" > Scanning conflicts with " + other_mod_name, GenericToolbox::ColorCodes::magentaBackground);
+    GenericToolbox::Switch::Terminal::printLeft(" > Scanning conflicts with " + other_mod_name, GenericToolbox::ColorCodes::magentaBackground);
     consoleUpdate(nullptr);
     auto other_mod_files_path_list = GenericToolbox::getListOfFilesInSubFolders(other_mod_folder_path);
     for(auto& other_mod_file_path: other_mod_files_path_list){

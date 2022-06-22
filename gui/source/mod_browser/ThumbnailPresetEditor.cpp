@@ -4,7 +4,7 @@
 
 #include "ThumbnailPresetEditor.h"
 #include <GlobalObjects.h>
-#include <ext_GlobalObjects.h>
+#include <GuiGlobals.h>
 #include "Toolbox.h"
 
 #include "GenericToolbox.Switch.h"
@@ -139,7 +139,7 @@ void ThumbnailPresetEditor::save() {
   GlobalObjects::getModBrowser().get_mods_preseter().recreate_preset_file();
   GlobalObjects::getModBrowser().get_mods_preseter().read_parameter_file();
 
-  GuiGlobalObjects::getCurrentTabModPresetPtr()->updatePresetItems();
+  GuiGlobals::getCurrentTabModPresetPtr()->updatePresetItems();
 
   brls::Application::popView(brls::ViewAnimation::FADE);
   brls::Application::unblockInputs();

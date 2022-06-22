@@ -47,7 +47,7 @@ namespace Toolbox{
       _last_displayed_value_ = percent;
       std::stringstream ss;
       ss << prefix_ << percent << "% / " << title_;
-      GenericToolbox::Switch::Printout::printLeft(ss.str(), color_str_, true);
+      GenericToolbox::Switch::Terminal::printLeft(ss.str(), color_str_, true);
       consoleUpdate(nullptr);
     }
 

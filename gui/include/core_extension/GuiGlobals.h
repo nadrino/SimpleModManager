@@ -2,13 +2,13 @@
 // Created by Adrien BLANCHET on 28/06/2020.
 //
 
-#ifndef SIMPLEMODMANAGER_EXT_GLOBALOBJECTS_H
-#define SIMPLEMODMANAGER_EXT_GLOBALOBJECTS_H
+#ifndef SIMPLEMODMANAGER_GUIGLOBALS_H
+#define SIMPLEMODMANAGER_GUIGLOBALS_H
 
 #include <TabModBrowser.h>
 #include <FrameModBrowser.h>
 
-namespace GuiGlobalObjects {
+namespace GuiGlobals {
 
 
   void setCurrentTabModBrowserPtr(TabModBrowser* currentTabModBrowserPtr_);
@@ -22,4 +22,4 @@ namespace GuiGlobalObjects {
 };
 
 
-#endif //SIMPLEMODMANAGER_EXT_GLOBALOBJECTS_H
+#endif //SIMPLEMODMANAGER_GUIGLOBALS_H

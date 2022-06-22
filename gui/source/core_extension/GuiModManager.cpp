@@ -4,7 +4,7 @@
 
 #include "GuiModManager.h"
 #include <GlobalObjects.h>
-#include <ext_GlobalObjects.h>
+#include <GuiGlobals.h>
 #include <Toolbox.h>
 
 #include "GenericToolbox.Switch.h"
@@ -122,7 +122,7 @@ std::string GuiModManager::getModStatus(const std::string &modName_) {
   }
 
   // the status will be updated on the next rendered frame
-  GuiGlobalObjects::getCurrentTabModBrowserPtr()->setTriggerUpdateModsDisplayedStatus(true);
+  GuiGlobals::getCurrentTabModBrowserPtr()->setTriggerUpdateModsDisplayedStatus(true);
 
   return result;
 }

@@ -14,7 +14,7 @@
 class FrameModBrowser : public brls::TabFrame {
 
 public:
-  explicit FrameModBrowser(std::string folder_);
+  explicit FrameModBrowser(const std::string& folder_);
 
   bool onCancel() override;
 
@@ -22,13 +22,13 @@ public:
   std::string getTitleid();
 
 private:
-  TabModBrowser* _tabModBrowser_;
-  TabModOptions* _tabModOptions_;
-  TabModPresets* _tabModPresets_;
-  TabModPlugins* _tabModPlugins_;
+  TabModBrowser* _tabModBrowser_{nullptr};
+  TabModOptions* _tabModOptions_{nullptr};
+  TabModPresets* _tabModPresets_{nullptr};
+  TabModPlugins* _tabModPlugins_{nullptr};
 
-  uint8_t* _icon_;
-  std::string _titleid_;
+  uint8_t* _icon_{nullptr};
+  std::string _titleId_{};
 
 };
 

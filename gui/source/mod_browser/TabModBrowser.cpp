@@ -5,7 +5,7 @@
 #include "TabModBrowser.h"
 #include <GlobalObjects.h>
 #include <PopupLoading.h>
-#include <ext_GlobalObjects.h>
+#include <GuiGlobals.h>
 
 #include "Logger.h"
 
@@ -18,7 +18,7 @@ LoggerInit([]{
 
 TabModBrowser::TabModBrowser() {
 
-  GuiGlobalObjects::setCurrentTabModBrowserPtr(this);
+  GuiGlobals::setCurrentTabModBrowserPtr(this);
 
   this->triggerRecheckAllMods = false;
   this->triggerUpdateModsDisplayedStatus = false;
@@ -33,10 +33,10 @@ TabModBrowser::TabModBrowser() {
       auto* dialog = new brls::Dialog("Do you want to install \"" + selectedMod + "\" ?");
 
       dialog->addButton("Yes", [selectedMod, dialog](brls::View* view) {
-        if(GuiGlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
+        if(GuiGlobals::getCurrentTabModBrowserPtr() != nullptr){
           GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
-          GuiGlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selectedMod);
-          GuiGlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_apply_mod();
+          GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selectedMod);
+          GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().start_apply_mod();
         }
       });
       dialog->addButton("No", [dialog](brls::View* view) {
@@ -56,10 +56,10 @@ TabModBrowser::TabModBrowser() {
       auto* dialog = new brls::Dialog("Do you want to disable \"" + selectedMod + "\" ?");
 
       dialog->addButton("Yes", [selectedMod, dialog](brls::View* view) {
-        if(GuiGlobalObjects::getCurrentTabModBrowserPtr() != nullptr){
+        if(GuiGlobals::getCurrentTabModBrowserPtr() != nullptr){
           GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
-          GuiGlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selectedMod);
-          GuiGlobalObjects::getCurrentTabModBrowserPtr()->getExtModManager().start_remove_mod();
+          GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selectedMod);
+          GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().start_remove_mod();
         }
       });
       dialog->addButton("No", [dialog](brls::View* view) {

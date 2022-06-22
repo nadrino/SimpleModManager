@@ -21,17 +21,17 @@ int main(int argc, char **argv){
     ParametersHandler p;
     p.initialize();
     std::string new_param_file = p.get_parameters_file_path();
-    GenericToolbox::Switch::Printout::printLeft("");
-    GenericToolbox::Switch::Printout::printLeft("Welcome in SimpleModManager v" + Toolbox::get_app_version(), GenericToolbox::ColorCodes::greenBackground);
-    GenericToolbox::Switch::Printout::printLeft("");
-    GenericToolbox::Switch::Printout::printLeft("");
-    GenericToolbox::Switch::Printout::printLeft("");
-    GenericToolbox::Switch::Printout::printLeft("");
-    GenericToolbox::Switch::Printout::printLeft(" > Looks like you've been running on a version <= " + Toolbox::get_app_version());
-    GenericToolbox::Switch::Printout::printLeft(" > Now parameters.ini is read from : " + new_param_file);
-    GenericToolbox::Switch::Printout::printLeft(" > The old file will be moved to this location.");
-    GenericToolbox::Switch::Printout::printLeft("");
-    GenericToolbox::Switch::Printout::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft("Welcome in SimpleModManager v" + Toolbox::get_app_version(), GenericToolbox::ColorCodes::greenBackground);
+    GenericToolbox::Switch::Terminal::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft(" > Looks like you've been running on a version <= " + Toolbox::get_app_version());
+    GenericToolbox::Switch::Terminal::printLeft(" > Now parameters.ini is read from : " + new_param_file);
+    GenericToolbox::Switch::Terminal::printLeft(" > The old file will be moved to this location.");
+    GenericToolbox::Switch::Terminal::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft("");
     Selector::ask_question("Confirm by pressing A.", {"Ok"});
     GenericToolbox::mvFile(old_config_path, new_param_file, true);
   }

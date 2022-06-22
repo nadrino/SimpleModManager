@@ -160,7 +160,7 @@ std::string ModManager::get_mod_status(std::string mod_name_){
 
   int same_files_count = 0;
 
-  GenericToolbox::Switch::Printout::printLeft("   Checking : Listing mod files...", GenericToolbox::ColorCodes::magentaBackground, true);
+  GenericToolbox::Switch::Terminal::printLeft("   Checking : Listing mod files...", GenericToolbox::ColorCodes::magentaBackground, true);
   consoleUpdate(nullptr);
   std::vector<std::string> relative_file_path_list;
 //  if(_relative_file_path_list_cache_[mod_name_].empty()){
@@ -178,7 +178,7 @@ std::string ModManager::get_mod_status(std::string mod_name_){
 
     std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path_list[i_file];
 
-    GenericToolbox::Switch::Printout::displayProgressBar(
+    GenericToolbox::Switch::Terminal::displayProgressBar(
         i_file, total_files_count,
       "Checking : (" + std::to_string(i_file + 1) + "/" + std::to_string(total_files_count) + ") " +
       GenericToolbox::getFileNameFromFilePath(absolute_file_path)
@@ -203,11 +203,11 @@ std::string ModManager::get_mod_status(std::string mod_name_){
 }
 void ModManager::apply_mod(std::string mod_name_, bool force_) {
 
-  GenericToolbox::Switch::Printout::printLeft("Applying : " + mod_name_ + "...", GenericToolbox::ColorCodes::greenBackground);
+  GenericToolbox::Switch::Terminal::printLeft("Applying : " + mod_name_ + "...", GenericToolbox::ColorCodes::greenBackground);
   std::string absolute_mod_folder_path = _current_mods_folder_path_ + "/" + mod_name_;
 
   std::vector<std::string> relative_file_path_list;
-  GenericToolbox::Switch::Printout::printLeft("   Getting files list...", GenericToolbox::ColorCodes::greenBackground, true);
+  GenericToolbox::Switch::Terminal::printLeft("   Getting files list...", GenericToolbox::ColorCodes::greenBackground, true);
 
 //  if(_relative_file_path_list_cache_[mod_name_].empty()){
 //    relative_file_path_list = GenericToolbox::getListFilesInSubfolders(absolute_mod_folder_path);
@@ -241,7 +241,7 @@ void ModManager::apply_mod(std::string mod_name_, bool force_) {
 
     std::string file_size = GenericToolbox::parseSizeUnits(double(GenericToolbox::getFileSize(absolute_file_path)));
 
-    GenericToolbox::Switch::Printout::displayProgressBar(
+    GenericToolbox::Switch::Terminal::displayProgressBar(
         i_file, int(relative_file_path_list.size()),
       "(" + std::to_string(i_file + 1) + "/" + std::to_string(relative_file_path_list.size()) + ") " +
       GenericToolbox::getFileNameFromFilePath(relative_file_path_list[i_file]) + " (" + file_size + ")");
@@ -298,7 +298,7 @@ void ModManager::apply_mod_list(std::vector<std::string> &mod_names_list_){
 }
 void ModManager::remove_mod(std::string mod_name_){
 
-  GenericToolbox::Switch::Printout::printLeft("Disabling : " + mod_name_, GenericToolbox::ColorCodes::redBackground);
+  GenericToolbox::Switch::Terminal::printLeft("Disabling : " + mod_name_, GenericToolbox::ColorCodes::redBackground);
   std::string absolute_mod_folder_path = _current_mods_folder_path_ + "/" + mod_name_;
 
   std::vector<std::string> relative_file_path_list;
@@ -314,7 +314,7 @@ void ModManager::remove_mod(std::string mod_name_){
     absolute_file_path = GenericToolbox::removeRepeatedCharacters(absolute_file_path, "/");
     std::string file_size = GenericToolbox::parseSizeUnits(double(GenericToolbox::getFileSize(absolute_file_path)));
 
-    GenericToolbox::Switch::Printout::displayProgressBar(
+    GenericToolbox::Switch::Terminal::displayProgressBar(
         i_file, relative_file_path_list.size(),
       GenericToolbox::getFileNameFromFilePath(relative_file_path) + " (" + file_size + ")"
       );
@@ -353,18 +353,18 @@ void ModManager::remove_mod(std::string mod_name_){
 void ModManager::display_mod_files_status(std::string mod_folder_path_){
 
   std::vector<std::string> file_path_list;
-  GenericToolbox::Switch::Printout::printLeft("Listing Files...", GenericToolbox::ColorCodes::redBackground);
+  GenericToolbox::Switch::Terminal::printLeft("Listing Files...", GenericToolbox::ColorCodes::redBackground);
   consoleUpdate(nullptr);
 
   file_path_list = GenericToolbox::getListOfFilesInSubFolders(mod_folder_path_);
   Selector sel;
   sel.set_selection_list(file_path_list);
-  GenericToolbox::Switch::Printout::printLeft("Checking Files...", GenericToolbox::ColorCodes::redBackground);
+  GenericToolbox::Switch::Terminal::printLeft("Checking Files...", GenericToolbox::ColorCodes::redBackground);
   consoleUpdate(nullptr);
   Toolbox::reset_last_displayed_value();
   for(int i_file = 0 ; i_file < int(file_path_list.size()) ; i_file++){
 
-    GenericToolbox::Switch::Printout::displayProgressBar(
+    GenericToolbox::Switch::Terminal::displayProgressBar(
         i_file, file_path_list.size(),
       "(" + std::to_string(i_file + 1) + "/" + std::to_string(file_path_list.size()) + ") " +
       GenericToolbox::getFileNameFromFilePath(file_path_list[i_file])
@@ -393,14 +393,14 @@ void ModManager::display_mod_files_status(std::string mod_folder_path_){
 
     if(kDown != 0 or kHeld != 0){
       consoleClear();
-      GenericToolbox::Switch::Printout::printLeft(mod_folder_path_, GenericToolbox::ColorCodes::redBackground);
+      GenericToolbox::Switch::Terminal::printLeft(mod_folder_path_, GenericToolbox::ColorCodes::redBackground);
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       sel.print_selector();
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      GenericToolbox::Switch::Printout::printLeft("Page (" + std::to_string(sel.get_current_page() + 1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
+      GenericToolbox::Switch::Terminal::printLeft("Page (" + std::to_string(sel.get_current_page() + 1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      GenericToolbox::Switch::Printout::printLeftRight(" B : Go back", "");
-      if(sel.get_nb_pages() > 1) GenericToolbox::Switch::Printout::printLeftRight(" <- : Previous Page", "-> : Next Page ");
+      GenericToolbox::Switch::Terminal::printLeftRight(" B : Go back", "");
+      if(sel.get_nb_pages() > 1) GenericToolbox::Switch::Terminal::printLeftRight(" <- : Previous Page", "-> : Next Page ");
       consoleUpdate(nullptr);
     }
 
