@@ -7,6 +7,8 @@
 #include <GlobalObjects.h>
 #include <ChangeConfigPresetGui.h>
 
+#include "GenericToolbox.h"
+
 
 ModBrowserGui::ModBrowserGui(const std::basic_string<char> &current_sub_folder_) {
   _current_sub_folder_ = current_sub_folder_;

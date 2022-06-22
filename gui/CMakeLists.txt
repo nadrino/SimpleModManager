@@ -82,7 +82,7 @@ target_include_directories(${GUI_APP}.elf PUBLIC
         ${SUBMODULES_DIR}/json/include
 #        ${SUBMODULES_DIR}/yaml-cpp/src
 #        ${SUBMODULES_DIR}/yaml-cpp/include
-        #        ${GUI_INC_DIR}/draw
+#        ${GUI_INC_DIR}/draw
 )
 
 target_link_libraries(
