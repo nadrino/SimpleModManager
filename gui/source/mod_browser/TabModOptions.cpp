@@ -82,7 +82,7 @@ void TabModOptions::buildFolderInstallPresetItem() {
       if(GuiGlobals::getCurrentTabModBrowserPtr() != nullptr){
         GuiModManager::setOnCallBackFunction([](){brls::Application::popView(brls::ViewAnimation::FADE);});
         GlobalObjects::getModBrowser().get_mod_manager().reset_all_mods_cache_status();
-//        ext_GlobalObjects::getCurrentTabModBrowserPtr()->refreshModsStatus();
+//        GuiGlobals::getCurrentTabModBrowserPtr()->refreshModsStatus();
       }
 
     }; // Callback sequence
@@ -117,7 +117,7 @@ void TabModOptions::buildResetModsCacheItem() {
         GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
         GlobalObjects::getModBrowser().get_mod_manager().reset_all_mods_cache_status();
         GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().start_check_all_mods();
-//        ext_GlobalObjects::getCurrentTabModBrowserPtr()->refreshModsStatus();
+//        GuiGlobals::getCurrentTabModBrowserPtr()->refreshModsStatus();
       }
     });
     dialog->addButton("No", [dialog](brls::View* view) {
@@ -197,7 +197,6 @@ void TabModOptions::initialize() {
 void TabModOptions::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
                          brls::FrameContext *ctx) {
   ScrollView::draw(vg, x, y, width, height, style, ctx);
-
 }
 
 

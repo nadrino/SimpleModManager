@@ -253,23 +253,23 @@ void GuiModManager::checkAllMods() {
     // IU update
     std::string result = GuiModManager::getModStatus(mods_list[i_mod]); // actual mod check is here
     // TODO: Change this to a boolean that triggers in the draw loop ?
-//    if(ext_GlobalObjects::getCurrentTabModBrowserPtr()){
-//      ext_GlobalObjects::getCurrentTabModBrowserPtr()->getModsListItems()[mods_list[i_mod]]->setValue(result);
+//    if(GuiGlobals::getCurrentTabModBrowserPtr()){
+//      GuiGlobals::getCurrentTabModBrowserPtr()->getModsListItems()[mods_list[i_mod]]->setValue(result);
 //      NVGcolor color;
 //      if(GlobalObjects::get_mod_browser().get_mod_manager().get_mod_status_fraction(mods_list[i_mod]) == 0){
 //        color.a = 255./255.; color.r = 80./255.; color.g = 80./255.; color.b = 80./255.;
-//        ext_GlobalObjects::getCurrentTabModBrowserPtr()->getModsListItems()[mods_list[i_mod]]->setValueActiveColor(
+//        GuiGlobals::getCurrentTabModBrowserPtr()->getModsListItems()[mods_list[i_mod]]->setValueActiveColor(
 //          color
 //          );
 //      }
 //      else if(GlobalObjects::get_mod_browser().get_mod_manager().get_mod_status_fraction(mods_list[i_mod]) == 1){
 //        color.a = 255./255.; color.r = 43./255.; color.g = 81./255.; color.b = 226./255.;
-//        ext_GlobalObjects::getCurrentTabModBrowserPtr()->getModsListItems()[mods_list[i_mod]]->setValueActiveColor(
+//        GuiGlobals::getCurrentTabModBrowserPtr()->getModsListItems()[mods_list[i_mod]]->setValueActiveColor(
 //          color
 //        );
 //      }
 //      else{
-//        ext_GlobalObjects::getCurrentTabModBrowserPtr()->getModsListItems()[mods_list[i_mod]]->setValueActiveColor(
+//        GuiGlobals::getCurrentTabModBrowserPtr()->getModsListItems()[mods_list[i_mod]]->setValueActiveColor(
 //          {43, 81, 226, 255}
 //        );
 //      }
