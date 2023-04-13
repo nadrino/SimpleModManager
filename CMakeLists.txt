@@ -76,17 +76,6 @@ if (NOT DEFINED CMAKE_BUILD_TYPE_INIT)
     set(CMAKE_BUILD_TYPE_INIT Release)
 endif ()
 
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_CXX_STANDARD 17)
-#if (USE_CPP_17)
-#
-#else ()
-#    set(CMAKE_CXX_STANDARD 11)
-#endif ()
-
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    include(clang-utils)
-endif ()
 
 include(nx-utils)
 

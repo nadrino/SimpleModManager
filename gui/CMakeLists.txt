@@ -21,6 +21,52 @@ add_compile_definitions(BOREALIS_RESOURCES=\"romfs:/borealis/\")
 cmake_info("BOREALIS_DIR is ${BOREALIS_DIR}")
 
 set(GUI_SOURCE_DIR ${GUI_DIR}/source)
+set(GUI_INC_DIR ${GUI_DIR}/include)
+set(BOREALIS_INC_DIR ${BOREALIS_DIR}/library/include)
+
+file( GLOB BOREALIS_SRC
+        "${BOREALIS_DIR}/library/lib/*.cpp"
+        "${BOREALIS_DIR}/library/lib/extern/*/*.c"
+        "${BOREALIS_DIR}/library/lib/extern/*/*/*.c"
+        "${BOREALIS_DIR}/library/lib/*.cpp"
+        "${BOREALIS_DIR}/library/lib/*.c"
+        "${BOREALIS_DIR}/library/lib/extern/glad/*.c"
+        "${BOREALIS_DIR}/library/lib/extern/nanovg/*.c"
+        "${BOREALIS_DIR}/library/lib/extern/libretro-common/compat/*.c"
+        "${BOREALIS_DIR}/library/lib/extern/libretro-common/encodings/*.c"
+        "${BOREALIS_DIR}/library/lib/extern/libretro-common/features/*.c"
+        "${BOREALIS_DIR}/library/lib/extern/fmt/src/*.cc"
+)
+
+add_library(Borealis STATIC ${BOREALIS_SRC})
+
+#set(CMAKE_SHARED_LIBRARY_SUFFIX_CXX .so)
+#set(CMAKE_SKIP_RPATH YES)
+#add_library(Borealis SHARED ${BOREALIS_SRC})
+
+target_include_directories( Borealis PUBLIC
+        ${BOREALIS_DIR}/library/lib/extern/fmt/include
+        ${BOREALIS_INC_DIR}
+        ${BOREALIS_INC_DIR}/borealis
+        ${BOREALIS_INC_DIR}/borealis/extern
+        ${BOREALIS_INC_DIR}/borealis/extern/glad
+        ${BOREALIS_INC_DIR}/borealis/extern/nanovg
+        ${BOREALIS_INC_DIR}/borealis/extern/libretro-common
+        ${PROJECT_SOURCE_DIR}/shortcuts
+        ${PROJECT_SOURCE_DIR}/shortcuts/libretro-common
+        ${SUBMODULES_DIR}/json/include
+        )
+
+target_link_libraries( Borealis PUBLIC
+        switch::libnx
+        -L/opt/devkitpro/portlibs/switch/lib
+        -L/opt/devkitpro/libnx/lib
+        ${ZLIB_LIBRARIES}
+        ${FREETYPE_LIBRARIES}
+        -lglfw3 -lEGL -lglapi -ldrm_nouveau -lm -lnx
+        )
+
+install(TARGETS Borealis DESTINATION lib)
 
 file(GLOB GUI_SOURCE_FILES
         "${GUI_SOURCE_DIR}/*.cpp"
@@ -42,8 +88,6 @@ file(GLOB GUI_SOURCE_FILES
         )
 
 
-set(GUI_INC_DIR ${GUI_DIR}/include)
-set(BOREALIS_INC_DIR ${BOREALIS_DIR}/library/include)
 
 include(nx-utils)
 
@@ -70,23 +114,24 @@ target_include_directories(${GUI_APP}.elf PUBLIC
         ${GUI_INC_DIR}/game_browser
         ${GUI_INC_DIR}/mod_browser
         ${GUI_INC_DIR}/core_extension
-        ${BOREALIS_DIR}/library/lib/extern/fmt/include
-        ${BOREALIS_INC_DIR}
-        ${BOREALIS_INC_DIR}/borealis
-        ${BOREALIS_INC_DIR}/borealis/extern
-        ${BOREALIS_INC_DIR}/borealis/extern/glad
-        ${BOREALIS_INC_DIR}/borealis/extern/nanovg
-        ${BOREALIS_INC_DIR}/borealis/extern/libretro-common
-        ${PROJECT_SOURCE_DIR}/shortcuts
-        ${PROJECT_SOURCE_DIR}/shortcuts/libretro-common
-        ${SUBMODULES_DIR}/json/include
+#        ${BOREALIS_DIR}/library/lib/extern/fmt/include
+#        ${BOREALIS_INC_DIR}
+#        ${BOREALIS_INC_DIR}/borealis
+#        ${BOREALIS_INC_DIR}/borealis/extern
+#        ${BOREALIS_INC_DIR}/borealis/extern/glad
+#        ${BOREALIS_INC_DIR}/borealis/extern/nanovg
+#        ${BOREALIS_INC_DIR}/borealis/extern/libretro-common
+#        ${PROJECT_SOURCE_DIR}/shortcuts
+#        ${PROJECT_SOURCE_DIR}/shortcuts/libretro-common
+#        ${SUBMODULES_DIR}/json/include
 #        ${SUBMODULES_DIR}/yaml-cpp/src
 #        ${SUBMODULES_DIR}/yaml-cpp/include
 #        ${GUI_INC_DIR}/draw
 )
 
 target_link_libraries(
-        ${GUI_APP}.elf
+        ${GUI_APP}.elf PUBLIC
+        Borealis
         switch::libnx
         -L/opt/devkitpro/portlibs/switch/lib
         -L/opt/devkitpro/libnx/lib
