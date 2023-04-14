@@ -63,7 +63,7 @@ target_link_libraries( Borealis PUBLIC
         -L/opt/devkitpro/libnx/lib
         ${ZLIB_LIBRARIES}
         ${FREETYPE_LIBRARIES}
-        -lglfw3 -lEGL -lglapi -ldrm_nouveau -lm -lnx
+        -lglfw3 -lEGL -lglad -lglapi -ldrm_nouveau -lm -lnx
         )
 
 install(TARGETS Borealis DESTINATION lib)
@@ -137,7 +137,7 @@ target_link_libraries(
         -L/opt/devkitpro/libnx/lib
         ${ZLIB_LIBRARIES}
         ${FREETYPE_LIBRARIES}
-        -lglfw3 -lEGL -lglapi -ldrm_nouveau -lm -lnx
+        -lglfw3 -lEGL -lglad -lglapi -ldrm_nouveau -lm -lnx
 #        -lSDL2 -march=armv8-a -fPIE -lEGL -lglapi -ldrm_nouveau -lnx
 #        -lnx -lfreetype -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lpng -ljpeg -L/opt/devkitpro/portlibs/switch/lib -lSDL2 -march=armv8-a -fPIE -L/opt/devkitpro/libnx/lib -lEGL -lglapi -ldrm_nouveau -lnx -L/opt/devkitpro/portlibs/switch/lib -lfreetype -lbz2 -lpng16 -lz -lm -lnx -lz -lwebp
 #        -lSDL2  -march=armv8-a -fPIE -lEGL -lglapi -ldrm_nouveau -lSDL2_ttf -lfreetype
