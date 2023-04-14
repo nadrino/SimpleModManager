@@ -7,12 +7,6 @@
 [submodule "submodules/cpp-generic-toolbox"]
 	path = submodules/cpp-generic-toolbox
 	url = https://github.com/nadrino/cpp-generic-toolbox.git
-[submodule "submodules/switch-nanovg"]
-	path = submodules/switch-nanovg
-	url = https://github.com/retronx-team/switch-nanovg.git
-[submodule "submodules/libretro-common"]
-	path = submodules/libretro-common
-	url = https://github.com/libretro/libretro-common.git
 [submodule "submodules/json"]
 	path = submodules/json
 	url = https://github.com/nlohmann/json.git
