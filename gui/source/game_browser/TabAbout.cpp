@@ -65,7 +65,7 @@ TabAbout::TabAbout() {
 
   rightBox->addView(new brls::Label(brls::LabelStyle::DESCRIPTION, " "));
 
-  auto* portrait = new brls::Image("romfs:/images/portrait.png");
+  auto* portrait = new brls::Image("romfs:/images/portrait.jpg");
   portrait->setScaleType(brls::ImageScaleType::SCALE);
   portrait->setHeight(200);
   portrait->setParent(rightBox);
