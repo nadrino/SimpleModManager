@@ -9,7 +9,6 @@
 
 #include "Logger.h"
 
-#include <thread>
 #include <future>
 
 LoggerInit([]{
@@ -17,76 +16,79 @@ LoggerInit([]{
 });
 
 TabModBrowser::TabModBrowser() {
-
   GuiGlobals::setCurrentTabModBrowserPtr(this);
 
-  this->triggerRecheckAllMods = false;
-  this->triggerUpdateModsDisplayedStatus = false;
-  this->frameCounter = -1;
-
-  // Setup the list
+  // Fetch the available mods
   auto modFoldersList = GlobalObjects::getModBrowser().getSelector().getSelectionList();
-  for (const auto& selectedMod : modFoldersList) {
-    LogDebug << "Adding mod: \"" << selectedMod << "\"" << std::endl;
-    auto* item = new brls::ListItem(selectedMod, "", "");
-    item->getClickEvent()->subscribe([this, selectedMod](View* view) {
-      auto* dialog = new brls::Dialog("Do you want to install \"" + selectedMod + "\" ?");
 
-      dialog->addButton("Yes", [selectedMod, dialog](brls::View* view) {
-        if(GuiGlobals::getCurrentTabModBrowserPtr() != nullptr){
-          GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
-          GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selectedMod);
-          GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().start_apply_mod();
-        }
+  if( modFoldersList.empty() ){
+    _modList_.emplace_back();
+    _modList_.back().item = new brls::ListItem(
+        "No mods have been found in " + GlobalObjects::getModBrowser().get_current_directory(),
+        "There you need to put your mods such as: ./<name-of-the-mod>/<file-structure-in-installed-directory>"
+    );
+    _modList_.back().item->show( [](){}, false );
+  }
+  else{
+    _modList_.reserve(modFoldersList.size());
+    for (const auto& selectedMod : modFoldersList) {
+      LogDebug << "Adding mod: \"" << selectedMod << "\"" << std::endl;
+
+      // memory allocation
+      auto* item = new brls::ListItem(selectedMod, "", "");
+      auto* disableDialog = new brls::Dialog("Do you want to disable \"" + selectedMod + "\" ?");
+
+      // initialization
+      item->getClickEvent()->subscribe([&](View* view) {
+        auto* dialog = new brls::Dialog("Do you want to install \"" + selectedMod + "\" ?");
+
+        dialog->addButton("Yes", [selectedMod, dialog](brls::View* view) {
+          if(GuiGlobals::getCurrentTabModBrowserPtr() != nullptr){
+            GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
+            GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selectedMod);
+            GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().start_apply_mod();
+          }
+        });
+        dialog->addButton("No", [dialog](brls::View* view) {
+          dialog->close();
+        });
+
+        dialog->setCancelable(true);
+        dialog->open();
+
+        return true;
       });
-      dialog->addButton("No", [dialog](brls::View* view) {
-        dialog->close();
+      item->updateActionHint(brls::Key::A, "Apply");
+
+      item->registerAction("Disable", brls::Key::X, [&]{
+        disableDialog->addButton("Yes", [&](brls::View* view) {
+          if(GuiGlobals::getCurrentTabModBrowserPtr() != nullptr){
+            GuiModManager::setOnCallBackFunction([&](){ disableDialog->close(); });
+            GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selectedMod);
+            GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().start_remove_mod();
+          }
+        });
+        disableDialog->addButton("No", [&](brls::View* view) { disableDialog->close(); });
+
+        disableDialog->setCancelable(true);
+        disableDialog->open();
+        return true;
       });
 
-      dialog->setCancelable(true);
-      dialog->open();
+      item->setValue("Unchecked");
+      item->setValueActiveColor(nvgRGB(80, 80, 80));
 
-      return true;
-    });
-    item->updateActionHint(brls::Key::A, "Apply");
-    item->updateActionHint(brls::Key::B, "Back");
-
-    item->registerAction("Disable", brls::Key::X, [selectedMod]{
-
-      auto* dialog = new brls::Dialog("Do you want to disable \"" + selectedMod + "\" ?");
-
-      dialog->addButton("Yes", [selectedMod, dialog](brls::View* view) {
-        if(GuiGlobals::getCurrentTabModBrowserPtr() != nullptr){
-          GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
-          GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selectedMod);
-          GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().start_remove_mod();
-        }
-      });
-      dialog->addButton("No", [dialog](brls::View* view) {
-        dialog->close();
-      });
-
-      dialog->setCancelable(true);
-      dialog->open();
-      return true;
-    });
-
-    item->setValue("Unchecked");
-    item->setValueActiveColor(nvgRGB(80, 80, 80));
-
-    this->addView(item);
-    _modsListItems_[selectedMod] = item;
+      // create the holding struct
+      _modList_.emplace_back();
+      _modList_.back().title = selectedMod;
+      _modList_.back().item = item;
+      _modList_.back().disableDialog = disableDialog;
+    }
   }
 
-  if(modFoldersList.empty()){
-
-    auto* emptyListLabel = new brls::ListItem(
-      "No mods have been found in " + GlobalObjects::getModBrowser().get_current_directory(),
-      "There you need to put your mods such as: ./<name-of-the-mod>/<file-structure-in-installed-directory>"
-      );
-    emptyListLabel->show([](){}, false);
-    this->addView(emptyListLabel);
-
+  // add to view
+  for( auto& modItem : _modList_ ){
+    this->addView( modItem.item );
   }
 
   this->triggerRecheckAllMods = true;
@@ -95,10 +97,6 @@ TabModBrowser::TabModBrowser() {
 
 GuiModManager &TabModBrowser::getExtModManager() {
   return _extModManager_;
-}
-
-std::map<std::string, brls::ListItem *> &TabModBrowser::getModsListItems() {
-  return _modsListItems_;
 }
 
 void TabModBrowser::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
@@ -112,13 +110,8 @@ void TabModBrowser::draw(NVGcontext *vg, int x, int y, unsigned int width, unsig
   }
 
   if(this->triggerRecheckAllMods){
-    if(frameCounter == -1) frameCounter = 0;
-    if(frameCounter < 1) frameCounter++; // need to keep at least one spare frame
-    else{
-      this->getExtModManager().start_check_all_mods();
-      this->triggerRecheckAllMods = false;
-      frameCounter = -1;
-    }
+    this->getExtModManager().start_check_all_mods();
+    this->triggerRecheckAllMods = false;
   }
 
 }
@@ -129,33 +122,40 @@ void TabModBrowser::setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDi
 
 void TabModBrowser::updateDisplayedModsStatus(){
 
-  auto* mod_manager = &GlobalObjects::getModBrowser().get_mod_manager();
+  auto* modManager = &GlobalObjects::getModBrowser().get_mod_manager();
 
-  for(auto& modItem : _modsListItems_){
+  LogReturnIf( _modList_.size() == 1 and _modList_[0].title.empty(), "No mod in this folder. Nothing to update." );
 
-    if(mod_manager->get_mods_status_cache()[mod_manager->getParametersHandlerPtr()->get_current_config_preset_name() + ": " + modItem.first] == modItem.second->getValue()){
+  for( auto& modItem : _modList_ ){
+    if( modManager->get_mods_status_cache()[
+          modManager->getParametersHandlerPtr()->get_current_config_preset_name() + ": " + modItem.title
+        ] == modItem.item->getValue()){
       continue;
     }
 
     // processing tag
-    std::string reference_str = mod_manager->getParametersHandlerPtr()->get_current_config_preset_name() + ": " + modItem.first;
-    modItem.second->setValue(
-      mod_manager->get_mods_status_cache()[reference_str]
-      );
+    std::string reference_str = modManager->getParametersHandlerPtr()->get_current_config_preset_name() + ": " + modItem.title;
+    modItem.item->setValue( modManager->get_mods_status_cache()[reference_str] );
 
     NVGcolor color;
     // processing color
     if(GlobalObjects::getModBrowser().get_mod_manager().getModsStatusCacheFraction()[reference_str] == 0){
+      // inactive color
       color = nvgRGB(80, 80, 80);
     }
     else if(GlobalObjects::getModBrowser().get_mod_manager().getModsStatusCacheFraction()[reference_str] == 1){
+      // partial color
       color = nvgRGB(88, 195, 169);
     }
     else{
-      color = nvgRGB(245*0.85, 198*0.85, 59*0.85);
+      // applied color
+      color = nvgRGB(
+          (unsigned char) (245*0.85),
+          (unsigned char) (198*0.85),
+          (unsigned char) (59*0.85)
+      );
     }
-    this->_modsListItems_[modItem.first]->setValueActiveColor(color);
-
+    modItem.item->setValueActiveColor(color);
   }
 
 }

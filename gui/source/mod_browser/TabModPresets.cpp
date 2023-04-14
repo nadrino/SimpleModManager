@@ -40,7 +40,7 @@ TabModPresets::TabModPresets() {
 void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
 
   if(isPreset_){
-    item->getClickEvent()->subscribe([item](brls::View* view){});
+    item->getClickEvent()->subscribe([](brls::View* view){});
     item->registerAction("Apply", brls::Key::A, [item]{
       auto* dialog = new brls::Dialog("Do you want disable all mods and apply the preset \"" + item->getLabel() + "\" ?");
 

@@ -15,7 +15,7 @@ public:
   void assignButtons(brls::ListItem *item, bool isPreset_);
   void updatePresetItems();
 
-  int getNbFreeSlots() const;
+  [[nodiscard]] int getNbFreeSlots() const;
 
 private:
   int _maxNbPresetsSlots_;

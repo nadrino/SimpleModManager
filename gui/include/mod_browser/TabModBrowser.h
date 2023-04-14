@@ -8,13 +8,19 @@
 #include <borealis.hpp>
 #include <GuiModManager.h>
 
+#include "map"
+#include "string"
+
+
+struct ModItem;
+
+
 class TabModBrowser : public brls::List {
 
 public:
   TabModBrowser();
 
   GuiModManager &getExtModManager();
-  std::map<std::string, brls::ListItem *> &getModsListItems();
 
   void setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDisplayedStatus_);
   void updateDisplayedModsStatus();
@@ -23,14 +29,22 @@ public:
 
 
 private:
-  brls::Dialog* dialog{nullptr};
-  std::map<std::string, brls::ListItem*> _modsListItems_{};
-  GuiModManager _extModManager_{};
   bool triggerUpdateModsDisplayedStatus{false};
   bool triggerRecheckAllMods{false};
-  int frameCounter{0};
+
+  GuiModManager _extModManager_{};
+  std::vector<ModItem> _modList_{};
 
 
+};
+
+
+struct ModItem{
+  std::string title{};
+
+  // memory is handled by brls -> could be lost in the wild but handy to keep somewhere
+  brls::ListItem* item{nullptr}; // deleted in BoxLayout::~BoxLayout()
+  brls::Dialog* disableDialog{nullptr};
 };
 
 
