@@ -7,9 +7,6 @@
 [submodule "submodules/cpp-generic-toolbox"]
 	path = submodules/cpp-generic-toolbox
 	url = https://github.com/nadrino/cpp-generic-toolbox.git
-[submodule "submodules/json"]
-	path = submodules/json
-	url = https://github.com/nlohmann/json.git
 [submodule "submodules/simple-cpp-logger"]
 	path = submodules/simple-cpp-logger
 	url = https://github.com/nadrino/simple-cpp-logger.git
