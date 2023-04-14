@@ -3,11 +3,17 @@
 //
 
 #include "TabModPresets.h"
-#include <borealis.hpp>
 #include <GlobalObjects.h>
 #include <GuiGlobals.h>
 #include <GuiModManager.h>
 #include <ThumbnailPresetEditor.h>
+
+#include <borealis.hpp>
+#include "Logger.h"
+
+LoggerInit([]{
+  Logger::setUserHeaderStr("[TabModPresets]");
+});
 
 TabModPresets::TabModPresets() {
 
@@ -130,6 +136,7 @@ void TabModPresets::updatePresetItems() {
       break;
     }
     auto mods_list = GlobalObjects::getModBrowser().get_mods_preseter().get_mods_list(presets_list[i_preset]);
+    LogDebug << "Adding mod preset: " << presets_list[i_preset] << std::endl;
     this->_itemList_[i_preset]->setLabel(presets_list[i_preset]);
     this->_itemList_[i_preset]->setValue(std::to_string(mods_list.size()) + " mods in this set");
     this->_itemList_[i_preset]->expand(true);
