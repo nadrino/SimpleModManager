@@ -1,12 +1,18 @@
+//
+// Created by Adrien Blanchet on 14/04/2023.
+//
+
+
+#include "SimpleModManager.h"
+
+#include <FrameRoot.h>
 #include <GlobalObjects.h>
 #include <Toolbox.h>
 
 #include "Logger.h"
+#include "GenericToolbox.Switch.h"
 
 #include <borealis.hpp>
-#include <FrameRoot.h>
-
-#include "GenericToolbox.Switch.h"
 
 #include <string>
 #include <cstdlib>
@@ -14,11 +20,6 @@
 LoggerInit([]{
   Logger::setUserHeaderStr("[SimpleModManager.nro]");
 });
-
-//#include "yaml-cpp/yaml.h"
-
-void runGui();
-void runConsole();
 
 
 int main(int argc, char* argv[]){

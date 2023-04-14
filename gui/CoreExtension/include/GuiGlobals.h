@@ -5,8 +5,12 @@
 #ifndef SIMPLEMODMANAGER_GUIGLOBALS_H
 #define SIMPLEMODMANAGER_GUIGLOBALS_H
 
-#include <TabModBrowser.h>
-#include <FrameModBrowser.h>
+//#include <TabModBrowser.h>
+//#include <FrameModBrowser.h>
+
+class TabModBrowser;
+class FrameModBrowser;
+class TabModPresets;
 
 namespace GuiGlobals {
 

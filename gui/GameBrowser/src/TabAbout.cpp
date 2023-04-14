@@ -3,11 +3,14 @@
 //
 
 #include "TabAbout.h"
+
 #include <Toolbox.h>
-#include <borealis.hpp>
 
 #include "GenericToolbox.h"
 #include "Logger.h"
+#include <borealis.hpp>
+
+
 
 LoggerInit([]{
   Logger::setUserHeaderStr("[TabAbout]");
@@ -15,11 +18,6 @@ LoggerInit([]{
 
 TabAbout::TabAbout() {
   LogWarning << "Building about tab..." << std::endl;
-
-//  auto* titleLabel = new brls::Label(brls::LabelStyle::LIST_ITEM, "SimpleModManager", true);
-//  titleLabel->setFontSize(36);
-//  titleLabel->setHorizontalAlign(NVG_ALIGN_CENTER);
-//  this->addView(titleLabel);
 
   // Subtitle
   auto* shortDescription = new brls::Label(
@@ -42,7 +40,7 @@ TabAbout::TabAbout() {
   leftBox->addView(new brls::Header("Version " + Toolbox::get_app_version() + " - What's new ?"));
   auto *changelog = new brls::Label(
     brls::LabelStyle::DESCRIPTION,
-    " - Fixing focus loss issues while entering a game folder\n - Various fixes and changes to the layout\n",
+    " - Updating dependencies & IO operations\n - Stability improvements\n",
     true
   );
   changelog->setHorizontalAlign(NVG_ALIGN_LEFT);
@@ -52,7 +50,7 @@ TabAbout::TabAbout() {
   auto *copyright = new brls::Label(
     brls::LabelStyle::DESCRIPTION,
     "SimpleModManager is licensed under GPL-v3.0\n" \
-        "\u00A9 2019 - 2022 Nadrino",
+        "\u00A9 2019 - 2023 Nadrino",
     true
   );
   copyright->setHorizontalAlign(NVG_ALIGN_CENTER);

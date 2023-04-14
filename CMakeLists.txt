@@ -108,5 +108,7 @@ include_directories( ${CMAKE_BINARY_DIR}/generated/ )
 
 # This project
 include(core/CMakeLists.txt)
-include(gui/CMakeLists.txt)
+#include(gui/CMakeLists.txt)
 include(ovl/CMakeLists.txt)
+
+add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/gui )

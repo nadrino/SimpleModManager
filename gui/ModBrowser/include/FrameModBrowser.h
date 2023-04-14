@@ -5,11 +5,15 @@
 #ifndef SIMPLEMODMANAGER_FRAMEMODBROWSER_H
 #define SIMPLEMODMANAGER_FRAMEMODBROWSER_H
 
-#include <borealis.hpp>
 #include <TabModBrowser.h>
 #include <TabModPlugins.h>
 #include <TabModOptions.h>
 #include <TabModPresets.h>
+
+#include <borealis.hpp>
+
+#include "string"
+
 
 class FrameModBrowser : public brls::TabFrame {
 

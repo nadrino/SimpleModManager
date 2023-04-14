@@ -6,7 +6,7 @@
 #include "GenericToolbox.Switch.h"
 
 // MAIN
-int main(int argc, char **argv){
+int main( int argc, char **argv ){
 
   consoleInit(nullptr);
 

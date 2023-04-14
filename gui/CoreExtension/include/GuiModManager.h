@@ -5,10 +5,13 @@
 #ifndef SIMPLEMODMANAGER_GUIMODMANAGER_H
 #define SIMPLEMODMANAGER_GUIMODMANAGER_H
 
-#include <string>
-#include <borealis.hpp>
 #include <PopupLoading.h>
+
+#include <borealis.hpp>
+
+#include <string>
 #include <future>
+
 
 class GuiModManager {
 

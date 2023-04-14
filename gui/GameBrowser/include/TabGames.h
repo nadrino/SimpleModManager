@@ -7,15 +7,28 @@
 
 #include <borealis.hpp>
 
+#include "vector"
+
+
+struct GameItem;
+
+
 class TabGames : public brls::List {
 
 public:
   TabGames();
 
 private:
-  std::vector<brls::ListItem*> _gamesList_;
-  std::vector<int> _nbModsPerGameList_;
+  std::vector<GameItem> _gameList_;
 
+};
+
+struct GameItem{
+  std::string title{};
+  int nMods{-1};
+
+  // memory is fully handled by brls
+  brls::ListItem* item{nullptr};
 };
 
 

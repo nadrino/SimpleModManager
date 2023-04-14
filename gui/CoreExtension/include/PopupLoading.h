@@ -7,6 +7,7 @@
 
 #include <borealis.hpp>
 
+
 class PopupLoading : public brls::View {
 
 public:

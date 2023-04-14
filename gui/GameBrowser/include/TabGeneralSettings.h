@@ -14,7 +14,7 @@ public:
 
   void rebuildLayout();
 
-  brls::ListItem* itemCurrentInstallPreset;
+  brls::ListItem* itemCurrentInstallPreset{nullptr};
 
 };
 

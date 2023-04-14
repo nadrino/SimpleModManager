@@ -35,8 +35,6 @@ private:
 
   GuiModManager _extModManager_{};
   std::vector<ModItem> _modList_{};
-
-
 };
 
 

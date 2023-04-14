@@ -3,10 +3,12 @@
 //
 
 #include "FrameRoot.h"
-#include <GlobalObjects.h>
+
 #include <TabGames.h>
-#include <TabGeneralSettings.h>
 #include <TabAbout.h>
+#include <TabGeneralSettings.h>
+
+#include <GlobalObjects.h>
 
 #include "GenericToolbox.h"
 #include "Logger.h"
@@ -14,6 +16,7 @@
 LoggerInit([]{
   Logger::setUserHeaderStr("[FrameRoot]");
 });
+
 
 FrameRoot::FrameRoot() {
   LogWarning << "Build root frame..." << std::endl;
@@ -30,14 +33,14 @@ FrameRoot::FrameRoot() {
 }
 
 bool FrameRoot::onCancel() {
-
+  // fetch the current focus
   auto* lastFocus = brls::Application::getCurrentFocus();
 
+  // perform the cancel
   bool onCancel = TabFrame::onCancel();
 
-  if(lastFocus == brls::Application::getCurrentFocus()){
-    brls::Application::quit();
-  }
+  // if the focus is the same, then quit the app
+  if( lastFocus == brls::Application::getCurrentFocus() ){ brls::Application::quit(); }
 
   return onCancel;
 }

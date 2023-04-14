@@ -22,6 +22,8 @@ TabModBrowser::TabModBrowser() {
   auto modFoldersList = GlobalObjects::getModBrowser().getSelector().getSelectionList();
 
   if( modFoldersList.empty() ){
+    LogInfo << "No mod found." << std::endl;
+
     _modList_.emplace_back();
     _modList_.back().item = new brls::ListItem(
         "No mods have been found in " + GlobalObjects::getModBrowser().get_current_directory(),
