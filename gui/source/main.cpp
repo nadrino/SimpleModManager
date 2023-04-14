@@ -54,7 +54,7 @@ void runGui(){
 
   brls::Logger::setLogLevel(brls::LogLevel::ERROR);
 
-  brls::i18n::loadTranslations();
+  brls::i18n::loadTranslations("en-US");
   LogThrowIf(not brls::Application::init("SimpleModManager"), "Unable to init Borealis application");
 
   auto* main_frame = new FrameRoot();
