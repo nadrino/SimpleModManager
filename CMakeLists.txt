@@ -13,6 +13,9 @@ include(options)
 include(utils)
 include(devkita64-libnx.cmake)
 
+# needed by tesla lib
+set( CMAKE_CXX_STANDARD 20 )
+
 find_package(LIBNX REQUIRED)
 if (NOT LIBNX_FOUND)
     cmake_panic("Unable to detect libnx on this system.")
