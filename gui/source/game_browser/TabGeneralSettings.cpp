@@ -9,17 +9,16 @@
 #include "Logger.h"
 
 LoggerInit([]{
-  Logger::setUserHeaderStr("[tab_general_settings]");
+  Logger::setUserHeaderStr("[TabGeneralSettings]");
 });
 
 TabGeneralSettings::TabGeneralSettings() {
-  LogInfo << __METHOD_NAME__ << std::endl;
-
-  rebuild_layout();
-
+  LogWarning << "Building general settings tab..." << std::endl;
+  this->rebuildLayout();
+  LogInfo << "General settings tab build." << std::endl;
 }
 
-void TabGeneralSettings::rebuild_layout() {
+void TabGeneralSettings::rebuildLayout() {
 
   itemCurrentInstallPreset = new brls::ListItem(
     "\uE255 Current Install Preset:",

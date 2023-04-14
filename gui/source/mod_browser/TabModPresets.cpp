@@ -131,12 +131,16 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
 void TabModPresets::updatePresetItems() {
 
   auto presets_list = GlobalObjects::getModBrowser().get_mods_preseter().get_presets_list();
+
+  LogInfo << "Adding " << presets_list.size() << " presets..." << std::endl;
+
   for(int i_preset = 0 ; i_preset < int(presets_list.size()) ; i_preset++){
     if(i_preset+1 >= _maxNbPresetsSlots_){ // should not
       break;
     }
     auto mods_list = GlobalObjects::getModBrowser().get_mods_preseter().get_mods_list(presets_list[i_preset]);
-    LogDebug << "Adding mod preset: " << presets_list[i_preset] << std::endl;
+    LogScopeIndent;
+    LogInfo << "Adding mod preset: " << presets_list[i_preset] << std::endl;
     this->_itemList_[i_preset]->setLabel(presets_list[i_preset]);
     this->_itemList_[i_preset]->setValue(std::to_string(mods_list.size()) + " mods in this set");
     this->_itemList_[i_preset]->expand(true);

@@ -16,7 +16,7 @@ LoggerInit([]{
 });
 
 FrameRoot::FrameRoot() {
-  LogInfo << __METHOD_NAME__ << std::endl;
+  LogWarning << "Build root frame..." << std::endl;
 
   this->setTitle("SimpleModManager");
   this->setFooterText(GlobalObjects::_version_str_);
@@ -26,7 +26,7 @@ FrameRoot::FrameRoot() {
   this->addTab("Settings", new TabGeneralSettings());
   this->addTab("About", new TabAbout());
 
-  LogInfo << __METHOD_NAME__ << std::endl;
+  LogInfo << "Root frame built." << std::endl;
 }
 
 bool FrameRoot::onCancel() {

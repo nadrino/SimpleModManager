@@ -14,7 +14,7 @@ LoggerInit([]{
 });
 
 TabGames::TabGames() {
-  LogInfo << __METHOD_NAME__ << std::endl;
+  LogWarning << "Building game tab..." << std::endl;
 
   auto modsList = GlobalObjects::getModBrowser().getSelector().getSelectionList();
   for (int i_folder = 0; i_folder < int(modsList.size()); i_folder++) {
@@ -28,7 +28,7 @@ TabGames::TabGames() {
     auto* icon = GlobalObjects::getModBrowser().getFolderIcon(selectedFolder);
     if(icon != nullptr){ item->setThumbnail(icon, 0x20000); }
     item->getClickEvent()->subscribe([selectedFolder](View* view) {
-      LogDebug << "Opening \"" << selectedFolder << "\"" << std::endl;
+      LogWarning << "Opening \"" << selectedFolder << "\"" << std::endl;
       auto* mods_browser = new FrameModBrowser(selectedFolder);
       brls::Application::pushView(mods_browser, brls::ViewAnimation::SLIDE_LEFT);
       mods_browser->registerAction("", brls::Key::PLUS, []{return true;}, true);
@@ -64,5 +64,5 @@ TabGames::TabGames() {
 
   }
 
-  LogInfo << __METHOD_NAME__ << std::endl;
+  LogInfo << "Game tab build." << std::endl;
 }

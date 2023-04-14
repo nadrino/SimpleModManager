@@ -14,7 +14,7 @@ LoggerInit([]{
 });
 
 TabAbout::TabAbout() {
-  LogInfo << __METHOD_NAME__ << std::endl;
+  LogWarning << "Building about tab..." << std::endl;
 
 //  auto* titleLabel = new brls::Label(brls::LabelStyle::LIST_ITEM, "SimpleModManager", true);
 //  titleLabel->setFontSize(36);
@@ -88,5 +88,5 @@ TabAbout::TabAbout() {
   );
   this->addView(links);
 
-
+  LogInfo << "About tab built." << std::endl;
 }

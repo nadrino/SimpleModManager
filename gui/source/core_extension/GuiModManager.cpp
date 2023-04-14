@@ -380,12 +380,12 @@ GuiModManager::GuiModManager() {
 
     // 60fps = 17ms per frame
     auto processingDuration = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
-    LogDebug("processingDuration = %i ms", int(processingDuration));
-    if(processingDuration < 17*5){ // wait at least 5 frames
-      LogDebug("extra wait... %i ms", int(17*5-processingDuration));
-      std::chrono::milliseconds interval(17*5 - processingDuration);
-      std::this_thread::sleep_for(interval);
-      LogDebug("done");
+
+    std::chrono::milliseconds waitTime{17*5 - processingDuration};
+    if( waitTime.count() > 0 ){ // wait at least 5 frames
+      LogDebug << "Waiting for additional " << waitTime.count() << " ms for animation cool down..." << std::endl;
+      std::this_thread::sleep_for(waitTime);
+      LogDebug << "Done waiting" << std::endl;
     }
 
     if(GuiModManager::_staticOnCallBackFunction_){

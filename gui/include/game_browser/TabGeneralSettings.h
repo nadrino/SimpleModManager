@@ -12,7 +12,7 @@ class TabGeneralSettings : public brls::List {
 public:
   TabGeneralSettings();
 
-  void rebuild_layout();
+  void rebuildLayout();
 
   brls::ListItem* itemCurrentInstallPreset;
 

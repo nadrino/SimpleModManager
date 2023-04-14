@@ -30,9 +30,12 @@ TabModBrowser::TabModBrowser() {
     _modList_.back().item->show( [](){}, false );
   }
   else{
+    LogInfo << "Adding " << modFoldersList.size() << " mods..." << std::endl;
+
     _modList_.reserve(modFoldersList.size());
     for (const auto& selectedMod : modFoldersList) {
-      LogDebug << "Adding mod: \"" << selectedMod << "\"" << std::endl;
+      LogScopeIndent;
+      LogInfo << "Adding mod: \"" << selectedMod << "\"" << std::endl;
 
       // memory allocation
       auto* item = new brls::ListItem(selectedMod, "", "");
