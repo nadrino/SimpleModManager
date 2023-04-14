@@ -293,8 +293,7 @@ GuiModManager::GuiModManager() {
 
   _asyncApplyModFunction_  = [](std::string mod_name_, brls::Dialog* hostDialogBox_){
 
-    LogInfo("Applying: %s", mod_name_.c_str());
-
+    LogWarning << "Applying: " << mod_name_ << std::endl;
     GuiModManager::_staticPopupLoadingViewPtr_->reset();
     GuiModManager::_staticPopupLoadingViewPtr_->setHeader("Applying mod...");
     GuiModManager::_staticPopupLoadingViewPtr_->setTitlePtr(&mod_name_);
@@ -305,7 +304,7 @@ GuiModManager::GuiModManager() {
     GuiModManager::_staticPopupLoadingViewPtr_->setEnableSubLoadingBar(true);
     GuiModManager::applyMod(mod_name_, true);
 
-    LogInfo("Checking: %s", mod_name_.c_str());
+    LogWarning << "Checking: " << mod_name_ << std::endl;
     GuiModManager::_staticPopupLoadingViewPtr_->reset();
     GuiModManager::_staticPopupLoadingViewPtr_->setHeader("Checking the applied mod...");
     GuiModManager::_staticPopupLoadingViewPtr_->setTitlePtr(&mod_name_);
@@ -330,7 +329,7 @@ GuiModManager::GuiModManager() {
   };
   _asyncRemoveModFunction_ = [](std::string mod_name_, brls::Dialog* hostDialogBox_){
 
-    LogInfo("Removing: %s", mod_name_.c_str());
+    LogWarning << "Removing: " << mod_name_ << std::endl;
     GuiModManager::_staticPopupLoadingViewPtr_->reset();
     GuiModManager::_staticPopupLoadingViewPtr_->setHeader("Removing mod...");
     GuiModManager::_staticPopupLoadingViewPtr_->setProgressColor(nvgRGB(0xff, 0x64, 0x64));
@@ -339,7 +338,7 @@ GuiModManager::GuiModManager() {
     GuiModManager::_staticPopupLoadingViewPtr_->setProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::removeMod"]);
     GuiModManager::removeMod(mod_name_);
 
-    LogInfo("Checking: %s", mod_name_.c_str());
+    LogWarning << "Checking: " << mod_name_ << std::endl;
     GuiModManager::_staticPopupLoadingViewPtr_->reset();
     GuiModManager::_staticPopupLoadingViewPtr_->setHeader("Checking mod...");
     GuiModManager::_staticPopupLoadingViewPtr_->setProgressColor(nvgRGB(0x00, 0xc8, 0xff));

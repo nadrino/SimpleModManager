@@ -36,10 +36,9 @@ TabModBrowser::TabModBrowser() {
 
       // memory allocation
       auto* item = new brls::ListItem(selectedMod, "", "");
-      auto* disableDialog = new brls::Dialog("Do you want to disable \"" + selectedMod + "\" ?");
 
       // initialization
-      item->getClickEvent()->subscribe([&](View* view) {
+      item->getClickEvent()->subscribe([selectedMod](View* view) {
         auto* dialog = new brls::Dialog("Do you want to install \"" + selectedMod + "\" ?");
 
         dialog->addButton("Yes", [selectedMod, dialog](brls::View* view) {
@@ -60,18 +59,20 @@ TabModBrowser::TabModBrowser() {
       });
       item->updateActionHint(brls::Key::A, "Apply");
 
-      item->registerAction("Disable", brls::Key::X, [&]{
-        disableDialog->addButton("Yes", [&](brls::View* view) {
+      item->registerAction("Disable", brls::Key::X, [selectedMod]{
+        auto* dialog = new brls::Dialog("Do you want to disable \"" + selectedMod + "\" ?");
+
+        dialog->addButton("Yes", [dialog, selectedMod](brls::View* view) {
           if(GuiGlobals::getCurrentTabModBrowserPtr() != nullptr){
-            GuiModManager::setOnCallBackFunction([&](){ disableDialog->close(); });
+            GuiModManager::setOnCallBackFunction([&](){ dialog->close(); });
             GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selectedMod);
             GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().start_remove_mod();
           }
         });
-        disableDialog->addButton("No", [&](brls::View* view) { disableDialog->close(); });
+        dialog->addButton("No", [dialog](brls::View* view) { dialog->close(); });
 
-        disableDialog->setCancelable(true);
-        disableDialog->open();
+        dialog->setCancelable(true);
+        dialog->open();
         return true;
       });
 
@@ -82,7 +83,6 @@ TabModBrowser::TabModBrowser() {
       _modList_.emplace_back();
       _modList_.back().title = selectedMod;
       _modList_.back().item = item;
-      _modList_.back().disableDialog = disableDialog;
     }
   }
 

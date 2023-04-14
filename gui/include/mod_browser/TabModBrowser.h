@@ -5,8 +5,9 @@
 #ifndef SIMPLEMODMANAGER_TABMODBROWSER_H
 #define SIMPLEMODMANAGER_TABMODBROWSER_H
 
-#include <borealis.hpp>
 #include <GuiModManager.h>
+
+#include <borealis.hpp>
 
 #include "map"
 #include "string"
@@ -44,7 +45,6 @@ struct ModItem{
 
   // memory is handled by brls -> could be lost in the wild but handy to keep somewhere
   brls::ListItem* item{nullptr}; // deleted in BoxLayout::~BoxLayout()
-  brls::Dialog* disableDialog{nullptr};
 };
 
 
