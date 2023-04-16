@@ -20,6 +20,7 @@
 
 #include "switch.h"
 
+
 LoggerInit([]{
   Logger::setUserHeaderStr("[SimpleModManager.nro]");
 });

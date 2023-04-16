@@ -16,22 +16,8 @@ set( GUI_ROMFS "${CMAKE_CURRENT_SOURCE_DIR}/resources/romfs")
 set( SRC_FILES src/SimpleModManager.cpp )
 
 
-add_executable( ${GUI_APP}.elf
-    ${SRC_FILES}
-    ${BOREALIS_DIR}/library/lib/switch_wrapper.c # need to recompile. Otherwise black screen and quit with no error
-)
-
-
-target_include_directories( ${GUI_APP}.elf PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-#    ${BOREALIS_DIR}/library/lib/extern/fmt/include
-#    ${BOREALIS_INC_DIR}
-#    ${BOREALIS_INC_DIR}/borealis
-#    ${BOREALIS_INC_DIR}/borealis/extern
-#    ${BOREALIS_INC_DIR}/borealis/extern/glad
-#    ${BOREALIS_INC_DIR}/borealis/extern/nanovg
-#    ${BOREALIS_INC_DIR}/borealis/extern/libretro-common
-    )
+add_executable( ${GUI_APP}.elf ${SRC_FILES} )
+target_include_directories( ${GUI_APP}.elf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include )
 
 target_link_libraries(
     ${GUI_APP}.elf PUBLIC
