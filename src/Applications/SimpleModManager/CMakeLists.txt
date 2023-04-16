@@ -3,9 +3,9 @@
 
 
 # Replace this with the name of your application
-set(GUI_NAME "SimpleModManager")
-set(GUI_APP "${GUI_NAME}")
-set(GUI_DIR ${PROJECT_SOURCE_DIR}/gui)
+set( GUI_NAME "SimpleModManager")
+set( GUI_APP "${GUI_NAME}")
+set( GUI_DIR ${PROJECT_SOURCE_DIR}/gui)
 
 # Meta information about the app
 set( GUI_TITLE ${GUI_NAME})

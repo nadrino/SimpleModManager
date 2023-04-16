@@ -1,7 +1,6 @@
+#
 # Building CoreExtension app
-
-
-
+#
 
 set( SRC_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/GuiModManager.cpp
@@ -17,6 +16,7 @@ target_include_directories( CoreExtension PUBLIC
 
 target_link_libraries( CoreExtension PUBLIC
     Borealis
+    ModManagerCore
     switch::libnx
     -L/opt/devkitpro/portlibs/switch/lib
     -L/opt/devkitpro/libnx/lib

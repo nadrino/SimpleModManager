@@ -1,9 +1,13 @@
-#include <switch.h>
 
-#include <Toolbox.h>
+
+
 #include <GlobalObjects.h>
+#include <Toolbox.h>
 
 #include "GenericToolbox.Switch.h"
+
+#include <switch.h>
+
 
 // MAIN
 int main( int argc, char **argv ){

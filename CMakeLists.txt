@@ -92,7 +92,7 @@ set(SMM_CORE_INCLUDE_DIR ${SMM_CORE_DIR}/include)
 include_directories(${SMM_CORE_INCLUDE_DIR})
 
 # Submodules
-set(SUBMODULES_DIR ${PROJECT_SOURCE_DIR}/submodules)
+set( SUBMODULES_DIR ${PROJECT_SOURCE_DIR}/submodules )
 include_directories( ${SUBMODULES_DIR}/cpp-generic-toolbox/include )
 
 include_directories( ${SUBMODULES_DIR}/simple-cpp-logger/include )
@@ -106,9 +106,7 @@ add_definitions( -D LOGGER_PREFIX_FORMAT="\\\"{TIME} {USER_HEADER} {FILELINE}"\\
 configure_file( version_config.h.in ${CMAKE_BINARY_DIR}/generated/version_config.h )
 include_directories( ${CMAKE_BINARY_DIR}/generated/ )
 
-# This project
-include(core/CMakeLists.txt)
-#include(gui/CMakeLists.txt)
-include(ovl/CMakeLists.txt)
+include( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/borealisLib.cmake )
 
-add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/gui )
+# This project
+add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/src )
