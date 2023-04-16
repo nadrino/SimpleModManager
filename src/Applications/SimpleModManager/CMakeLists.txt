@@ -15,18 +15,27 @@ set( GUI_ROMFS "${CMAKE_CURRENT_SOURCE_DIR}/resources/romfs")
 
 set( SRC_FILES src/SimpleModManager.cpp )
 
-add_executable( ${GUI_APP}.elf ${SRC_FILES} )
+# CAN'T LINK BOREALIS LIB. HAS TO COMPILE ALONG
+add_executable( ${GUI_APP}.elf ${SRC_FILES} ${BOREALIS_SRC} )
+
 
 target_include_directories( ${GUI_APP}.elf PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+#    ${BOREALIS_DIR}/library/lib/extern/fmt/include
+#    ${BOREALIS_INC_DIR}
+#    ${BOREALIS_INC_DIR}/borealis
+#    ${BOREALIS_INC_DIR}/borealis/extern
+#    ${BOREALIS_INC_DIR}/borealis/extern/glad
+#    ${BOREALIS_INC_DIR}/borealis/extern/nanovg
+#    ${BOREALIS_INC_DIR}/borealis/extern/libretro-common
     )
 
 target_link_libraries(
     ${GUI_APP}.elf PUBLIC
-#    CoreExtension
-#    GameBrowser
-#    ModBrowser
-#    Borealis
+    CoreExtension
+    GameBrowser
+    ModBrowser
+    Borealis
     switch::libnx
     -L/opt/devkitpro/portlibs/switch/lib
     -L/opt/devkitpro/libnx/lib
