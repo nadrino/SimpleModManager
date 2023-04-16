@@ -5,6 +5,7 @@
 #ifndef SIMPLEMODMANAGER_TABMODBROWSER_H
 #define SIMPLEMODMANAGER_TABMODBROWSER_H
 
+
 #include <GuiModManager.h>
 
 #include <borealis.hpp>
@@ -14,14 +15,14 @@
 
 
 struct ModItem;
-
+class FrameModBrowser;
 
 class TabModBrowser : public brls::List {
 
 public:
-  TabModBrowser();
+  explicit TabModBrowser(FrameModBrowser* owner_);
 
-  GuiModManager &getExtModManager();
+//  GuiModManager &getExtModManager();
 
   void setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDisplayedStatus_);
   void updateDisplayedModsStatus();
@@ -30,10 +31,12 @@ public:
 
 
 private:
+  FrameModBrowser* _owner_{nullptr};
+
   bool triggerUpdateModsDisplayedStatus{false};
   bool triggerRecheckAllMods{false};
 
-  GuiModManager _extModManager_{};
+//  GuiModManager _extModManager_{};
   std::vector<ModItem> _modList_{};
 };
 

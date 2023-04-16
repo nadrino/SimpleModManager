@@ -3,21 +3,14 @@
 //
 
 #include "TabModOptions.h"
+#include "FrameModBrowser.h"
+
 #include <GlobalObjects.h>
-#include <GuiGlobals.h>
 
 #include "GenericToolbox.h"
 
 
-TabModOptions::TabModOptions() {
-
-  frameSkipCount = 0;
-  doUpdateModsStatus = false;
-  _preSelection_ = 0;
-  _inheritedTitle_ = "Inherited from the main menu";
-  _itemFolderInstallPreset_ = nullptr;
-
-}
+TabModOptions::TabModOptions(FrameModBrowser* owner_) : _owner_(owner_) {  }
 
 void TabModOptions::buildFolderInstallPresetItem() {
 
@@ -79,11 +72,8 @@ void TabModOptions::buildFolderInstallPresetItem() {
         this->_itemFolderInstallPreset_->setValue(_inheritedTitle_);
       }
 
-      if(GuiGlobals::getCurrentTabModBrowserPtr() != nullptr){
-        GuiModManager::setOnCallBackFunction([](){brls::Application::popView(brls::ViewAnimation::FADE);});
-        GlobalObjects::getModBrowser().get_mod_manager().reset_all_mods_cache_status();
-//        GuiGlobals::getCurrentTabModBrowserPtr()->refreshModsStatus();
-      }
+      GuiModManager::setOnCallBackFunction([](){brls::Application::popView(brls::ViewAnimation::FADE);});
+      GlobalObjects::getModBrowser().get_mod_manager().reset_all_mods_cache_status();
 
     }; // Callback sequence
 
@@ -112,13 +102,10 @@ void TabModOptions::buildResetModsCacheItem() {
 
     auto* dialog = new brls::Dialog("Do you want to reset mods cache status and recheck all mod files ?");
 
-    dialog->addButton("Yes", [this, dialog](brls::View* view) {
-      if(GuiGlobals::getCurrentTabModBrowserPtr() != nullptr){
-        GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
-        GlobalObjects::getModBrowser().get_mod_manager().reset_all_mods_cache_status();
-        GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().start_check_all_mods();
-//        GuiGlobals::getCurrentTabModBrowserPtr()->refreshModsStatus();
-      }
+    dialog->addButton("Yes", [&, dialog](brls::View* view) {
+      GuiModManager::setOnCallBackFunction( [dialog](){dialog->close();} );
+      GlobalObjects::getModBrowser().get_mod_manager().reset_all_mods_cache_status();
+      _owner_->getModManager().start_check_all_mods();
     });
     dialog->addButton("No", [dialog](brls::View* view) {
       dialog->close();
@@ -143,11 +130,9 @@ void TabModOptions::buildDisableAllMods() {
 
     auto* dialog = new brls::Dialog("Do you want to disable all mods ?");
 
-    dialog->addButton("Yes", [dialog](brls::View* view) {
-      if(GuiGlobals::getCurrentTabModBrowserPtr() != nullptr){
-        GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
-        GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().start_remove_all_mods();
-      }
+    dialog->addButton("Yes", [&, dialog](brls::View* view) {
+      GuiModManager::setOnCallBackFunction( [dialog](){dialog->close();} );
+      _owner_->getModManager().start_remove_all_mods();
     });
     dialog->addButton("No", [dialog](brls::View* view) {
       dialog->close();
@@ -166,12 +151,10 @@ void TabModOptions::buildGameIdentificationItem(){
     "",
     "Current value :"
   );
-  if(GuiGlobals::getCurrentFrameModBrowserPtr()->getIcon() != nullptr){
-    _itemGameIdentification_->setValue(GuiGlobals::getCurrentFrameModBrowserPtr()->getTitleId());
-    _itemGameIdentification_->setThumbnail(
-        GuiGlobals::getCurrentFrameModBrowserPtr()->getIcon(),
-        0x20000
-    );
+
+  if( _owner_->getIcon() != nullptr ){
+    _itemGameIdentification_->setValue( _owner_->getTitleId() );
+    _itemGameIdentification_->setThumbnail( _owner_->getIcon(), 0x20000 );
   }
   else{
     _itemGameIdentification_->setValue("No TitleID Candidate");

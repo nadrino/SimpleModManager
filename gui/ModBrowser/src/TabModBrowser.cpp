@@ -3,20 +3,22 @@
 //
 
 #include "TabModBrowser.h"
+
+#include "FrameModBrowser.h"
 #include <GlobalObjects.h>
 #include <PopupLoading.h>
-#include <GuiGlobals.h>
 
 #include "Logger.h"
 
 #include <future>
 
+
 LoggerInit([]{
   Logger::setUserHeaderStr("[TabModBrowser]");
 });
 
-TabModBrowser::TabModBrowser() {
-  GuiGlobals::setCurrentTabModBrowserPtr(this);
+
+TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
 
   // Fetch the available mods
   auto modFoldersList = GlobalObjects::getModBrowser().getSelector().getSelectionList();
@@ -43,15 +45,14 @@ TabModBrowser::TabModBrowser() {
       auto* item = new brls::ListItem(selectedMod, "", "");
 
       // initialization
-      item->getClickEvent()->subscribe([selectedMod](View* view) {
+      item->getClickEvent()->subscribe([&, selectedMod](View* view) {
         auto* dialog = new brls::Dialog("Do you want to install \"" + selectedMod + "\" ?");
 
-        dialog->addButton("Yes", [selectedMod, dialog](brls::View* view) {
-          if(GuiGlobals::getCurrentTabModBrowserPtr() != nullptr){
-            GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
-            GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selectedMod);
-            GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().start_apply_mod();
-          }
+        dialog->addButton("Yes", [&, selectedMod, dialog](brls::View* view) {
+          GuiModManager::setOnCallBackFunction( [dialog](){ dialog->close(); } );
+          _owner_->getModManager().setModName(selectedMod);
+          _owner_->getModManager().start_apply_mod();
+          this->setTriggerUpdateModsDisplayedStatus(true);
         });
         dialog->addButton("No", [dialog](brls::View* view) {
           dialog->close();
@@ -64,15 +65,13 @@ TabModBrowser::TabModBrowser() {
       });
       item->updateActionHint(brls::Key::A, "Apply");
 
-      item->registerAction("Disable", brls::Key::X, [selectedMod]{
+      item->registerAction("Disable", brls::Key::X, [&, selectedMod]{
         auto* dialog = new brls::Dialog("Do you want to disable \"" + selectedMod + "\" ?");
 
-        dialog->addButton("Yes", [dialog, selectedMod](brls::View* view) {
-          if(GuiGlobals::getCurrentTabModBrowserPtr() != nullptr){
-            GuiModManager::setOnCallBackFunction([&](){ dialog->close(); });
-            GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().setModName(selectedMod);
-            GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().start_remove_mod();
-          }
+        dialog->addButton("Yes", [&, dialog, selectedMod](brls::View* view) {
+          GuiModManager::setOnCallBackFunction([&](){ dialog->close(); });
+          _owner_->getModManager().setModName(selectedMod);
+          _owner_->getModManager().start_remove_mod();
         });
         dialog->addButton("No", [dialog](brls::View* view) { dialog->close(); });
 
@@ -100,9 +99,9 @@ TabModBrowser::TabModBrowser() {
 
 }
 
-GuiModManager &TabModBrowser::getExtModManager() {
-  return _extModManager_;
-}
+//GuiModManager &TabModBrowser::getExtModManager() {
+//  return _extModManager_;
+//}
 
 void TabModBrowser::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
                          brls::FrameContext *ctx) {
@@ -115,7 +114,8 @@ void TabModBrowser::draw(NVGcontext *vg, int x, int y, unsigned int width, unsig
   }
 
   if(this->triggerRecheckAllMods){
-    this->getExtModManager().start_check_all_mods();
+    _owner_->getModManager().start_check_all_mods();
+    this->setTriggerUpdateModsDisplayedStatus(true);
     this->triggerRecheckAllMods = false;
   }
 

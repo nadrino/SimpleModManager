@@ -5,24 +5,22 @@
 #include <GlobalObjects.h>
 #include "TabModPlugins.h"
 
-#include <PopupLoading.h>
 #include "Logger.h"
 #include "GenericToolbox.h"
 
 #include <switch.h>
 
 #include <thread>
-#include <future>
+#include "string"
 
 
 LoggerInit([]{
-  Logger::setUserHeaderStr("[tab_mod_plugins]");
+  Logger::setUserHeaderStr("[TabModPlugins]");
 });
 
 
 std::map<std::string, brls::Image *> cached_thumbs;
-TabModPlugins::TabModPlugins()
-{
+TabModPlugins::TabModPlugins() {
 
 	this->frameCounter = -1;
 
@@ -125,7 +123,6 @@ std::string TabModPlugins::remove_extension(const std::string &filename)
 		return filename;
 	return filename.substr(0, lastdot);
 }
-
 std::string TabModPlugins::get_extension(const std::string &filename)
 {
 	size_t lastdot = filename.find_last_of(".");
@@ -133,10 +130,8 @@ std::string TabModPlugins::get_extension(const std::string &filename)
 		return filename;
 	return filename.substr(lastdot);
 }
-
-brls::Image *TabModPlugins::load_image_cache(std::string filename)
-{
-	LogDebug("Requesting icon: %s", filename);
+brls::Image *TabModPlugins::load_image_cache(const std::string& filename) {
+	LogDebug << "Requesting icon: " << filename << std::endl;
 
 	brls::Image *image = nullptr;
 
@@ -148,13 +143,13 @@ brls::Image *TabModPlugins::load_image_cache(std::string filename)
 	// found
 	if (it != cached_thumbs.end())
 	{
-		LogDebug("Icon Already Cached: %s", filename);
+		LogDebug << "Icon Already Cached: " << filename << std::endl;
 		image = cached_thumbs[filename_enc];
 	}
 	else
 	// not found
 	{
-		LogDebug("Icon Not Yet Cached: %s", filename);
+		LogDebug << "Icon Not Yet Cached: " << filename << std::endl;
 
 		FILE *file = fopen(filename.c_str(), "rb");
 		if (file)
@@ -174,7 +169,7 @@ brls::Image *TabModPlugins::load_image_cache(std::string filename)
 				fseek(file, header.size + asset_header.icon.offset, SEEK_SET);
 				fread(icon, icon_size, 1, file);
 
-				LogDebug("Caching New Icon: %s", filename);
+				LogDebug << "Caching New Icon: " << filename << std::endl;;
 
 				image = new brls::Image(icon, icon_size);
 
@@ -184,18 +179,17 @@ brls::Image *TabModPlugins::load_image_cache(std::string filename)
 				image = new brls::Image("romfs:/images/unknown.png");
 
 			free(icon);
-			icon = NULL;
+			icon = nullptr;
 		}
 		else
 		{
-			LogDebug("Using Unknown Icon For: %s", filename);
+			LogDebug << "Using Unknown Icon For: " << filename << std::endl;
 			image = new brls::Image("romfs:/images/unknown.png");
 		}
 	}
 
 	return image;
 }
-
 std::string TabModPlugins::base64_encode(const std::string &in)
 {
 	std::string out;
@@ -217,7 +211,6 @@ std::string TabModPlugins::base64_encode(const std::string &in)
 		out.push_back('=');
 	return out;
 }
-
 std::string TabModPlugins::base64_decode(const std::string &in)
 {
 	std::string out;

@@ -4,7 +4,6 @@
 
 
 set( SRC_FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/GuiGlobals.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/GuiModManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PopupLoading.cpp
     )

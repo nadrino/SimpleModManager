@@ -7,9 +7,17 @@
 
 #include <borealis.hpp>
 
+#include "string"
+#include "vector"
+
+
+class FrameModBrowser;
+
 class ThumbnailPresetEditor : public brls::ThumbnailFrame {
 
 public:
+  explicit ThumbnailPresetEditor(FrameModBrowser* owner_) : _owner_(owner_){  }
+
   void initialize();
   void process_tags();
   void save();
@@ -23,6 +31,8 @@ public:
   std::vector<std::string> & getSelectedModsList();
 
 private:
+  FrameModBrowser* _owner_{nullptr};
+
   std::string _presetName_;
   std::vector<std::string> _selectedModsList_;
   std::vector<brls::ListItem*> itemsList;

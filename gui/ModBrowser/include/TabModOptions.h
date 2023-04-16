@@ -5,13 +5,17 @@
 #ifndef SIMPLEMODMANAGER_TABMODOPTIONS_H
 #define SIMPLEMODMANAGER_TABMODOPTIONS_H
 
-#include <borealis.hpp>
 #include <TabModBrowser.h>
+
+#include <borealis.hpp>
+
+
+class FrameModBrowser;
 
 class TabModOptions : public brls::List {
 
 public:
-  TabModOptions();
+  explicit TabModOptions(FrameModBrowser* owner_);
 
   void initialize();
 
@@ -22,18 +26,20 @@ public:
 
   void draw(NVGcontext* vg, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* ctx) override;
 
+private:
+  FrameModBrowser* _owner_{nullptr};
+
   // FolderInstallPreset
-  int _preSelection_;
-  std::string _inheritedTitle_;
+  bool doUpdateModsStatus{false};
+  int frameSkipCount{0};
+  int _preSelection_{0};
+  std::string _inheritedTitle_{"Inherited from the main menu"};
 
-  // menu items
-  brls::ListItem* _itemFolderInstallPreset_;
-  brls::ListItem* _itemResetModsCache_;
-  brls::ListItem* _itemDisableAllMods_;
-  brls::ListItem* _itemGameIdentification_;
-
-  bool doUpdateModsStatus;
-  int frameSkipCount;
+  // memory handled by brls
+  brls::ListItem* _itemFolderInstallPreset_{nullptr};
+  brls::ListItem* _itemResetModsCache_{nullptr};
+  brls::ListItem* _itemDisableAllMods_{nullptr};
+  brls::ListItem* _itemGameIdentification_{nullptr};
 
 };
 

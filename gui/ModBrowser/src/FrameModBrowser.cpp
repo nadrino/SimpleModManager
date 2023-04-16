@@ -3,15 +3,17 @@
 //
 
 #include "FrameModBrowser.h"
-#include <GlobalObjects.h>
+
 #include <TabModBrowser.h>
 #include <TabModPlugins.h>
 #include <TabModPresets.h>
 #include <TabModOptions.h>
-#include <GuiGlobals.h>
+
+#include <GlobalObjects.h>
 
 #include "GenericToolbox.Switch.h"
 #include "Logger.h"
+
 
 LoggerInit([]{
   Logger::setUserHeaderStr("[FrameModBrowser]");
@@ -19,7 +21,6 @@ LoggerInit([]{
 
 FrameModBrowser::FrameModBrowser(const std::string& folder_){
 
-  GuiGlobals::setCurrentFrameModBrowserPtr(this);
   this->setTitle(folder_);
 
   std::string gamePath = GlobalObjects::getModBrowser().get_current_directory() + "/" + folder_;
@@ -39,9 +40,9 @@ FrameModBrowser::FrameModBrowser(const std::string& folder_){
     presetParameter->setValue(GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name());
     parametersTabList->addView(presetParameter);
 
-    _tabModBrowser_ = new TabModBrowser();
-    _tabModPresets_ = new TabModPresets();
-    _tabModOptions_ = new TabModOptions();
+    _tabModBrowser_ = new TabModBrowser( this );
+    _tabModPresets_ = new TabModPresets( this );
+    _tabModOptions_ = new TabModOptions( this );
     _tabModPlugins_ = new TabModPlugins();
 
     _tabModOptions_->initialize();
@@ -62,7 +63,6 @@ FrameModBrowser::FrameModBrowser(const std::string& folder_){
   }
 
 }
-
 bool FrameModBrowser::onCancel() {
 
   // Go back to sidebar
@@ -82,7 +82,9 @@ bool FrameModBrowser::onCancel() {
 uint8_t *FrameModBrowser::getIcon() {
   return _icon_;
 }
-
 std::string FrameModBrowser::getTitleId() {
   return _titleId_;
+}
+GuiModManager &FrameModBrowser::getModManager() {
+  return _modManager_;
 }

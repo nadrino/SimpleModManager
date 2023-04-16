@@ -25,6 +25,7 @@ target_include_directories( ModBrowser PUBLIC
 
 target_link_libraries( ModBrowser PUBLIC
     Borealis
+    CoreExtension
     switch::libnx
     -L/opt/devkitpro/portlibs/switch/lib
     -L/opt/devkitpro/libnx/lib

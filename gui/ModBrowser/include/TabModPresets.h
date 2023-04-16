@@ -7,10 +7,14 @@
 
 #include <borealis.hpp>
 
+#include "vector"
+
+class FrameModBrowser;
+
 class TabModPresets : public brls::List {
 
 public:
-  TabModPresets();
+  explicit TabModPresets(FrameModBrowser* owner_);
 
   void assignButtons(brls::ListItem *item, bool isPreset_);
   void updatePresetItems();
@@ -18,6 +22,8 @@ public:
   [[nodiscard]] int getNbFreeSlots() const;
 
 private:
+  FrameModBrowser* _owner_{nullptr};
+
   int _maxNbPresetsSlots_;
   int _nbFreeSlots_;
   std::vector<brls::ListItem*> _itemList_;

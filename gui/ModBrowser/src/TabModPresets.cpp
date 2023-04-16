@@ -4,8 +4,9 @@
 
 #include "TabModPresets.h"
 
+#include "FrameModBrowser.h"
+
 #include <GlobalObjects.h>
-#include <GuiGlobals.h>
 #include <GuiModManager.h>
 #include <ThumbnailPresetEditor.h>
 
@@ -16,9 +17,7 @@ LoggerInit([]{
   Logger::setUserHeaderStr("[TabModPresets]");
 });
 
-TabModPresets::TabModPresets() {
-
-  GuiGlobals::setCurrentTabModPresetPtr(this);
+TabModPresets::TabModPresets(FrameModBrowser* owner_) : _owner_(owner_) {
 
   _maxNbPresetsSlots_ = 20;
   _nbFreeSlots_ = 0;
@@ -42,14 +41,13 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
 
   if(isPreset_){
     item->getClickEvent()->subscribe([](brls::View* view){});
-    item->registerAction("Apply", brls::Key::A, [item]{
+    item->registerAction("Apply", brls::Key::A, [&, item]{
       auto* dialog = new brls::Dialog("Do you want disable all mods and apply the preset \"" + item->getLabel() + "\" ?");
 
-      dialog->addButton("Yes", [dialog, item](brls::View* view) {
-        if(GuiGlobals::getCurrentTabModBrowserPtr() != nullptr){
-          GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
-          GuiGlobals::getCurrentTabModBrowserPtr()->getExtModManager().start_apply_mod_preset(item->getLabel());
-        }
+      dialog->addButton("Yes", [&, dialog, item](brls::View* view) {
+        GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
+        _owner_->getModManager().start_apply_mod_preset(item->getLabel());
+        _owner_->getTabModBrowser()->setTriggerUpdateModsDisplayedStatus( true );
       });
       dialog->addButton("No", [dialog](brls::View* view) {
         dialog->close();
@@ -82,13 +80,13 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
 
     });
     item->updateActionHint(brls::Key::X, "Remove");
-    item->registerAction("Edit", brls::Key::Y, [item]{
+    item->registerAction("Edit", brls::Key::Y, [&, item]{
       // open editor
-      auto* editor = new ThumbnailPresetEditor();
+      auto* editor = new ThumbnailPresetEditor( _owner_ );
       editor->setPresetName(item->getLabel());
       editor->initialize();
 
-      auto* icon = GuiGlobals::getCurrentFrameModBrowserPtr()->getIcon();
+      auto* icon = _owner_->getIcon();
       if(icon != nullptr){
         brls::PopupFrame::open("Preset Editor", icon, 0x20000, editor, "Please select the mods you want to install", "The mods will be applied in the same order.");
       }
@@ -102,18 +100,18 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
   }
   else {
     // new preset
-    item->getClickEvent()->subscribe([this](brls::View* view){
+    item->getClickEvent()->subscribe([&](brls::View* view){
 
       if(this->getNbFreeSlots() <= 0){
         brls::Application::notify("No available slots");
-        return true;
+        return false;
       }
 
       // create new preset
-      auto* editor = new ThumbnailPresetEditor();
+      auto* editor = new ThumbnailPresetEditor( _owner_ );
       editor->initialize();
 
-      auto* icon = GuiGlobals::getCurrentFrameModBrowserPtr()->getIcon();
+      auto* icon = _owner_->getIcon();
       if(icon != nullptr){
         brls::PopupFrame::open("Preset Editor", icon, 0x20000, editor, "Please select the mods you want to install", "The mods will be applied in the same order.");
       }
