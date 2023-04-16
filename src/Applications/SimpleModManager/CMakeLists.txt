@@ -15,8 +15,23 @@ set( GUI_ROMFS "${CMAKE_CURRENT_SOURCE_DIR}/resources/romfs")
 
 set( SRC_FILES src/SimpleModManager.cpp )
 
+
+file( GLOB BOREALIS_LOC_SRC
+    "${BOREALIS_DIR}/library/lib/*.cpp"
+#    "${BOREALIS_DIR}/library/lib/extern/*/*.c"
+#    "${BOREALIS_DIR}/library/lib/extern/*/*/*.c"
+#    "${BOREALIS_DIR}/library/lib/*.cpp"
+    "${BOREALIS_DIR}/library/lib/*.c"
+#    "${BOREALIS_DIR}/library/lib/extern/glad/*.c"
+#    "${BOREALIS_DIR}/library/lib/extern/nanovg/*.c"
+#    "${BOREALIS_DIR}/library/lib/extern/libretro-common/compat/*.c"
+#    "${BOREALIS_DIR}/library/lib/extern/libretro-common/encodings/*.c"
+#    "${BOREALIS_DIR}/library/lib/extern/libretro-common/features/*.c"
+#    "${BOREALIS_DIR}/library/lib/extern/fmt/src/*.cc"
+    )
+
 # CAN'T LINK BOREALIS LIB. HAS TO COMPILE ALONG
-add_executable( ${GUI_APP}.elf ${SRC_FILES} ${BOREALIS_SRC} )
+add_executable( ${GUI_APP}.elf ${SRC_FILES} ${BOREALIS_LOC_SRC} )
 
 
 target_include_directories( ${GUI_APP}.elf PUBLIC
