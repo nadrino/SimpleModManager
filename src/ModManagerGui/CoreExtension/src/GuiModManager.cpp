@@ -288,7 +288,6 @@ GuiModManager::GuiModManager() {
   GuiModManager::_staticPopupLoadingViewPtr_ = nullptr;
 
   _asyncApplyModFunction_  = [](std::string mod_name_, brls::Dialog* hostDialogBox_){
-
     LogWarning << "Applying: " << mod_name_ << std::endl;
     GuiModManager::_staticPopupLoadingViewPtr_->reset();
     GuiModManager::_staticPopupLoadingViewPtr_->setHeader("Applying mod...");
@@ -324,7 +323,6 @@ GuiModManager::GuiModManager() {
     return true;
   };
   _asyncRemoveModFunction_ = [](std::string mod_name_, brls::Dialog* hostDialogBox_){
-
     LogWarning << "Removing: " << mod_name_ << std::endl;
     GuiModManager::_staticPopupLoadingViewPtr_->reset();
     GuiModManager::_staticPopupLoadingViewPtr_->setHeader("Removing mod...");

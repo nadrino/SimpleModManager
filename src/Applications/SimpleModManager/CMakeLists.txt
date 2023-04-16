@@ -23,10 +23,10 @@ target_include_directories( ${GUI_APP}.elf PUBLIC
 
 target_link_libraries(
     ${GUI_APP}.elf PUBLIC
-    CoreExtension
-    GameBrowser
-    ModBrowser
-    Borealis
+#    CoreExtension
+#    GameBrowser
+#    ModBrowser
+#    Borealis
     switch::libnx
     -L/opt/devkitpro/portlibs/switch/lib
     -L/opt/devkitpro/libnx/lib
