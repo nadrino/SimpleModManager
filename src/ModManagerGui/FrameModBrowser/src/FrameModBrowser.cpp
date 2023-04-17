@@ -71,7 +71,7 @@ bool FrameModBrowser::onCancel() {
 
   // If the sidebar was already there, the focus has not changed
   if(lastFocus == brls::Application::getCurrentFocus()){
-    LogDebug("Back on games screen...");
+    LogInfo("Back on games screen...");
     GlobalObjects::getModBrowser().go_back();
     brls::Application::popView(brls::ViewAnimation::SLIDE_RIGHT);
   }

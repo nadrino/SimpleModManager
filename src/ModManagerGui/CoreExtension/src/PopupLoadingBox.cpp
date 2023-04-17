@@ -15,7 +15,6 @@ LoggerInit([]{
 
 
 void PopupLoadingBox::pushView(){
-
   // memory will be handled by brls
   _loadingView_ = new PopupLoadingView();
 
@@ -31,7 +30,6 @@ void PopupLoadingBox::pushView(){
   }
 
   // push the box to the view
-  LogDebug << "Pushing progress bar to view" << std::endl;
   brls::Application::pushView( _loadingBox_ );
 }
 void PopupLoadingBox::popView(){

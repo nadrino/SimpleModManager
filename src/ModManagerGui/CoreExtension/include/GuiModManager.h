@@ -38,18 +38,19 @@ public:
   PopupLoadingBox& getLoadingBox(){ return _loadingBox_; }
 
   void startApplyModThread(const std::string& modName_);
-  void start_remove_mod();
+  void startRemoveModThread(const std::string& modName_);
   void start_check_all_mods();
   void start_remove_all_mods();
   void start_apply_mod_preset(std::string modPresetName);
 
 protected:
   bool applyModFunction(const std::string& modName_);
+  bool removeModFunction(const std::string& modName_);
 
 
 private:
   std::string _modName_;
-  std::function<bool(std::string mod_name_, brls::Dialog* hostDialogBox_)> _asyncRemoveModFunction_;
+//  std::function<bool(std::string mod_name_, brls::Dialog* hostDialogBox_)> _asyncRemoveModFunction_;
   std::function<bool(std::string mods_preset_name_, brls::Dialog* hostDialogBox_)> _asyncApplyModPresetFunction_;
   std::function<bool(brls::Dialog* hostDialogBox_)> _asyncCheckAllModsFunction_;
   std::function<bool(brls::Dialog* hostDialogBox_)> _asyncRemoveAllModsFunction_;

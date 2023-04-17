@@ -53,7 +53,7 @@ TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
           // first, close the dialog box before the apply mod thread starts
           dialog->close();
 
-          // starts the apply mod routine async
+          // starts the async routine
           _owner_->getModManager().startApplyModThread( selectedMod );
         });
         dialog->addButton("No", [dialog](brls::View* view) { dialog->close(); });
@@ -69,9 +69,11 @@ TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
         auto* dialog = new brls::Dialog("Do you want to disable \"" + selectedMod + "\" ?");
 
         dialog->addButton("Yes", [&, dialog, selectedMod](brls::View* view) {
-          GuiModManager::setOnCallBackFunction([&](){ dialog->close(); });
-          _owner_->getModManager().setModName(selectedMod);
-          _owner_->getModManager().start_remove_mod();
+          // first, close the dialog box before the async routine starts
+          dialog->close();
+
+          // starts the async routine
+          _owner_->getModManager().startRemoveModThread( selectedMod );
         });
         dialog->addButton("No", [dialog](brls::View* view) { dialog->close(); });
 
