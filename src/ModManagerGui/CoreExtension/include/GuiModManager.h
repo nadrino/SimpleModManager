@@ -17,10 +17,6 @@
 class GuiModManager {
 
 public:
-  static PopupLoadingView* _staticPopupLoadingViewPtr_;
-  static std::function<void(void)> _staticOnCallBackFunction_;
-  static std::vector<std::string> _ignored_file_list_;
-
   static void applyMod(const std::string &modName_, bool force_= false);
   static void removeMod(const std::string &modName_);
   static void removeAllMods(bool force_ = false);
@@ -28,35 +24,25 @@ public:
   static std::string getModStatus(const std::string &modName_);
   static void apply_mods_list(std::vector<std::string>& modsList_);
 
-  static void setOnCallBackFunction(std::function<void(void)> staticOnCallBackFunction_);
-
 public:
-  GuiModManager();
-
-  void setModName(const std::string& modName_){ _modName_ = modName_; }
-
-  PopupLoadingBox& getLoadingBox(){ return _loadingBox_; }
+  GuiModManager() = default;
 
   void startApplyModThread(const std::string& modName_);
   void startRemoveModThread(const std::string& modName_);
-  void start_check_all_mods();
-  void start_remove_all_mods();
-  void start_apply_mod_preset(std::string modPresetName);
+  void startCheckAllModsThread();
+  void startRemoveAllModsThread();
+  void startApplyModPresetThread(const std::string &modPresetName_);
 
 protected:
   bool applyModFunction(const std::string& modName_);
+  bool applyModPresetFunction(const std::string& presetName_);
   bool removeModFunction(const std::string& modName_);
+  bool checkAllModsFunction();
+  bool removeAllModsFunction();
 
 
 private:
   std::string _modName_;
-//  std::function<bool(std::string mod_name_, brls::Dialog* hostDialogBox_)> _asyncRemoveModFunction_;
-  std::function<bool(std::string mods_preset_name_, brls::Dialog* hostDialogBox_)> _asyncApplyModPresetFunction_;
-  std::function<bool(brls::Dialog* hostDialogBox_)> _asyncCheckAllModsFunction_;
-  std::function<bool(brls::Dialog* hostDialogBox_)> _asyncRemoveAllModsFunction_;
-
-  PopupLoadingView* _popupLoadingView_{nullptr};
-  brls::Dialog* _hostDialogBox_{nullptr};
 
   PopupLoadingBox _loadingBox_;
   std::future<bool> _asyncResponse_{};

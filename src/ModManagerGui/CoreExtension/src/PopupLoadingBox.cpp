@@ -33,6 +33,12 @@ void PopupLoadingBox::pushView(){
   brls::Application::pushView( _loadingBox_ );
 }
 void PopupLoadingBox::popView(){
+  // is another view is disappearing? -> let it's time to go
+  while( brls::Application::hasViewDisappearing() ){
+    // wait for one extra frame before push
+    std::this_thread::sleep_for(std::chrono::milliseconds( 16 ));
+  }
+
   // call if it's still on top
   if( _loadingBox_ == brls::Application::getTopStackView() ){
     brls::Application::popView( brls::ViewAnimation::FADE );

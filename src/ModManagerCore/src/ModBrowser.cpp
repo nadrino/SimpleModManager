@@ -93,7 +93,7 @@ Selector &ModBrowser::getSelector(){
 ModsPreseter &ModBrowser::get_mods_preseter(){
   return _mods_preseter_;
 }
-ModManager &ModBrowser::get_mod_manager(){
+ModManager &ModBrowser::getModManager(){
   return _mod_manager_;
 }
 
@@ -156,7 +156,7 @@ void ModBrowser::scan_inputs(u64 kDown, u64 kHeld){
         auto answer = Selector::ask_question("Do you which to recheck all mods ?",
                                             std::vector<std::string>({"Yes", "No"}));
         if(answer == "Yes"){
-          _mod_manager_.reset_all_mods_cache_status();
+          _mod_manager_.resetAllModsCacheStatus();
           check_mods_status();
         }
       }

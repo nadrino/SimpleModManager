@@ -55,6 +55,9 @@ TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
 
           // starts the async routine
           _owner_->getModManager().startApplyModThread( selectedMod );
+
+          // update labels
+          this->setTriggerUpdateModsDisplayedStatus( true );
         });
         dialog->addButton("No", [dialog](brls::View* view) { dialog->close(); });
 
@@ -116,7 +119,8 @@ void TabModBrowser::draw(NVGcontext *vg, int x, int y, unsigned int width, unsig
   }
 
   if(this->triggerRecheckAllMods){
-    _owner_->getModManager().start_check_all_mods();
+    // starts the async routine
+    _owner_->getModManager().startCheckAllModsThread();
     this->setTriggerUpdateModsDisplayedStatus(true);
     this->triggerRecheckAllMods = false;
   }
@@ -129,7 +133,7 @@ void TabModBrowser::setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDi
 
 void TabModBrowser::updateDisplayedModsStatus(){
 
-  auto* modManager = &GlobalObjects::getModBrowser().get_mod_manager();
+  auto* modManager = &GlobalObjects::getModBrowser().getModManager();
 
   LogReturnIf( _modList_.size() == 1 and _modList_[0].title.empty(), "No mod in this folder. Nothing to update." );
 
@@ -146,11 +150,11 @@ void TabModBrowser::updateDisplayedModsStatus(){
 
     NVGcolor color;
     // processing color
-    if(GlobalObjects::getModBrowser().get_mod_manager().getModsStatusCacheFraction()[reference_str] == 0){
+    if(GlobalObjects::getModBrowser().getModManager().getModsStatusCacheFraction()[reference_str] == 0){
       // inactive color
       color = nvgRGB(80, 80, 80);
     }
-    else if(GlobalObjects::getModBrowser().get_mod_manager().getModsStatusCacheFraction()[reference_str] == 1){
+    else if(GlobalObjects::getModBrowser().getModManager().getModsStatusCacheFraction()[reference_str] == 1){
       // partial color
       color = nvgRGB(88, 195, 169);
     }

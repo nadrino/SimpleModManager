@@ -45,8 +45,13 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
       auto* dialog = new brls::Dialog("Do you want disable all mods and apply the preset \"" + item->getLabel() + "\" ?");
 
       dialog->addButton("Yes", [&, dialog, item](brls::View* view) {
-        GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
-        _owner_->getModManager().start_apply_mod_preset(item->getLabel());
+        // first, close the dialog box before the apply mod thread starts
+        dialog->close();
+
+        // starts the async routine
+        _owner_->getModManager().startApplyModPresetThread(item->getLabel());
+
+        // update labels
         _owner_->getTabModBrowser()->setTriggerUpdateModsDisplayedStatus( true );
       });
       dialog->addButton("No", [dialog](brls::View* view) {

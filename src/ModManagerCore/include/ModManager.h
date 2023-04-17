@@ -38,7 +38,7 @@ public:
   void load_mods_status_cache_file();
   void save_mods_status_cache_file();
   void reset_mod_cache_status(std::string mod_name_);
-  void reset_all_mods_cache_status();
+  void resetAllModsCacheStatus();
 
   double get_mod_status_fraction(std::string mod_name_);
   std::string get_mod_status(std::string mod_name_);

@@ -37,7 +37,7 @@ public:
   ParametersHandler &get_parameters_handler();
   Selector &getSelector();
   ModsPreseter &get_mods_preseter();
-  ModManager &get_mod_manager();
+  ModManager &getModManager();
 
   void scan_inputs(u64 kDown, u64 kHeld);
   void print_menu();
