@@ -55,9 +55,6 @@ TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
 
           // starts the async routine
           _owner_->getModManager().startApplyModThread( selectedMod );
-
-          // update labels
-          this->setTriggerUpdateModsDisplayedStatus( true );
         });
         dialog->addButton("No", [dialog](brls::View* view) { dialog->close(); });
 
@@ -104,18 +101,14 @@ TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
 
 }
 
-//GuiModManager &TabModBrowser::getExtModManager() {
-//  return _extModManager_;
-//}
-
 void TabModBrowser::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
                          brls::FrameContext *ctx) {
 
   ScrollView::draw(vg, x, y, width, height, style, ctx);
 
-  if(this->triggerUpdateModsDisplayedStatus){
-    this->updateDisplayedModsStatus();
-    this->triggerUpdateModsDisplayedStatus = false;
+  if( _triggerUpdateModsDisplayedStatus_ ){
+    updateDisplayedModsStatus();
+    _triggerUpdateModsDisplayedStatus_ = false;
   }
 
   if(this->triggerRecheckAllMods){
@@ -128,10 +121,11 @@ void TabModBrowser::draw(NVGcontext *vg, int x, int y, unsigned int width, unsig
 }
 
 void TabModBrowser::setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDisplayedStatus_) {
-  TabModBrowser::triggerUpdateModsDisplayedStatus = triggerUpdateModsDisplayedStatus_;
+  _triggerUpdateModsDisplayedStatus_ = triggerUpdateModsDisplayedStatus_;
 }
 
 void TabModBrowser::updateDisplayedModsStatus(){
+  LogDebug << __METHOD_NAME__ << std::endl;
 
   auto* modManager = &GlobalObjects::getModBrowser().getModManager();
 
