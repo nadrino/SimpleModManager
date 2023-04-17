@@ -11,7 +11,7 @@ project(SimpleModManager)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(options)
 include(utils)
-include(devkita64-libnx.cmake)
+include(devkita64-libnx)
 
 # needed by tesla lib
 set( CMAKE_CXX_STANDARD 20 )
