@@ -33,6 +33,6 @@ RUN cd $REPO_DIR/SimpleModManager && \
     # for some reason yaml-cpp in not found by cmake, so put the paths manually
     cmake \
       -D CMAKE_INSTALL_PREFIX=$INSTALL_DIR \
-      -D CMAKE_TOOLCHAIN_FILE=$REPO_DIR/SimpleModManager/devkita64-libnx.cmake \
+      -D CMAKE_TOOLCHAIN_FILE=$REPO_DIR/SimpleModManager/cmake/devkita64-libnx.cmake \
       $REPO_DIR/SimpleModManager && \
     make -j3 install
