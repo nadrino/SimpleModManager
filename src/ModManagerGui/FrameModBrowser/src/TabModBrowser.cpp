@@ -6,9 +6,10 @@
 
 #include "FrameModBrowser.h"
 #include <GlobalObjects.h>
-#include <PopupLoading.h>
+#include <PopupLoadingView.h>
 
 #include "Logger.h"
+#include "GenericToolbox.h"
 
 #include <future>
 
@@ -49,14 +50,13 @@ TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
         auto* dialog = new brls::Dialog("Do you want to install \"" + selectedMod + "\" ?");
 
         dialog->addButton("Yes", [&, selectedMod, dialog](brls::View* view) {
-          GuiModManager::setOnCallBackFunction( [dialog](){ dialog->close(); } );
-          _owner_->getModManager().setModName(selectedMod);
-          _owner_->getModManager().start_apply_mod();
-          this->setTriggerUpdateModsDisplayedStatus(true);
-        });
-        dialog->addButton("No", [dialog](brls::View* view) {
+          // first, close the dialog box before the apply mod thread starts
           dialog->close();
+
+          // starts the apply mod routine async
+          _owner_->getModManager().startApplyModThread( selectedMod );
         });
+        dialog->addButton("No", [dialog](brls::View* view) { dialog->close(); });
 
         dialog->setCancelable(true);
         dialog->open();

@@ -20,11 +20,11 @@ LoggerInit([]{
 });
 
 // static
-PopupLoading* GuiModManager::_staticPopupLoadingViewPtr_;
+PopupLoadingView* GuiModManager::_staticPopupLoadingViewPtr_;
 std::function<void(void)> GuiModManager::_staticOnCallBackFunction_;
 std::vector<std::string> GuiModManager::_ignored_file_list_;
 
-void GuiModManager::applyMod(std::string &modName_, bool force_) {
+void GuiModManager::applyMod(const std::string &modName_, bool force_) {
 
   std::string modPath = GlobalObjects::getModBrowser().get_mod_manager().get_current_mods_folder_path() + "/" + modName_;
 
@@ -122,7 +122,7 @@ std::string GuiModManager::getModStatus(const std::string &modName_) {
 
   return result;
 }
-void GuiModManager::removeMod(std::string &modName_){
+void GuiModManager::removeMod(const std::string &modName_){
 
   auto* mod_manager = &GlobalObjects::getModBrowser().get_mod_manager();
 
@@ -287,41 +287,6 @@ GuiModManager::GuiModManager() {
 
   GuiModManager::_staticPopupLoadingViewPtr_ = nullptr;
 
-  _asyncApplyModFunction_  = [](std::string mod_name_, brls::Dialog* hostDialogBox_){
-    LogWarning << "Applying: " << mod_name_ << std::endl;
-    GuiModManager::_staticPopupLoadingViewPtr_->reset();
-    GuiModManager::_staticPopupLoadingViewPtr_->setHeader("Applying mod...");
-    GuiModManager::_staticPopupLoadingViewPtr_->setTitlePtr(&mod_name_);
-    GuiModManager::_staticPopupLoadingViewPtr_->setProgressColor(nvgRGB(0x00, 0xff, 0xc8));
-    GuiModManager::_staticPopupLoadingViewPtr_->setSubTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::applyMod:current_file"]);
-    GuiModManager::_staticPopupLoadingViewPtr_->setProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::applyMod"]);
-    GuiModManager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["copyFile"]);
-    GuiModManager::_staticPopupLoadingViewPtr_->setEnableSubLoadingBar(true);
-    GuiModManager::applyMod(mod_name_, true);
-
-    LogWarning << "Checking: " << mod_name_ << std::endl;
-    GuiModManager::_staticPopupLoadingViewPtr_->reset();
-    GuiModManager::_staticPopupLoadingViewPtr_->setHeader("Checking the applied mod...");
-    GuiModManager::_staticPopupLoadingViewPtr_->setTitlePtr(&mod_name_);
-    GuiModManager::_staticPopupLoadingViewPtr_->setProgressColor(nvgRGB(0x00, 0xc8, 0xff));
-    GuiModManager::_staticPopupLoadingViewPtr_->setSubTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::getModStatus:current_file"]);
-    GuiModManager::_staticPopupLoadingViewPtr_->setProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::getModStatus"]);
-    GuiModManager::_staticPopupLoadingViewPtr_->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
-    GuiModManager::_staticPopupLoadingViewPtr_->setEnableSubLoadingBar(true);
-    GuiModManager::getModStatus(mod_name_);
-
-    if(GuiModManager::_staticOnCallBackFunction_){
-      brls::Application::popView(brls::ViewAnimation::FADE, GuiModManager::_staticOnCallBackFunction_);
-      GuiModManager::setOnCallBackFunction([](){}); // reset
-    }
-    else{
-      brls::Application::popView(brls::ViewAnimation::FADE);
-    }
-
-    brls::Application::unblockInputs();
-    GuiModManager::_staticPopupLoadingViewPtr_->reset();
-    return true;
-  };
   _asyncRemoveModFunction_ = [](std::string mod_name_, brls::Dialog* hostDialogBox_){
     LogWarning << "Removing: " << mod_name_ << std::endl;
     GuiModManager::_staticPopupLoadingViewPtr_->reset();
@@ -482,27 +447,20 @@ GuiModManager::GuiModManager() {
 
 }
 
-void GuiModManager::setModName(std::string modName_) {
-  _modName_ = std::move(modName_);
-}
+void GuiModManager::startApplyModThread(const std::string& modName_) {
 
-void GuiModManager::start_apply_mod() {
+  LogReturnIf(modName_.empty(), "No mod name provided. Can't apply mod.");
 
-  if(_modName_.empty()) return;
-  if(_asyncApplyModFunction_){
-    _popupLoadingView_ = new PopupLoading();
-    _hostDialogBox_ = new brls::Dialog(_popupLoadingView_);
-    brls::Application::pushView(_hostDialogBox_);
-    _staticPopupLoadingViewPtr_ = _popupLoadingView_;
-    _asyncResponse_ = std::async(std::launch::async, _asyncApplyModFunction_, _modName_, _hostDialogBox_);
-  }
+  // start the parallel thread
+  _asyncResponse_ = std::async(&GuiModManager::applyModFunction, this, modName_);
 
+  LogInfo << "Apply thread started." << std::endl;
 }
 void GuiModManager::start_remove_mod(){
 
   if(_modName_.empty()) return;
   if(_asyncRemoveModFunction_){
-    _popupLoadingView_ = new PopupLoading();
+    _popupLoadingView_ = new PopupLoadingView();
     _hostDialogBox_ = new brls::Dialog(_popupLoadingView_);
     brls::Application::pushView(_hostDialogBox_);
     _staticPopupLoadingViewPtr_ = _popupLoadingView_;
@@ -513,7 +471,7 @@ void GuiModManager::start_remove_mod(){
 void GuiModManager::start_check_all_mods(){
   if(_asyncCheckAllModsFunction_){
     LogInfo("Async check all mods function is starting...");
-    _popupLoadingView_ = new PopupLoading();
+    _popupLoadingView_ = new PopupLoadingView();
     _hostDialogBox_ = new brls::Dialog(_popupLoadingView_);
     brls::Application::pushView(_hostDialogBox_, brls::ViewAnimation::SLIDE_RIGHT);
     GuiModManager::_staticPopupLoadingViewPtr_ = _popupLoadingView_;
@@ -522,7 +480,7 @@ void GuiModManager::start_check_all_mods(){
 }
 void GuiModManager::start_remove_all_mods(){
   if(_asyncCheckAllModsFunction_){
-    _popupLoadingView_ = new PopupLoading();
+    _popupLoadingView_ = new PopupLoadingView();
     _hostDialogBox_ = new brls::Dialog(_popupLoadingView_);
     brls::Application::pushView(_hostDialogBox_);
     GuiModManager::_staticPopupLoadingViewPtr_ = _popupLoadingView_;
@@ -530,8 +488,8 @@ void GuiModManager::start_remove_all_mods(){
   }
 }
 void GuiModManager::start_apply_mod_preset(std::string modPresetName){
-  if(_asyncCheckAllModsFunction_ ? true : false){
-    _popupLoadingView_ = new PopupLoading();
+  if(_asyncCheckAllModsFunction_){
+    _popupLoadingView_ = new PopupLoadingView();
     _hostDialogBox_ = new brls::Dialog(_popupLoadingView_);
     brls::Application::pushView(_hostDialogBox_);
     GuiModManager::_staticPopupLoadingViewPtr_ = _popupLoadingView_;
@@ -540,5 +498,53 @@ void GuiModManager::start_apply_mod_preset(std::string modPresetName){
 }
 
 
+bool GuiModManager::applyModFunction(const std::string& modName_){
+  // wait extra frames before push to the view
+//  std::this_thread::sleep_for( std::chrono::milliseconds(1000) );
+  // push the progress bar to the view
+  _loadingBox_.pushView();
+
+  LogWarning << "Applying: " << modName_ << std::endl;
+  if( _loadingBox_.getLoadingView() != nullptr ){
+    _loadingBox_.getLoadingView()->reset();
+    _loadingBox_.getLoadingView()->setHeader("Applying mod...");
+    _loadingBox_.getLoadingView()->setTitlePtr(&modName_);
+    _loadingBox_.getLoadingView()->setProgressColor(nvgRGB(0x00, 0xff, 0xc8));
+    _loadingBox_.getLoadingView()->setSubTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::applyMod:current_file"]);
+    _loadingBox_.getLoadingView()->setProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::applyMod"]);
+    _loadingBox_.getLoadingView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["copyFile"]);
+    _loadingBox_.getLoadingView()->setEnableSubLoadingBar(true);
+  }
+
+  GuiModManager::applyMod(modName_, true);
+
+  LogWarning << "Checking: " << modName_ << std::endl;
+
+  if( _loadingBox_.getLoadingView() != nullptr ) {
+    _loadingBox_.getLoadingView()->reset();
+    _loadingBox_.getLoadingView()->setHeader("Checking the applied mod...");
+    _loadingBox_.getLoadingView()->setTitlePtr(&modName_);
+    _loadingBox_.getLoadingView()->setProgressColor(nvgRGB(0x00, 0xc8, 0xff));
+    _loadingBox_.getLoadingView()->setSubTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::getModStatus:current_file"]);
+    _loadingBox_.getLoadingView()->setProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::getModStatus"]);
+    _loadingBox_.getLoadingView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
+    _loadingBox_.getLoadingView()->setEnableSubLoadingBar(true);
+  }
+  GuiModManager::getModStatus(modName_);
+
+  // used for removing dialog box yes/no...
+//  if(GuiModManager::_staticOnCallBackFunction_){
+//    brls::Application::popView(brls::ViewAnimation::FADE, GuiModManager::_staticOnCallBackFunction_);
+//    GuiModManager::setOnCallBackFunction([](){}); // reset
+//  }
+//  else{
+//    brls::Application::popView( brls::ViewAnimation::FADE );
+//  }
+
+  _loadingBox_.popView();
+
+  _loadingBox_.getLoadingView()->reset();
+  return true;
+}
 
 
