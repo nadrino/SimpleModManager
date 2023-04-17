@@ -328,9 +328,10 @@ bool GuiModManager::applyModFunction(const std::string& modName_){
   }
   GuiModManager::getModStatus(modName_);
 
-  _loadingBox_.popView();
-
   _loadingBox_.getLoadingView()->reset();
+  _triggerUpdateModsDisplayedStatus_ = true;
+  _loadingBox_.popView();
+  brls::Application::unblockInputs();
   return true;
 }
 bool GuiModManager::applyModPresetFunction(const std::string& presetName_){
@@ -378,6 +379,7 @@ bool GuiModManager::applyModPresetFunction(const std::string& presetName_){
   GuiModManager::checkAllMods();
 
   _loadingBox_.getLoadingView()->reset();
+  _triggerUpdateModsDisplayedStatus_ = true;
   _loadingBox_.popView();
   brls::Application::unblockInputs();
   return true;
@@ -413,11 +415,10 @@ bool GuiModManager::removeModFunction(const std::string& modName_){
   }
   GuiModManager::getModStatus(modName_);
 
-  brls::Application::unblockInputs();
-
-  _loadingBox_.popView();
-
   _loadingBox_.getLoadingView()->reset();
+  _triggerUpdateModsDisplayedStatus_ = true;
+  _loadingBox_.popView();
+  brls::Application::unblockInputs();
   return true;
 }
 bool GuiModManager::checkAllModsFunction(){
@@ -439,7 +440,7 @@ bool GuiModManager::checkAllModsFunction(){
   LogInfo << "Check all mods done." << std::endl;
 
   _loadingBox_.getLoadingView()->reset();
-
+  _triggerUpdateModsDisplayedStatus_ = true;
   _loadingBox_.popView();
   brls::Application::unblockInputs();
   return true;
@@ -475,8 +476,17 @@ bool GuiModManager::removeAllModsFunction(){
   GuiModManager::checkAllMods();
 
   _loadingBox_.getLoadingView()->reset();
+  _triggerUpdateModsDisplayedStatus_ = true;
   _loadingBox_.popView();
   brls::Application::unblockInputs();
   return true;
+}
+
+void GuiModManager::setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDisplayedStatus) {
+  _triggerUpdateModsDisplayedStatus_ = triggerUpdateModsDisplayedStatus;
+}
+
+bool GuiModManager::isTriggerUpdateModsDisplayedStatus() const {
+  return _triggerUpdateModsDisplayedStatus_;
 }
 

@@ -106,22 +106,18 @@ void TabModBrowser::draw(NVGcontext *vg, int x, int y, unsigned int width, unsig
 
   ScrollView::draw(vg, x, y, width, height, style, ctx);
 
-  if( _triggerUpdateModsDisplayedStatus_ ){
+  if( _owner_->getModManager().isTriggerUpdateModsDisplayedStatus() ){
     updateDisplayedModsStatus();
-    _triggerUpdateModsDisplayedStatus_ = false;
+    _owner_->getModManager().setTriggerUpdateModsDisplayedStatus( false );
   }
 
-  if(this->triggerRecheckAllMods){
+  if( this->triggerRecheckAllMods ){
     // starts the async routine
     _owner_->getModManager().startCheckAllModsThread();
-    this->setTriggerUpdateModsDisplayedStatus(true);
+    _owner_->getModManager().setTriggerUpdateModsDisplayedStatus( true );
     this->triggerRecheckAllMods = false;
   }
 
-}
-
-void TabModBrowser::setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDisplayedStatus_) {
-  _triggerUpdateModsDisplayedStatus_ = triggerUpdateModsDisplayedStatus_;
 }
 
 void TabModBrowser::updateDisplayedModsStatus(){

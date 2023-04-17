@@ -50,9 +50,6 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
 
         // starts the async routine
         _owner_->getModManager().startApplyModPresetThread(item->getLabel());
-
-        // update labels
-        _owner_->getTabModBrowser()->setTriggerUpdateModsDisplayedStatus( true );
       });
       dialog->addButton("No", [dialog](brls::View* view) {
         dialog->close();

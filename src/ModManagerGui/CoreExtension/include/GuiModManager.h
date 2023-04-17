@@ -27,6 +27,10 @@ public:
 public:
   GuiModManager() = default;
 
+  void setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDisplayedStatus);
+
+  bool isTriggerUpdateModsDisplayedStatus() const;
+
   void startApplyModThread(const std::string& modName_);
   void startRemoveModThread(const std::string& modName_);
   void startCheckAllModsThread();
@@ -42,10 +46,10 @@ protected:
 
 
 private:
-  std::string _modName_;
-
   PopupLoadingBox _loadingBox_;
   std::future<bool> _asyncResponse_{};
+
+  bool _triggerUpdateModsDisplayedStatus_{false};
 
 };
 
