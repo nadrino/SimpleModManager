@@ -2,8 +2,9 @@
 // Created by Nadrino on 12/09/2019.
 //
 
-#ifndef MODAPPLIER_SELECTOR_H
-#define MODAPPLIER_SELECTOR_H
+#ifndef SMM_CORE_SELECTOR_H
+#define SMM_CORE_SELECTOR_H
+
 
 #include <switch/types.h>
 
@@ -34,9 +35,8 @@ public:
   [[nodiscard]] int getCurrentPage() const;
   [[nodiscard]] int getCursorPosition() const;
   [[nodiscard]] int getSelectedEntryIndex() const;
-  [[nodiscard]] int getEntry(const std::string &entryName_) const;
-  [[nodiscard]] const std::string & getTag(size_t entry_) const;
-  [[nodiscard]] const std::vector<std::string> & getSelectionList() const;
+  [[nodiscard]] int fetchEntryIndex(const std::string &entryTitle_) const;
+  [[nodiscard]] const std::vector<SelectorEntry> &getEntryList() const;
 
   void clearTags();
   void print();
@@ -76,4 +76,4 @@ private:
 };
 
 
-#endif //MODAPPLIER_SELECTOR_H
+#endif //SMM_CORE_SELECTOR_H

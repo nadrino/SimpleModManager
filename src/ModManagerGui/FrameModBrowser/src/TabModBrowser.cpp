@@ -22,7 +22,7 @@ LoggerInit([]{
 TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
 
   // Fetch the available mods
-  auto modFoldersList = GlobalObjects::getModBrowser().getSelector().getSelectionList();
+  auto modFoldersList = GlobalObjects::getModBrowser().getSelector().generateEntryTitleList();
 
   if( modFoldersList.empty() ){
     LogInfo << "No mod found." << std::endl;

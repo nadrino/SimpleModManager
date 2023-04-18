@@ -57,7 +57,7 @@ void ModBrowserGui::fill_item_list() {
   // List Items
   _list_->addItem(new tsl::elm::CategoryHeader(_current_sub_folder_));
 
-  auto mods_list = GlobalObjects::getModBrowser().getSelector().getSelectionList();
+  auto mods_list = GlobalObjects::getModBrowser().getSelector().generateEntryTitleList();
   for (int i_folder = 0; i_folder < int(mods_list.size()); i_folder++) {
     auto *clickableListItem = new tsl::elm::ListItem(mods_list[i_folder]);
     std::string selected_mod_name = mods_list[i_folder];
@@ -67,7 +67,7 @@ void ModBrowserGui::fill_item_list() {
         // apply mod...
         GlobalObjects::getModBrowser().getModManager().applyMod(selected_mod_name, true);
         GlobalObjects::getModBrowser().getSelector().setTag(
-            GlobalObjects::getModBrowser().getSelector().getEntry(selected_mod_name),
+            GlobalObjects::getModBrowser().getSelector().fetchEntryIndex(selected_mod_name),
             GlobalObjects::getModBrowser().getModManager().get_mod_status(selected_mod_name)
         );
         this->set_trigger_item_list_update(true);
@@ -75,7 +75,7 @@ void ModBrowserGui::fill_item_list() {
       } else if (keys & HidNpadButton_X) {
         GlobalObjects::getModBrowser().getModManager().remove_mod(selected_mod_name);
         GlobalObjects::getModBrowser().getSelector().setTag(
-            GlobalObjects::getModBrowser().getSelector().getEntry(selected_mod_name),
+            GlobalObjects::getModBrowser().getSelector().fetchEntryIndex(selected_mod_name),
             GlobalObjects::getModBrowser().getModManager().get_mod_status(selected_mod_name)
         );
         this->set_trigger_item_list_update(true);
@@ -121,7 +121,7 @@ void ModBrowserGui::fill_item_list() {
 
 void ModBrowserGui::updateModStatusBars(){
 
-  auto mods_list = GlobalObjects::getModBrowser().getSelector().getSelectionList();
+  auto mods_list = GlobalObjects::getModBrowser().getSelector().generateEntryTitleList();
   for (int i_folder = 0; i_folder < int(mods_list.size()); i_folder++) {
     std::string selected_mod_name = mods_list[i_folder];
     double mod_fraction = GlobalObjects::getModBrowser().getModManager().get_mod_status_fraction(mods_list[i_folder]);

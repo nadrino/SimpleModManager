@@ -384,7 +384,7 @@ void ModBrowser::displayConflictsWithOtherMods(size_t modIndex_){
 void ModBrowser::check_mods_status(){
   if(get_current_relative_depth() != get_max_relative_depth()) return;
   _selector_.reset_tags_list();
-  auto mods_list = _selector_.getSelectionList();
+  auto mods_list = _selector_.generateEntryTitleList();
   for(int i_mod = 0 ; i_mod < int(mods_list.size()) ; i_mod++){
     padUpdate(&GlobalObjects::gPad);;
     u64 kDown = padGetButtonsDown(&GlobalObjects::gPad);
@@ -523,8 +523,8 @@ void ModBrowser::remove_all_mods(bool force_){
     answer = "Yes";
   }
   if(answer == "Yes") {
-    for(int i_mod = 0 ; i_mod < int(_selector_.getSelectionList().size()) ; i_mod++){
-      _modManager_.remove_mod(_selector_.getSelectionList()[i_mod]);
+    for(int i_mod = 0 ; i_mod < int(_selector_.generateEntryTitleList().size()) ; i_mod++){
+      _modManager_.remove_mod(_selector_.generateEntryTitleList()[i_mod]);
     }
   }
   GenericToolbox::Switch::IO::p.useCrcCheck = true;

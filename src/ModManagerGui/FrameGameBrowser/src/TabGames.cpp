@@ -18,7 +18,7 @@ LoggerInit([]{
 TabGames::TabGames() {
   LogWarning << "Building game tab..." << std::endl;
 
-  auto gameFolderList = GlobalObjects::getModBrowser().getSelector().getSelectionList();
+  auto gameFolderList = GlobalObjects::getModBrowser().getSelector().generateEntryTitleList();
 
   if( gameFolderList.empty() ){
     LogInfo << "No game found." << std::endl;

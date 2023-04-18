@@ -172,7 +172,7 @@ void GuiModManager::removeMod(const std::string &modName_){
 }
 void GuiModManager::removeAllMods(bool force_) {
 
-  auto mods_list = GlobalObjects::getModBrowser().getSelector().getSelectionList();
+  auto mods_list = GlobalObjects::getModBrowser().getSelector().generateEntryTitleList();
 
   std::string answer;
 
@@ -230,10 +230,10 @@ void GuiModManager::applyModsList(std::vector<std::string>& modsList_){
 void GuiModManager::checkAllMods() {
 
   auto* mod_browser = &GlobalObjects::getModBrowser();
-  auto modsList = mod_browser->getSelector().getSelectionList();
+  auto modsList = mod_browser->getSelector().generateEntryTitleList();
 
   mod_browser->getSelector().reset_tags_list();
-  auto mods_list = mod_browser->getSelector().getSelectionList();
+  auto mods_list = mod_browser->getSelector().generateEntryTitleList();
   for(int i_mod = 0 ; i_mod < int(mods_list.size()) ; i_mod++){
 
     GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::checkAllMods:current_mod"] =

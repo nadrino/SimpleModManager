@@ -20,7 +20,7 @@ void ThumbnailPresetEditor::initialize() {
 
   auto* modsList = new brls::List();
 
-  auto modFolderList = GlobalObjects::getModBrowser().getSelector().getSelectionList();
+  auto modFolderList = GlobalObjects::getModBrowser().getSelector().generateEntryTitleList();
   for( auto& modFolder : modFolderList ){
     auto* item = new brls::ListItem(modFolder, "", "");
 

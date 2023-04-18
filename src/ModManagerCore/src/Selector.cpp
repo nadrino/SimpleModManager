@@ -42,10 +42,8 @@ void Selector::setTagList(const std::vector<std::string>& tagList_){
 void Selector::setDescriptionList(const std::vector<std::vector<std::string>> &descriptionList_){
   if(descriptionList_.size() != _entryList_.size()) return;
   for( size_t iEntry = 0 ; iEntry < _entryList_.size() ; iEntry++ ){
-
+    _entryList_[iEntry].description = descriptionList_[iEntry];
   }
-  _descriptionsList_ = descriptionList_;
-  process_page_numbering();
 }
 
 int Selector::getNbPages() const {
@@ -60,13 +58,15 @@ int Selector::getCursorPosition() const {
 int Selector::getSelectedEntryIndex() const {
   return _indexListForEachPage_[this->getCurrentPage()][this->getCursorPosition()];
 }
-int Selector::getEntry(const std::string &entryName_) const {
-  return GenericToolbox::findElementIndex(entryName_, _entryList_);
+int Selector::fetchEntryIndex(const std::string &entryTitle_) const {
+  int index{-1};
+  for( auto& entry : _entryList_ ){
+    index++;
+    if( entry.title == entryTitle_ ){ return index; }
+  }
+  return -1;
 }
-const std::string & Selector::getTag(size_t entry_) const{
-  return _tagList_[entry_];
-}
-const std::vector<std::string> & Selector::getSelectionList() const{
+const std::vector<SelectorEntry> &Selector::getEntryList() const {
   return _entryList_;
 }
 
@@ -251,3 +251,4 @@ std::string Selector::ask_question(const std::string& question_, const std::vect
   consoleClear();
   return answer;
 }
+
