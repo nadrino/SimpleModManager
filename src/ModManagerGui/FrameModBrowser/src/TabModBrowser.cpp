@@ -6,9 +6,10 @@
 
 #include "FrameModBrowser.h"
 #include <GlobalObjects.h>
-#include <PopupLoading.h>
+#include <PopupLoadingView.h>
 
 #include "Logger.h"
+#include "GenericToolbox.h"
 
 #include <future>
 
@@ -49,14 +50,13 @@ TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
         auto* dialog = new brls::Dialog("Do you want to install \"" + selectedMod + "\" ?");
 
         dialog->addButton("Yes", [&, selectedMod, dialog](brls::View* view) {
-          GuiModManager::setOnCallBackFunction( [dialog](){ dialog->close(); } );
-          _owner_->getModManager().setModName(selectedMod);
-          _owner_->getModManager().start_apply_mod();
-          this->setTriggerUpdateModsDisplayedStatus(true);
-        });
-        dialog->addButton("No", [dialog](brls::View* view) {
+          // first, close the dialog box before the apply mod thread starts
           dialog->close();
+
+          // starts the async routine
+          _owner_->getModManager().startApplyModThread( selectedMod );
         });
+        dialog->addButton("No", [dialog](brls::View* view) { dialog->close(); });
 
         dialog->setCancelable(true);
         dialog->open();
@@ -69,9 +69,11 @@ TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
         auto* dialog = new brls::Dialog("Do you want to disable \"" + selectedMod + "\" ?");
 
         dialog->addButton("Yes", [&, dialog, selectedMod](brls::View* view) {
-          GuiModManager::setOnCallBackFunction([&](){ dialog->close(); });
-          _owner_->getModManager().setModName(selectedMod);
-          _owner_->getModManager().start_remove_mod();
+          // first, close the dialog box before the async routine starts
+          dialog->close();
+
+          // starts the async routine
+          _owner_->getModManager().startRemoveModThread( selectedMod );
         });
         dialog->addButton("No", [dialog](brls::View* view) { dialog->close(); });
 
@@ -99,68 +101,62 @@ TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
 
 }
 
-//GuiModManager &TabModBrowser::getExtModManager() {
-//  return _extModManager_;
-//}
-
 void TabModBrowser::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
                          brls::FrameContext *ctx) {
 
   ScrollView::draw(vg, x, y, width, height, style, ctx);
 
-  if(this->triggerUpdateModsDisplayedStatus){
-    this->updateDisplayedModsStatus();
-    this->triggerUpdateModsDisplayedStatus = false;
+  if( _owner_->getModManager().isTriggerUpdateModsDisplayedStatus() ){
+    updateDisplayedModsStatus();
+    _owner_->getModManager().setTriggerUpdateModsDisplayedStatus( false );
   }
 
-  if(this->triggerRecheckAllMods){
-    _owner_->getModManager().start_check_all_mods();
-    this->setTriggerUpdateModsDisplayedStatus(true);
+  if( this->triggerRecheckAllMods ){
+    // starts the async routine
+    _owner_->getModManager().startCheckAllModsThread();
+    _owner_->getModManager().setTriggerUpdateModsDisplayedStatus( true );
     this->triggerRecheckAllMods = false;
   }
 
 }
 
-void TabModBrowser::setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDisplayedStatus_) {
-  TabModBrowser::triggerUpdateModsDisplayedStatus = triggerUpdateModsDisplayedStatus_;
-}
-
 void TabModBrowser::updateDisplayedModsStatus(){
+  LogDebug << __METHOD_NAME__ << std::endl;
 
-  auto* modManager = &GlobalObjects::getModBrowser().get_mod_manager();
+  auto* modManager = &GlobalObjects::getModBrowser().getModManager();
 
   LogReturnIf( _modList_.size() == 1 and _modList_[0].title.empty(), "No mod in this folder. Nothing to update." );
 
   for( auto& modItem : _modList_ ){
-    if( modManager->get_mods_status_cache()[
+    if(modManager->getModsStatusCache()[
           modManager->getParametersHandlerPtr()->get_current_config_preset_name() + ": " + modItem.title
         ] == modItem.item->getValue()){
       continue;
     }
 
     // processing tag
-    std::string reference_str = modManager->getParametersHandlerPtr()->get_current_config_preset_name() + ": " + modItem.title;
-    modItem.item->setValue( modManager->get_mods_status_cache()[reference_str] );
+    std::string modRefStr = modManager->getParametersHandlerPtr()->get_current_config_preset_name() + ": " + modItem.title;
+    modItem.item->setValue( modManager->getModsStatusCache()[modRefStr] );
 
     NVGcolor color;
     // processing color
-    if(GlobalObjects::getModBrowser().get_mod_manager().getModsStatusCacheFraction()[reference_str] == 0){
+    if     ( GlobalObjects::getModBrowser().getModManager().getModsStatusCacheFraction()[modRefStr] == 0 ){
       // inactive color
       color = nvgRGB(80, 80, 80);
     }
-    else if(GlobalObjects::getModBrowser().get_mod_manager().getModsStatusCacheFraction()[reference_str] == 1){
-      // partial color
+    else if( GlobalObjects::getModBrowser().getModManager().getModsStatusCacheFraction()[modRefStr] == 1 ){
+      // applied color
       color = nvgRGB(88, 195, 169);
     }
     else{
-      // applied color
+      // partial color
       color = nvgRGB(
           (unsigned char) (245*0.85),
           (unsigned char) (198*0.85),
           (unsigned char) (59*0.85)
       );
     }
-    modItem.item->setValueActiveColor(color);
+    modItem.item->setValueActiveColor( color );
   }
 
 }

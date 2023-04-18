@@ -2,16 +2,16 @@
 // Created by Adrien BLANCHET on 27/06/2020.
 //
 
-#ifndef SIMPLEMODMANAGER_POPUPLOADING_H
-#define SIMPLEMODMANAGER_POPUPLOADING_H
+#ifndef SIMPLEMODMANAGER_POPUPLOADINGVIEW_H
+#define SIMPLEMODMANAGER_POPUPLOADINGVIEW_H
 
 #include <borealis.hpp>
 
 
-class PopupLoading : public brls::View {
+class PopupLoadingView : public brls::View {
 
 public:
-  PopupLoading();
+  PopupLoadingView();
 
   void reset();
 
@@ -25,7 +25,7 @@ public:
   void setSubTitle(const std::string &subTitle_);
   void setSubProgressColor(const NVGcolor &subProgressColor);
   void setProgressColor(const NVGcolor &progressColor_);
-  void setTitlePtr(std::string *titlePtr);
+  void setTitlePtr(const std::string *titlePtr);
   void setSubTitlePtr(std::string *subTitlePtr);
   void setHeader(std::string header);
 
@@ -46,11 +46,11 @@ private:
 
   std::string _header_;
   std::string _title_;
-  std::string* _titlePtr_;
+  const std::string* _titlePtr_;
   std::string _subTitle_;
   std::string* _subTitlePtr_;
 
 };
 
 
-#endif //SIMPLEMODMANAGER_POPUPLOADING_H
+#endif //SIMPLEMODMANAGER_POPUPLOADINGVIEW_H

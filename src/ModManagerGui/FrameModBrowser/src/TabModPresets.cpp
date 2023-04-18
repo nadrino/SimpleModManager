@@ -23,6 +23,7 @@ TabModPresets::TabModPresets(FrameModBrowser* owner_) : _owner_(owner_) {
   _nbFreeSlots_ = 0;
   _itemNewCreatePreset_ = nullptr;
 
+  _itemList_.reserve( _maxNbPresetsSlots_ );
   for(int i_slot = 0 ; i_slot < _maxNbPresetsSlots_ ; i_slot++){
     _itemList_.emplace_back(new brls::ListItem( "vacant-slot" ));
     this->assignButtons(_itemList_.back(), true);
@@ -45,9 +46,11 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
       auto* dialog = new brls::Dialog("Do you want disable all mods and apply the preset \"" + item->getLabel() + "\" ?");
 
       dialog->addButton("Yes", [&, dialog, item](brls::View* view) {
-        GuiModManager::setOnCallBackFunction([dialog](){dialog->close();});
-        _owner_->getModManager().start_apply_mod_preset(item->getLabel());
-        _owner_->getTabModBrowser()->setTriggerUpdateModsDisplayedStatus( true );
+        // first, close the dialog box before the apply mod thread starts
+        dialog->close();
+
+        // starts the async routine
+        _owner_->getModManager().startApplyModPresetThread(item->getLabel());
       });
       dialog->addButton("No", [dialog](brls::View* view) {
         dialog->close();
@@ -66,7 +69,6 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
 
       dialog->addButton("Yes", [this, item, dialog](brls::View* view) {
         GlobalObjects::getModBrowser().get_mods_preseter().delete_mod_preset(item->getLabel());
-//        this->setTriggerUpdate(true);
         this->updatePresetItems();
         dialog->close();
       });

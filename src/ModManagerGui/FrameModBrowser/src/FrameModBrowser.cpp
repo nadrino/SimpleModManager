@@ -31,7 +31,7 @@ FrameModBrowser::FrameModBrowser(const std::string& folder_){
 
   if(GlobalObjects::getModBrowser().change_directory(gamePath) ){
 
-    GlobalObjects::getModBrowser().get_mod_manager().set_current_mods_folder(gamePath);
+    GlobalObjects::getModBrowser().getModManager().set_current_mods_folder(gamePath);
     GlobalObjects::getModBrowser().get_mods_preseter().read_parameter_file(gamePath);
 
     auto* parametersTabList = new brls::List();
@@ -71,7 +71,7 @@ bool FrameModBrowser::onCancel() {
 
   // If the sidebar was already there, the focus has not changed
   if(lastFocus == brls::Application::getCurrentFocus()){
-    LogDebug("Back on games screen...");
+    LogInfo("Back on games screen...");
     GlobalObjects::getModBrowser().go_back();
     brls::Application::popView(brls::ViewAnimation::SLIDE_RIGHT);
   }

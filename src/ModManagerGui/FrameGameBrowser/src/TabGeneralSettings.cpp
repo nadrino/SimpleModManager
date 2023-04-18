@@ -37,7 +37,7 @@ void TabGeneralSettings::rebuildLayout() {
       GlobalObjects::getModBrowser().change_config_preset(GlobalObjects::getModBrowser().get_parameters_handler().get_presets_list()[result]);
       LogDebug("Selected : %s -> %s",
                GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name().c_str(),
-               GlobalObjects::getModBrowser().get_mod_manager().get_install_mods_base_folder().c_str());
+               GlobalObjects::getModBrowser().getModManager().get_install_mods_base_folder().c_str());
       this->itemCurrentInstallPreset->setValue(GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name());
 //       this->valueEvent.fire(result); // not now
     };

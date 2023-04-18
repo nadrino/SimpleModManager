@@ -39,9 +39,8 @@ void TabModOptions::buildFolderInstallPresetItem() {
     }
 
     // function that will set the config preset from the Dropdown menu selection (int result)
-    brls::ValueSelectedEvent::Callback valueCallback = [this, valueCallback](int result) {
-      if (result == -1)
-        return;
+    brls::ValueSelectedEvent::Callback valueCallback = [&](int result) {
+      if (result == -1) return;
 
       if(result == this->_preSelection_){
         brls::Application::popView();
@@ -72,15 +71,13 @@ void TabModOptions::buildFolderInstallPresetItem() {
         this->_itemFolderInstallPreset_->setValue(_inheritedTitle_);
       }
 
-      GuiModManager::setOnCallBackFunction([](){brls::Application::popView(brls::ViewAnimation::FADE);});
-      GlobalObjects::getModBrowser().get_mod_manager().reset_all_mods_cache_status();
+      GlobalObjects::getModBrowser().getModManager().resetAllModsCacheStatus();
 
     }; // Callback sequence
 
     brls::Dropdown::open(
       "Please select the config preset you want for this folder",
-      config_presets_list,
-      valueCallback,
+      config_presets_list, valueCallback,
       this->_preSelection_,
       true
     );
@@ -103,9 +100,11 @@ void TabModOptions::buildResetModsCacheItem() {
     auto* dialog = new brls::Dialog("Do you want to reset mods cache status and recheck all mod files ?");
 
     dialog->addButton("Yes", [&, dialog](brls::View* view) {
-      GuiModManager::setOnCallBackFunction( [dialog](){dialog->close();} );
-      GlobalObjects::getModBrowser().get_mod_manager().reset_all_mods_cache_status();
-      _owner_->getModManager().start_check_all_mods();
+      // first, close the dialog box before the async routine starts
+      dialog->close();
+
+      // starts the async routine
+      _owner_->getModManager().startCheckAllModsThread();
     });
     dialog->addButton("No", [dialog](brls::View* view) {
       dialog->close();
@@ -131,8 +130,11 @@ void TabModOptions::buildDisableAllMods() {
     auto* dialog = new brls::Dialog("Do you want to disable all mods ?");
 
     dialog->addButton("Yes", [&, dialog](brls::View* view) {
-      GuiModManager::setOnCallBackFunction( [dialog](){dialog->close();} );
-      _owner_->getModManager().start_remove_all_mods();
+      // first, close the dialog box before the async routine starts
+      dialog->close();
+
+      // starts the async routine
+      _owner_->getModManager().startRemoveAllModsThread();
     });
     dialog->addButton("No", [dialog](brls::View* view) {
       dialog->close();

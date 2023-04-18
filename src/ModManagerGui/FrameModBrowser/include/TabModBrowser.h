@@ -22,9 +22,6 @@ class TabModBrowser : public brls::List {
 public:
   explicit TabModBrowser(FrameModBrowser* owner_);
 
-//  GuiModManager &getExtModManager();
-
-  void setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDisplayedStatus_);
   void updateDisplayedModsStatus();
 
   void draw(NVGcontext* vg, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* ctx) override;
@@ -33,7 +30,6 @@ public:
 private:
   FrameModBrowser* _owner_{nullptr};
 
-  bool triggerUpdateModsDisplayedStatus{false};
   bool triggerRecheckAllMods{false};
 
 //  GuiModManager _extModManager_{};

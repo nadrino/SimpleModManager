@@ -127,7 +127,7 @@ void ModManager::reset_mod_cache_status(std::string mod_name_){
   _mods_status_cache_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_] = "";
   _mods_status_cache_fraction_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_] = -1;
 }
-void ModManager::reset_all_mods_cache_status(){
+void ModManager::resetAllModsCacheStatus(){
 
   GenericToolbox::deleteFile(_current_mods_folder_path_ + "/mods_status_cache.txt");
   load_mods_status_cache_file();
@@ -433,7 +433,7 @@ std::string ModManager::ask_to_replace(std::string path_) {
 
 }
 
-std::map<std::string, std::string> & ModManager::get_mods_status_cache() {
+std::map<std::string, std::string> & ModManager::getModsStatusCache() {
   return _mods_status_cache_;
 }
 
