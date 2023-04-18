@@ -23,6 +23,7 @@ TabModPresets::TabModPresets(FrameModBrowser* owner_) : _owner_(owner_) {
   _nbFreeSlots_ = 0;
   _itemNewCreatePreset_ = nullptr;
 
+  _itemList_.reserve( _maxNbPresetsSlots_ );
   for(int i_slot = 0 ; i_slot < _maxNbPresetsSlots_ ; i_slot++){
     _itemList_.emplace_back(new brls::ListItem( "vacant-slot" ));
     this->assignButtons(_itemList_.back(), true);
@@ -68,7 +69,6 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
 
       dialog->addButton("Yes", [this, item, dialog](brls::View* view) {
         GlobalObjects::getModBrowser().get_mods_preseter().delete_mod_preset(item->getLabel());
-//        this->setTriggerUpdate(true);
         this->updatePresetItems();
         dialog->close();
       });

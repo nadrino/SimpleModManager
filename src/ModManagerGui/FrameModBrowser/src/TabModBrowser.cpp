@@ -128,35 +128,35 @@ void TabModBrowser::updateDisplayedModsStatus(){
   LogReturnIf( _modList_.size() == 1 and _modList_[0].title.empty(), "No mod in this folder. Nothing to update." );
 
   for( auto& modItem : _modList_ ){
-    if( modManager->get_mods_status_cache()[
+    if(modManager->getModsStatusCache()[
           modManager->getParametersHandlerPtr()->get_current_config_preset_name() + ": " + modItem.title
         ] == modItem.item->getValue()){
       continue;
     }
 
     // processing tag
-    std::string reference_str = modManager->getParametersHandlerPtr()->get_current_config_preset_name() + ": " + modItem.title;
-    modItem.item->setValue( modManager->get_mods_status_cache()[reference_str] );
+    std::string modRefStr = modManager->getParametersHandlerPtr()->get_current_config_preset_name() + ": " + modItem.title;
+    modItem.item->setValue( modManager->getModsStatusCache()[modRefStr] );
 
     NVGcolor color;
     // processing color
-    if(GlobalObjects::getModBrowser().getModManager().getModsStatusCacheFraction()[reference_str] == 0){
+    if     ( GlobalObjects::getModBrowser().getModManager().getModsStatusCacheFraction()[modRefStr] == 0 ){
       // inactive color
       color = nvgRGB(80, 80, 80);
     }
-    else if(GlobalObjects::getModBrowser().getModManager().getModsStatusCacheFraction()[reference_str] == 1){
-      // partial color
+    else if( GlobalObjects::getModBrowser().getModManager().getModsStatusCacheFraction()[modRefStr] == 1 ){
+      // applied color
       color = nvgRGB(88, 195, 169);
     }
     else{
-      // applied color
+      // partial color
       color = nvgRGB(
           (unsigned char) (245*0.85),
           (unsigned char) (198*0.85),
           (unsigned char) (59*0.85)
       );
     }
-    modItem.item->setValueActiveColor(color);
+    modItem.item->setValueActiveColor( color );
   }
 
 }

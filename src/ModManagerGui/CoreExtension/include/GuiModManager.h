@@ -18,18 +18,18 @@ class GuiModManager {
 
 public:
   static void applyMod(const std::string &modName_, bool force_= false);
+  static void applyModsList(std::vector<std::string>& modsList_);
   static void removeMod(const std::string &modName_);
   static void removeAllMods(bool force_ = false);
   static void checkAllMods();
   static std::string getModStatus(const std::string &modName_);
-  static void apply_mods_list(std::vector<std::string>& modsList_);
 
 public:
   GuiModManager() = default;
 
   void setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDisplayedStatus);
 
-  bool isTriggerUpdateModsDisplayedStatus() const;
+  [[nodiscard]] bool isTriggerUpdateModsDisplayedStatus() const;
 
   void startApplyModThread(const std::string& modName_);
   void startRemoveModThread(const std::string& modName_);

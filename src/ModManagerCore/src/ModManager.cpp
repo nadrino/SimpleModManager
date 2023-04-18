@@ -433,7 +433,7 @@ std::string ModManager::ask_to_replace(std::string path_) {
 
 }
 
-std::map<std::string, std::string> & ModManager::get_mods_status_cache() {
+std::map<std::string, std::string> & ModManager::getModsStatusCache() {
   return _mods_status_cache_;
 }
 
