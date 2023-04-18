@@ -4,7 +4,7 @@
 
 set( SRC_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ChangeConfigPresetGui.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/GameBrowserGui.cpp
+#    ${CMAKE_CURRENT_SOURCE_DIR}/src/GameBrowserGui.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ModBrowserGui.cpp
     )
 
