@@ -22,7 +22,7 @@ LoggerInit([]{
 // static
 void GuiModManager::applyMod(const std::string &modName_, bool force_) {
 
-  std::string modPath = GlobalObjects::getModBrowser().getModManager().get_current_mods_folder_path() + "/" + modName_;
+  std::string modPath = GlobalObjects::getModBrowser().getModManager().getCurrentModFolderPath() + "/" + modName_;
 
   std::vector<std::string> modFilesList = GenericToolbox::getListOfFilesInSubFolders(modPath);
 
@@ -78,7 +78,7 @@ std::string GuiModManager::getModStatus(const std::string &modName_) {
   }
   else{
 
-    std::string absolute_mod_folder_path = modManager.get_current_mods_folder_path() + "/" + modName_;
+    std::string absolute_mod_folder_path = modManager.getCurrentModFolderPath() + "/" + modName_;
 
     int same_files_count = 0;
 
@@ -120,7 +120,7 @@ void GuiModManager::removeMod(const std::string &modName_){
 
   auto* mod_manager = &GlobalObjects::getModBrowser().getModManager();
 
-  std::string absolute_mod_folder_path = mod_manager->get_current_mods_folder_path() + "/" + modName_;
+  std::string absolute_mod_folder_path = mod_manager->getCurrentModFolderPath() + "/" + modName_;
 
   std::vector<std::string> relative_file_path_list;
 
@@ -360,7 +360,7 @@ bool GuiModManager::applyModPresetFunction(const std::string& presetName_){
     _loadingBox_.getLoadingView()->setEnableSubLoadingBar(true);
     _loadingBox_.getLoadingView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["copyFile"]);
   }
-  auto modsList = GlobalObjects::getModBrowser().get_mods_preseter().get_mods_list(presetName_);
+  auto modsList = GlobalObjects::getModBrowser().getModsPreseter().getModsList(presetName_);
   GuiModManager::applyModsList(modsList);
 
   LogInfo("Checking all mods status...");

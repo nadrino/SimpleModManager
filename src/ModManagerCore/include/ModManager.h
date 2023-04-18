@@ -26,7 +26,7 @@ public:
   void set_ignored_file_list(std::vector<std::string>& ignored_file_list_);
 
   std::string get_install_mods_base_folder();
-  std::string & get_current_mods_folder_path();
+  std::string & getCurrentModFolderPath();
   std::vector<std::string>& get_ignored_file_list();
   std::map<std::string, std::string> & getModsStatusCache();
   bool isUseCacheOnlyForStatusCheck();
@@ -34,7 +34,7 @@ public:
   ParametersHandler *getParametersHandlerPtr();
 
   void set_parameters_handler_ptr(ParametersHandler *parameters_handler_ptr_);
-  void set_current_mods_folder(std::string folder_path_);
+  void setCurrentModsFolder(const std::string &folder_path_);
   void load_mods_status_cache_file();
   void save_mods_status_cache_file();
   void reset_mod_cache_status(std::string mod_name_);
@@ -43,8 +43,8 @@ public:
   double get_mod_status_fraction(std::string mod_name_);
   std::string get_mod_status(std::string mod_name_);
 
-  void apply_mod(std::string mod_name_, bool force_ = false);
-  void apply_mod_list(std::vector<std::string> &mod_names_list_);
+  void applyMod(const std::string& mod_name_, bool force_ = false);
+  void applyModList(const std::vector<std::string> &modNamesList_);
   void remove_mod(std::string mod_name_);
   void display_mod_files_status(std::string mod_folder_path_);
 

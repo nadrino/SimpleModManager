@@ -6,9 +6,11 @@
 #include "FrameModBrowser.h"
 
 #include <GlobalObjects.h>
-#include "Toolbox.h"
 
 #include "GenericToolbox.Switch.h"
+
+#include "sstream"
+
 
 void ThumbnailPresetEditor::initialize() {
 
@@ -18,17 +20,18 @@ void ThumbnailPresetEditor::initialize() {
 
   auto* modsList = new brls::List();
 
-  auto mod_folders_list = GlobalObjects::getModBrowser().getSelector().getSelectionList();
-  for (int i_folder = 0; i_folder < int(mod_folders_list.size()); i_folder++) {
-    std::string selected_mod = mod_folders_list[i_folder];
-    auto* item = new brls::ListItem(selected_mod, "", "");
+  auto modFolderList = GlobalObjects::getModBrowser().getSelector().getSelectionList();
+  for( auto& modFolder : modFolderList ){
+    auto* item = new brls::ListItem(modFolder, "", "");
 
     item->getClickEvent()->subscribe([this,item](brls::View* view){
       this->getSelectedModsList().emplace_back(item->getLabel());
-      std::string new_tag = item->getValue();
-      if(not new_tag.empty()) new_tag += " & ";
-      new_tag += "#" + std::to_string(this->getSelectedModsList().size());
-      item->setValue(new_tag);
+
+      std::stringstream ss;
+      ss << item->getValue();
+      if( not ss.str().empty() ) ss << " & ";
+      ss << "#" << this->getSelectedModsList().size();
+      item->setValue( ss.str() );
 
       return true;
     });
@@ -68,8 +71,9 @@ void ThumbnailPresetEditor::initialize() {
   this->registerAction("", brls::Key::PLUS, []{return true;}, true);
 //  this->updateActionHint(brls::Key::PLUS, ""); // make the change visible
 
-  if(GenericToolbox::doesElementIsInVector(_presetName_, GlobalObjects::getModBrowser().get_mods_preseter().get_presets_list())){
-    _selectedModsList_ = GlobalObjects::getModBrowser().get_mods_preseter().get_mods_list(_presetName_);
+  if(GenericToolbox::doesElementIsInVector(_presetName_,
+                                           GlobalObjects::getModBrowser().getModsPreseter().getPresetsList())){
+    _selectedModsList_ = GlobalObjects::getModBrowser().getModsPreseter().getModsList(_presetName_);
   }
   this->process_tags();
 
@@ -83,25 +87,29 @@ void ThumbnailPresetEditor::process_tags() {
   }
 
   // set tags
-  for(int i_entry = 0 ; i_entry < int(_selectedModsList_.size()) ; i_entry++){
+  for( size_t iEntry = 0 ; iEntry < _selectedModsList_.size() ; iEntry++ ){
     for(auto & item : itemsList){
-      if(_selectedModsList_[i_entry] == item->getLabel()){
-        std::string new_tag = item->getValue();
-        if(not new_tag.empty()) new_tag += " & ";
-        new_tag += "#" + std::to_string(i_entry+1);
-        item->setValue(new_tag);
-        break;
-      }
 
+      if( _selectedModsList_[iEntry] != item->getLabel() ) continue;
+
+      std::stringstream ss;
+      ss << item->getValue();
+      if( not ss.str().empty() ) ss << " & ";
+      ss << "#" << iEntry + 1;
+      item->setValue( ss.str() );
+
+      break;
     }
   }
 
-  this->getSidebar()->setSubtitle(std::to_string(this->_selectedModsList_.size()) + " mods have been selected.");
+  std::stringstream ss;
+  ss << this->_selectedModsList_.size() << " mods have been selected.";
+  this->getSidebar()->setSubtitle( ss.str() );
 
 }
 
-void ThumbnailPresetEditor::setPresetName(const std::string &presetName) {
-  _presetName_ = presetName;
+void ThumbnailPresetEditor::setPresetName(const std::string &presetName_) {
+  _presetName_ = presetName_;
 }
 
 std::vector<std::string> & ThumbnailPresetEditor::getSelectedModsList() {
@@ -110,8 +118,10 @@ std::vector<std::string> & ThumbnailPresetEditor::getSelectedModsList() {
 
 void ThumbnailPresetEditor::save() {
 
-  auto* dataHandlerPtr = &GlobalObjects::getModBrowser().get_mods_preseter().get_data_handler();
-  auto* PresetsListPtr = &GlobalObjects::getModBrowser().get_mods_preseter().get_presets_list();
+  auto& dataHandler = GlobalObjects::getModBrowser().getModsPreseter().getDataHandler();
+  auto* PresetsListPtr = &GlobalObjects::getModBrowser().getModsPreseter().getPresetsList();
+
+  auto& modsList = GlobalObjects::getModBrowser().getModsPreseter().getModsList( _presetName_ );
 
   (*dataHandlerPtr)[_presetName_].clear();
   (*dataHandlerPtr)[_presetName_].resize(0);
@@ -134,13 +144,13 @@ void ThumbnailPresetEditor::save() {
   }
 
   // TODO: Check for conflicts
-//  show_conflicted_files(_presetName_);
+//  showConflictingFiles(_presetName_);
 
-  GlobalObjects::getModBrowser().get_mods_preseter().fill_selector();
-  GlobalObjects::getModBrowser().get_mods_preseter().recreate_preset_file();
-  GlobalObjects::getModBrowser().get_mods_preseter().read_parameter_file();
+  GlobalObjects::getModBrowser().getModsPreseter().fillSelector();
+  GlobalObjects::getModBrowser().getModsPreseter().writeConfigFile();
+  GlobalObjects::getModBrowser().getModsPreseter().readParameterFile();
 
-  _owner_->getTabModPresets()->updatePresetItems();
+  _owner_->getTabModPresets()->setTriggerUpdateItem( true );
 
   brls::Application::popView(brls::ViewAnimation::FADE);
   brls::Application::unblockInputs();
@@ -152,7 +162,9 @@ void ThumbnailPresetEditor::autoAssignPresetName() {
   std::string autoName = "new-preset";
   _presetName_ = autoName;
   int count = 0;
-  while(GenericToolbox::doesElementIsInVector(_presetName_, GlobalObjects::getModBrowser().get_mods_preseter().get_presets_list())){
+  while( GenericToolbox::doesElementIsInVector(
+      _presetName_, GlobalObjects::getModBrowser().getModsPreseter().getPresetsList())
+      ){
     _presetName_ = autoName + "-" + std::to_string(count);
     count++;
   }

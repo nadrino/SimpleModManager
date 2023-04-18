@@ -8,7 +8,7 @@
 #include <Selector.h>
 #include <ModManager.h>
 #include <ParametersHandler.h>
-#include <ModsPreseter.h>
+#include <ModsPresetHandler.h>
 
 #include <switch.h>
 
@@ -36,12 +36,12 @@ public:
   std::string get_main_config_preset();
   ParametersHandler &get_parameters_handler();
   Selector &getSelector();
-  ModsPreseter &get_mods_preseter();
+  ModsPresetHandler &getModsPreseter();
   ModManager &getModManager();
 
   void scan_inputs(u64 kDown, u64 kHeld);
   void print_menu();
-  void display_conflicts_with_other_mods(const std::string &selected_mod_);
+  void displayConflictsWithOtherMods(size_t modIndex_);
   void check_mods_status();
   bool change_directory(std::string new_directory_);
   void change_config_preset(const std::string& new_config_preset_);
@@ -65,15 +65,15 @@ private:
   int _last_page_;
   int _last_cursor_position_;
 
-  std::string _current_directory_;
+  std::string _currentDirectory_;
   std::string _last_directory_;
   std::string _base_folder_;
   std::string _main_config_preset_;
 
   Selector _selector_;
-  ModManager _mod_manager_;
+  ModManager _modManager_;
   ParametersHandler _parameters_handler_;
-  ModsPreseter _mods_preseter_;
+  ModsPresetHandler _modsPresetHandler_;
 
 };
 

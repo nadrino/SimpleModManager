@@ -54,7 +54,7 @@ TabGames::TabGames() {
 
       // memory allocation
       auto* item = new brls::ListItem(gameFolder, "", std::to_string(nMods) + " mod(s) available.");
-      item->setValue(GlobalObjects::getModBrowser().getSelector().get_tag(iGame));
+      item->setValue(GlobalObjects::getModBrowser().getSelector().getTag(iGame));
 
       // TODO: should be moved to a utils library
       auto* icon = GlobalObjects::getModBrowser().getFolderIcon( gameFolder );

@@ -62,7 +62,7 @@ void ModManager::set_ignored_file_list(std::vector<std::string>& ignored_file_li
 std::string ModManager::get_install_mods_base_folder() {
   return _install_mods_base_folder_;
 }
-std::string & ModManager::get_current_mods_folder_path(){
+std::string & ModManager::getCurrentModFolderPath(){
   return _current_mods_folder_path_;
 }
 std::vector<std::string>& ModManager::get_ignored_file_list(){
@@ -72,7 +72,7 @@ std::vector<std::string>& ModManager::get_ignored_file_list(){
 void ModManager::set_parameters_handler_ptr(ParametersHandler *parameters_handler_ptr_){
   _parameters_handler_ptr_ = parameters_handler_ptr_;
 }
-void ModManager::set_current_mods_folder(std::string folder_path_) {
+void ModManager::setCurrentModsFolder(const std::string &folder_path_) {
   _current_mods_folder_path_ = folder_path_;
 //  _relative_file_path_list_cache_.clear();
   _mods_status_cache_.clear();
@@ -201,7 +201,7 @@ std::string ModManager::get_mod_status(std::string mod_name_){
   return _mods_status_cache_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_];
 
 }
-void ModManager::apply_mod(std::string mod_name_, bool force_) {
+void ModManager::applyMod(const std::string& mod_name_, bool force_) {
 
   GenericToolbox::Switch::Terminal::printLeft("Applying : " + mod_name_ + "...", GenericToolbox::ColorCodes::greenBackground);
   std::string absolute_mod_folder_path = _current_mods_folder_path_ + "/" + mod_name_;
@@ -270,13 +270,13 @@ void ModManager::apply_mod(std::string mod_name_, bool force_) {
   reset_mod_cache_status(mod_name_);
 
 }
-void ModManager::apply_mod_list(std::vector<std::string> &mod_names_list_){
+void ModManager::applyModList(const std::vector<std::string> &modNamesList_){
 
   // checking for overwritten files in advance
   std::vector<std::string> applied_files_listing;
-  std::vector<std::vector<std::string>> mods_ignored_files_list(mod_names_list_.size());
-  for(int i_mod = int(mod_names_list_.size())-1 ; i_mod >= 0 ; i_mod--){
-    std::string mod_path = _current_mods_folder_path_ + "/" + mod_names_list_[i_mod];
+  std::vector<std::vector<std::string>> mods_ignored_files_list(modNamesList_.size());
+  for(int i_mod = int(modNamesList_.size()) - 1 ; i_mod >= 0 ; i_mod--){
+    std::string mod_path = _current_mods_folder_path_ + "/" + modNamesList_[i_mod];
     auto mod_files_list = GenericToolbox::getListOfFilesInSubFolders(mod_path);
     for(auto& mod_file : mod_files_list){
       if(GenericToolbox::doesElementIsInVector(mod_file, applied_files_listing)){
@@ -289,9 +289,9 @@ void ModManager::apply_mod_list(std::vector<std::string> &mod_names_list_){
   }
 
   // applying mods with ignored files
-  for(int i_mod = 0 ; i_mod < int(mod_names_list_.size()) ; i_mod++){
+  for(int i_mod = 0 ; i_mod < int(modNamesList_.size()) ; i_mod++){
     _ignored_file_list_ = mods_ignored_files_list[i_mod];
-    apply_mod(mod_names_list_[i_mod], true); // normally should work without force (tested) but just in case...
+    applyMod(modNamesList_[i_mod], true); // normally should work without force (tested) but just in case...
     _ignored_file_list_.clear();
   }
 
@@ -358,7 +358,7 @@ void ModManager::display_mod_files_status(std::string mod_folder_path_){
 
   file_path_list = GenericToolbox::getListOfFilesInSubFolders(mod_folder_path_);
   Selector sel;
-  sel.set_selection_list(file_path_list);
+  sel.setEntryList(file_path_list);
   GenericToolbox::Switch::Terminal::printLeft("Checking Files...", GenericToolbox::ColorCodes::redBackground);
   consoleUpdate(nullptr);
   Toolbox::reset_last_displayed_value();
@@ -375,15 +375,15 @@ void ModManager::display_mod_files_status(std::string mod_folder_path_){
         mod_folder_path_+ "/" + file_path_list[i_file],
         installed_file_path
         )){
-      sel.set_tag(i_file, "-> Installed");
+      sel.setTag(i_file, "-> Installed");
     } else if(GenericToolbox::doesPathIsFile(installed_file_path)){
-      sel.set_tag(i_file, "-> Not Same");
+      sel.setTag(i_file, "-> Not Same");
     } else {
-      sel.set_tag(i_file, "-> Not Installed");
+      sel.setTag(i_file, "-> Not Installed");
     }
   }
 
-  sel.set_max_items_per_page(GenericToolbox::Switch::Hardware::getTerminalHeight() - 9);
+  sel.setMaxItemsPerPage(GenericToolbox::Switch::Hardware::getTerminalHeight() - 9);
 
   // Main loop
   u64 kDown = 1;
@@ -395,12 +395,13 @@ void ModManager::display_mod_files_status(std::string mod_folder_path_){
       consoleClear();
       GenericToolbox::Switch::Terminal::printLeft(mod_folder_path_, GenericToolbox::ColorCodes::redBackground);
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      sel.print_selector();
+      sel.print();
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      GenericToolbox::Switch::Terminal::printLeft("Page (" + std::to_string(sel.get_current_page() + 1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
+      GenericToolbox::Switch::Terminal::printLeft("Page (" + std::to_string(sel.getCurrentPage() + 1) + "/" + std::to_string(
+          sel.getNbPages()) + ")");
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       GenericToolbox::Switch::Terminal::printLeftRight(" B : Go back", "");
-      if(sel.get_nb_pages() > 1) GenericToolbox::Switch::Terminal::printLeftRight(" <- : Previous Page", "-> : Next Page ");
+      if(sel.getNbPages() > 1) GenericToolbox::Switch::Terminal::printLeftRight(" <- : Previous Page", "-> : Next Page ");
       consoleUpdate(nullptr);
     }
 
@@ -415,7 +416,7 @@ void ModManager::display_mod_files_status(std::string mod_folder_path_){
       break; // break in order to return to hbmenu
     }
 
-    sel.scan_inputs(kDown, kHeld);
+    sel.scanInputs(kDown, kHeld);
 
   }
 

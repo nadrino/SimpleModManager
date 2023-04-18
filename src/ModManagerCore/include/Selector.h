@@ -10,68 +10,67 @@
 #include <vector>
 #include <string>
 
+struct SelectorEntry{
+  std::string title{};
+  std::string tag{};
+  std::vector<std::string> description{};
+};
+
 class Selector {
 
 public:
-  static std::string ask_question(const std::string& question_, const std::vector<std::string>& answers_,
-                                         const std::vector<std::vector<std::string>>& descriptions_={});
+  Selector() = default;
 
-public:
+  void setCursorPosition(int cursorPosition_);
 
-  Selector();
-  ~Selector();
+  // non native setters
+  void setEntryList(const std::vector<std::string>& entryTitleList_);
+  void setMaxItemsPerPage(int maxItemsPerPage_);
+  void setTag(size_t entryIndex_, const std::string &tag_);
+  void setTagList(const std::vector<std::string>& tagList_);
+  void setDescriptionList(const std::vector<std::vector<std::string>> &descriptionList_);
 
-  void initialize();
-  void reset();
+  [[nodiscard]] int getNbPages() const;
+  [[nodiscard]] int getCurrentPage() const;
+  [[nodiscard]] int getCursorPosition() const;
+  [[nodiscard]] int getSelectedEntryIndex() const;
+  [[nodiscard]] int getEntry(const std::string &entryName_) const;
+  [[nodiscard]] const std::string & getTag(size_t entry_) const;
+  [[nodiscard]] const std::vector<std::string> & getSelectionList() const;
 
-  void set_default_cursor_position(int default_cursor_position_);
-  void set_cursor_position(int cursor_position_);
-  void set_selection_list(std::vector<std::string> selection_list_);
-  void set_cursor_marker(std::string cursor_marker_);
-  void set_max_items_per_page(int max_items_per_page_);
-
-  void set_tag(int entry_, std::string tag_);
-  void set_tags_list(std::vector<std::string>& tags_list_);
-  void set_description(int entry_, std::vector<std::string> description_lines_);
-  void set_description_list(std::vector<std::vector<std::string>> descriptions_list_);
-
-  int get_nb_pages();
-  int get_current_page();
-  int get_cursor_position();
-  int get_selected_entry();
-  int get_entry(std::string entry_name_);
-  std::string get_tag(int entry_);
-  std::vector<std::string> & getSelectionList();
-
-  void print_selector();
-  void scan_inputs(u64 kDown, u64 kHeld);
+  void clearTags();
+  void print();
+  void scanInputs(u64 kDown, u64 kHeld);
   void reset_cursor_position();
   void reset_page();
-  void reset_tags_list();
-  void reset_description_list();
   void process_page_numbering();
 
-  void increment_cursor_position();
-  void decrement_cursor_position();
+  void incrementCursorPosition();
+  void decrementCursorPosition();
   void next_page();
   void previous_page();
-  std::string get_selected_string();
+  std::string getSelectedString();
+
+  static std::string ask_question(
+      const std::string& question_, const std::vector<std::string>& answers_,
+      const std::vector<std::vector<std::string>>& descriptions_={}
+  );
+
 
 private:
 
-  int _default_cursor_position_;
-  int _cursor_position_;
-  int _current_page_;
-  int _max_items_per_page_;
-  int _nb_pages_;
-  std::string _cursor_marker_;
-  std::vector<std::string> _selection_list_;
-  std::vector<std::string> _tags_list_;
-  std::vector<std::vector<std::string>> _descriptions_list_;
-  std::vector<std::vector<int>> _item_list_for_each_page_;
+  int _nbPages_{0};
+  int _currentPage_{0};
+  int _cursorPosition_{0};
+  int _maxItemsPerPage_{30};
+  int _defaultCursorPosition_{0};
+  std::string _cursorMarker_{">"};
 
-  u64 _previous_kHeld_;
-  u64 _holding_tiks_;
+  std::vector<SelectorEntry> _entryList_;
+  std::vector<std::vector<int>> _indexListForEachPage_;
+
+  u64 _previous_kHeld_{0};
+  u64 _holding_tiks_{0};
 
 
 };

@@ -10,121 +10,92 @@
 
 #include <switch.h>
 
-Selector::Selector() { reset(); }
-Selector::~Selector(){ reset(); }
 
-void Selector::initialize(){
-
-  // nothing to initialize
-
+void Selector::setCursorPosition(int cursorPosition_) {
+  _cursorPosition_ = cursorPosition_;
 }
-void Selector::reset(){
-
-  set_cursor_marker(">");
-  set_default_cursor_position(0);
-  reset_cursor_position();
-  _max_items_per_page_ = 30;
-  _nb_pages_ = 0;
-  _current_page_ = 0;
-
-  _selection_list_.clear();
-  _tags_list_.clear();
-  _descriptions_list_.clear();
-
-}
-
-void Selector::set_default_cursor_position(int default_cursor_position_){
-  _default_cursor_position_ = default_cursor_position_;
-}
-void Selector::set_cursor_position(int cursor_position_) {
-  _cursor_position_ = cursor_position_;
-}
-void Selector::set_selection_list(std::vector<std::string> selection_list_) {
-  _selection_list_ = selection_list_;
-  reset_tags_list();
-  reset_description_list();
-}
-void Selector::set_cursor_marker(std::string cursor_marker_) {
-  _cursor_marker_ = cursor_marker_;
-}
-void Selector::set_max_items_per_page(int max_items_per_page_){
-  _max_items_per_page_ = max_items_per_page_;
-}
-
-void Selector::set_tag(int entry_, std::string tag_){
-  if(entry_ < 0 or entry_ >= int(_tags_list_.size())) return;
-  _tags_list_[entry_] = tag_;
-}
-void Selector::set_tags_list(std::vector<std::string>& tags_list_){
-  if(tags_list_.size() != _selection_list_.size()) return;
-  _tags_list_ = tags_list_;
-}
-void Selector::set_description(int entry_, std::vector<std::string> description_lines_){
-  if(entry_ < 0 or entry_ >= int(_descriptions_list_.size())) return;
-  _descriptions_list_[entry_] = description_lines_;
-  process_page_numbering();
-}
-void Selector::set_description_list(std::vector<std::vector<std::string>> descriptions_list_){
-  if(descriptions_list_.size() != _selection_list_.size()) return;
-  _descriptions_list_ = descriptions_list_;
-  process_page_numbering();
-}
-
-int Selector::get_nb_pages(){
-  return _nb_pages_;
-}
-int Selector::get_current_page(){
-  return _current_page_;
-}
-int Selector::get_cursor_position(){
-  return _cursor_position_;
-}
-int Selector::get_selected_entry(){
-  return _item_list_for_each_page_[_current_page_][_cursor_position_];
-}
-int Selector::get_entry(std::string entry_name_){
-  int entry = -1;
-  for(int i_entry = 0 ; i_entry < int(_selection_list_.size()) ; i_entry++){
-    if(_selection_list_[i_entry] == entry_name_){
-      entry = i_entry;
-      break;
-    }
+void Selector::setEntryList(const std::vector<std::string>& entryTitleList_) {
+  _entryList_.clear();
+  _entryList_.reserve( entryTitleList_.size() );
+  for( auto& title : entryTitleList_ ){
+    _entryList_.emplace_back();
+    _entryList_.back().title = title;
   }
-  return entry;
 }
-std::string Selector::get_tag(int entry_){
-  return _tags_list_[entry_];
-}
-std::vector<std::string> & Selector::getSelectionList(){
-  return _selection_list_;
+void Selector::setMaxItemsPerPage(int maxItemsPerPage_){
+  _maxItemsPerPage_ = maxItemsPerPage_;
 }
 
-void Selector::print_selector() {
+void Selector::clearTags(){
+  for( auto& entry : _entryList_ ){ entry.tag = ""; }
+}
+void Selector::setTag(size_t entryIndex_, const std::string &tag_){
+  if( entryIndex_ >= _entryList_.size() ) return;
+  _entryList_[entryIndex_].tag = tag_;
+}
+void Selector::setTagList(const std::vector<std::string>& tagList_){
+  if( tagList_.size() != _entryList_.size() ) return;
+  for( size_t iEntry = 0 ; iEntry < _entryList_.size() ; iEntry++ ){
+    _entryList_[iEntry].tag = tagList_[iEntry];
+  }
+}
+void Selector::setDescriptionList(const std::vector<std::vector<std::string>> &descriptionList_){
+  if(descriptionList_.size() != _entryList_.size()) return;
+  for( size_t iEntry = 0 ; iEntry < _entryList_.size() ; iEntry++ ){
+
+  }
+  _descriptionsList_ = descriptionList_;
+  process_page_numbering();
+}
+
+int Selector::getNbPages() const {
+  return _nbPages_;
+}
+int Selector::getCurrentPage() const {
+  return _currentPage_;
+}
+int Selector::getCursorPosition() const {
+  return _cursorPosition_;
+}
+int Selector::getSelectedEntryIndex() const {
+  return _indexListForEachPage_[this->getCurrentPage()][this->getCursorPosition()];
+}
+int Selector::getEntry(const std::string &entryName_) const {
+  return GenericToolbox::findElementIndex(entryName_, _entryList_);
+}
+const std::string & Selector::getTag(size_t entry_) const{
+  return _tagList_[entry_];
+}
+const std::vector<std::string> & Selector::getSelectionList() const{
+  return _entryList_;
+}
+
+void Selector::print() {
 
   std::string prefix_string;
-  for(int i_entry = 0 ; i_entry < int(_item_list_for_each_page_[_current_page_].size()) ; i_entry++){
-    int selection_list_entry = _item_list_for_each_page_[_current_page_][i_entry];
+  for(int i_entry = 0 ; i_entry < int(_indexListForEachPage_[_currentPage_].size()) ; i_entry++){
+    int selection_list_entry = _indexListForEachPage_[_currentPage_][i_entry];
 
     prefix_string = "";
-    if(i_entry == _cursor_position_) prefix_string += _cursor_marker_; else prefix_string += " ";
+    if(i_entry == _cursorPosition_) prefix_string += _cursorMarker_; else prefix_string += " ";
     prefix_string += " ";
     GenericToolbox::Switch::Terminal::printLeftRight(
-      prefix_string + _selection_list_[selection_list_entry],
-      _tags_list_[selection_list_entry] + " ",
-      (i_entry == _cursor_position_? GenericToolbox::ColorCodes::blueBackground: "")
+        prefix_string + _entryList_[selection_list_entry],
+      _tagList_[selection_list_entry] + " ",
+      (i_entry == _cursorPosition_ ? GenericToolbox::ColorCodes::blueBackground : "")
       );
-    if(not _descriptions_list_[selection_list_entry].empty()){
-      for(int i_desc_line = 0 ; i_desc_line < int(_descriptions_list_[selection_list_entry].size()) ; i_desc_line++){
+    if(not _descriptionsList_[selection_list_entry].empty()){
+      for(int i_desc_line = 0 ; i_desc_line < int(_descriptionsList_[selection_list_entry].size()) ; i_desc_line++){
         GenericToolbox::Switch::Terminal::printLeft(
-            _descriptions_list_[selection_list_entry][i_desc_line],
-            (i_entry == _cursor_position_? GenericToolbox::ColorCodes::blueBackground: ""));
+            _descriptionsList_[selection_list_entry][i_desc_line],
+            (i_entry == _cursorPosition_ ? GenericToolbox::ColorCodes::blueBackground : ""));
       }
     }
 
   }
 
 }
-void Selector::scan_inputs(u64 kDown, u64 kHeld){
+void Selector::scanInputs(u64 kDown, u64 kHeld){
 
   // manage persistence
   if(kHeld == _previous_kHeld_){
@@ -137,9 +108,9 @@ void Selector::scan_inputs(u64 kDown, u64 kHeld){
   if(kDown == 0 and kHeld == 0) return;
 
   if(kDown & HidNpadButton_AnyDown or (kHeld & HidNpadButton_AnyDown and _holding_tiks_ > 15 and _holding_tiks_%3 == 0)){
-    increment_cursor_position();
+    incrementCursorPosition();
   } else if(kDown & HidNpadButton_AnyUp or (kHeld & HidNpadButton_AnyUp and _holding_tiks_ > 15 and _holding_tiks_%3 == 0)){
-    decrement_cursor_position();
+    decrementCursorPosition();
   } else if(kDown & HidNpadButton_AnyLeft){ // previous page
     previous_page();
   } else if(kDown & HidNpadButton_AnyRight){ // next page
@@ -148,86 +119,77 @@ void Selector::scan_inputs(u64 kDown, u64 kHeld){
 
 }
 void Selector::reset_cursor_position(){
-  _cursor_position_ = _default_cursor_position_;
+  _cursorPosition_ = _defaultCursorPosition_;
 }
 void Selector::reset_page(){
-  _current_page_ = 0;
-}
-void Selector::reset_tags_list(){
-  _tags_list_.clear();
-  _tags_list_.resize(_selection_list_.size());
-}
-void Selector::reset_description_list(){
-  _descriptions_list_.clear();
-  _descriptions_list_.resize(_selection_list_.size());
-  process_page_numbering(); // reset
+  _currentPage_ = 0;
 }
 void Selector::process_page_numbering(){
   int page_lines_buffer = 1;
-  _item_list_for_each_page_.clear();
-  _item_list_for_each_page_.emplace_back();
-  for(int i_entry = 0 ; i_entry < int(_selection_list_.size()) ; i_entry++){
-    page_lines_buffer += 1 + int(_descriptions_list_[i_entry].size()); // space taken by i_entry
-    if(page_lines_buffer == -1 or page_lines_buffer >= _max_items_per_page_){
-      _item_list_for_each_page_.emplace_back(); // next items will be displayed on the next page
+  _indexListForEachPage_.clear();
+  _indexListForEachPage_.emplace_back();
+  for(int i_entry = 0 ; i_entry < int(_entryList_.size()) ; i_entry++){
+    page_lines_buffer += 1 + int(_descriptionsList_[i_entry].size()); // space taken by i_entry
+    if(page_lines_buffer == -1 or page_lines_buffer >= _maxItemsPerPage_){
+      _indexListForEachPage_.emplace_back(); // next items will be displayed on the next page
       page_lines_buffer = 1; // shift, not 0
     }
 //    std::stringstream ss;
 //    ss << "page_lines_buffer=" << page_lines_buffer << " / i_entry=" << i_entry << "/" << _selection_list_[i_entry];
 //    toolbox::print_left(ss.str());
 //    GenericToolbox::Switch::Printout::makePause();
-    _item_list_for_each_page_.back().emplace_back(i_entry);
+    _indexListForEachPage_.back().emplace_back(i_entry);
 //    page_lines_buffer += 1 + int(_descriptions_list_[i_entry].size()); // space taken by i_entry
   }
-  _nb_pages_ = int(_item_list_for_each_page_.size());
+  _nbPages_ = int(_indexListForEachPage_.size());
 }
-void Selector::increment_cursor_position(){
-  if(_selection_list_.empty()){
-    _cursor_position_ = -1;
+void Selector::incrementCursorPosition(){
+  if(_entryList_.empty()){
+    _cursorPosition_ = -1;
     return;
   }
-  _cursor_position_++; // increment
+  _cursorPosition_++; // increment
   // end of the page list
-  if(_cursor_position_ >= int(_item_list_for_each_page_[_current_page_].size())){
+  if(_cursorPosition_ >= int(_indexListForEachPage_[_currentPage_].size())){
     next_page();
-    _cursor_position_ = 0;
+    _cursorPosition_ = 0;
   }
 }
-void Selector::decrement_cursor_position(){
-  if(_selection_list_.empty()){
-    _cursor_position_ = -1;
+void Selector::decrementCursorPosition(){
+  if(_entryList_.empty()){
+    _cursorPosition_ = -1;
     return;
   }
-  _cursor_position_--; // decrement
-  if(_cursor_position_ < 0){
+  _cursorPosition_--; // decrement
+  if(_cursorPosition_ < 0){
     previous_page();
-    _cursor_position_ = int(_item_list_for_each_page_[_current_page_].size()) - 1;
+    _cursorPosition_ = int(_indexListForEachPage_[_currentPage_].size()) - 1;
   }
 }
 void Selector::next_page(){
-  _current_page_++;
-  if(_current_page_ >= get_nb_pages()){
-    _current_page_ = 0;
+  _currentPage_++;
+  if(_currentPage_ >= getNbPages()){
+    _currentPage_ = 0;
   }
   else{
-    _cursor_position_ = 0;
+    _cursorPosition_ = 0;
   }
 }
 void Selector::previous_page(){
-  _current_page_--;
-  if(_current_page_ < 0){
-    _current_page_ = get_nb_pages() - 1;
+  _currentPage_--;
+  if(_currentPage_ < 0){
+    _currentPage_ = getNbPages() - 1;
   }
   else{
-    _cursor_position_ = 0;
+    _cursorPosition_ = 0;
   }
 }
 
-std::string Selector::get_selected_string(){
-  if(_selection_list_.empty()) return ""; // sanity check : emptiness
-  if(get_selected_entry() < 0 or get_selected_entry() >= int(_selection_list_.size()))
+std::string Selector::getSelectedString(){
+  if(_entryList_.empty()) return ""; // sanity check : emptiness
+  if(getSelectedEntryIndex() < 0 or getSelectedEntryIndex() >= int(_entryList_.size()))
     return ""; // sanity check : cursor out of bounds
-  return _selection_list_[get_selected_entry()];
+  return _entryList_[getSelectedEntryIndex()];
 }
 
 std::string Selector::ask_question(const std::string& question_, const std::vector<std::string>& answers_,
@@ -243,11 +205,11 @@ std::string Selector::ask_question(const std::string& question_, const std::vect
   nb_lines_layout++; // std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
   nb_lines_layout++; // std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
   nb_lines_layout++; // toolbox::printLeft_right(" A: Select", "B: Back ");
-  sel.set_max_items_per_page(GenericToolbox::Switch::Hardware::getTerminalHeight() - nb_lines_layout);
+  sel.setMaxItemsPerPage(GenericToolbox::Switch::Hardware::getTerminalHeight() - nb_lines_layout);
 
-  sel.set_selection_list(answers_);
+  sel.setEntryList(answers_);
   if(not descriptions_.empty() and descriptions_.size() == answers_.size()){
-    sel.set_description_list(descriptions_);
+    sel.setDescriptionList(descriptions_);
   }
 
   u64 kDown = 1;
@@ -259,7 +221,7 @@ std::string Selector::ask_question(const std::string& question_, const std::vect
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       std::cout << question_ << std::endl;
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      sel.print_selector();
+      sel.print();
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       GenericToolbox::Switch::Terminal::printLeftRight(" A: Select", "B: Back ");
       consoleUpdate(nullptr);
@@ -272,13 +234,13 @@ std::string Selector::ask_question(const std::string& question_, const std::vect
     kDown = padGetButtonsDown(&GlobalObjects::gPad);
 
     if     (kDown & HidNpadButton_AnyDown){
-      sel.increment_cursor_position();
+      sel.incrementCursorPosition();
     }
     else if(kDown & HidNpadButton_AnyUp){
-      sel.decrement_cursor_position();
+      sel.decrementCursorPosition();
     }
     else if(kDown & HidNpadButton_A){
-      answer = sel.get_selected_string();
+      answer = sel.getSelectedString();
       break;
     }
     else if(kDown & HidNpadButton_B){

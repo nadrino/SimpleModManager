@@ -31,8 +31,8 @@ FrameModBrowser::FrameModBrowser(const std::string& folder_){
 
   if(GlobalObjects::getModBrowser().change_directory(gamePath) ){
 
-    GlobalObjects::getModBrowser().getModManager().set_current_mods_folder(gamePath);
-    GlobalObjects::getModBrowser().get_mods_preseter().read_parameter_file(gamePath);
+    GlobalObjects::getModBrowser().getModManager().setCurrentModsFolder(gamePath);
+    GlobalObjects::getModBrowser().getModsPreseter().readParameterFile(gamePath);
 
     auto* parametersTabList = new brls::List();
     GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name();

@@ -25,8 +25,8 @@ tsl::elm::Element *ModBrowserGui::createUI() {
   new_path = GenericToolbox::removeRepeatedCharacters(new_path, "/");
 
   GlobalObjects::getModBrowser().change_directory(new_path);
-  GlobalObjects::getModBrowser().getModManager().set_current_mods_folder(new_path);
-  GlobalObjects::getModBrowser().get_mods_preseter().read_parameter_file(new_path);
+  GlobalObjects::getModBrowser().getModManager().setCurrentModsFolder(new_path);
+  GlobalObjects::getModBrowser().getModsPreseter().readParameterFile(new_path);
 
   _list_ = new tsl::elm::List();
 
@@ -65,17 +65,17 @@ void ModBrowserGui::fill_item_list() {
     clickableListItem->setClickListener([selected_mod_name, this](u64 keys) {
       if (keys & HidNpadButton_A) {
         // apply mod...
-        GlobalObjects::getModBrowser().getModManager().apply_mod(selected_mod_name, true);
-        GlobalObjects::getModBrowser().getSelector().set_tag(
-            GlobalObjects::getModBrowser().getSelector().get_entry(selected_mod_name),
+        GlobalObjects::getModBrowser().getModManager().applyMod(selected_mod_name, true);
+        GlobalObjects::getModBrowser().getSelector().setTag(
+            GlobalObjects::getModBrowser().getSelector().getEntry(selected_mod_name),
             GlobalObjects::getModBrowser().getModManager().get_mod_status(selected_mod_name)
         );
         this->set_trigger_item_list_update(true);
         return true;
       } else if (keys & HidNpadButton_X) {
         GlobalObjects::getModBrowser().getModManager().remove_mod(selected_mod_name);
-        GlobalObjects::getModBrowser().getSelector().set_tag(
-            GlobalObjects::getModBrowser().getSelector().get_entry(selected_mod_name),
+        GlobalObjects::getModBrowser().getSelector().setTag(
+            GlobalObjects::getModBrowser().getSelector().getEntry(selected_mod_name),
             GlobalObjects::getModBrowser().getModManager().get_mod_status(selected_mod_name)
         );
         this->set_trigger_item_list_update(true);

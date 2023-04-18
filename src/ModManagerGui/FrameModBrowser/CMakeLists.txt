@@ -16,14 +16,14 @@ set( SRC_FILES
 
 
 
-add_library( ModBrowser STATIC ${SRC_FILES} )
-install( TARGETS ModBrowser DESTINATION lib )
+add_library( FrameModBrowser STATIC ${SRC_FILES} )
+install( TARGETS FrameModBrowser DESTINATION lib )
 
-target_include_directories( ModBrowser PUBLIC
+target_include_directories( FrameModBrowser PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     )
 
-target_link_libraries( ModBrowser PUBLIC
+target_link_libraries( FrameModBrowser PUBLIC
     Borealis
     CoreExtension
     switch::libnx
