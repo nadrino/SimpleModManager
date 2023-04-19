@@ -45,6 +45,7 @@ public:
   const std::string& getSelectedEntryTitle() const;
   size_t getCursorPage() const;
   size_t getNbPages() const;
+  bool isSelectedEntry(const SelectorEntry& entry_) const;
 
   // io
   void print() const;

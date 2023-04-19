@@ -14,7 +14,6 @@
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
-#include <utility>
 #include "sstream"
 
 
@@ -94,7 +93,7 @@ void ModsPresetHandler::createNewPreset(){
   this->editPreset( presetIndex );
 }
 void ModsPresetHandler::deleteSelectedPreset(){
-  _presetList_.erase( _presetList_.begin() + _selector_.getSelectedEntryIndex() );
+  _presetList_.erase( _presetList_.begin() + long( _selector_.getCursorPosition() ) );
   this->writeConfigFile();
   this->readConfigFile();
 }
@@ -117,7 +116,7 @@ void ModsPresetHandler::editPreset( size_t entryIndex_ ) {
         if(preset.modList[presetModIndex] == modsList[jEntry] ){
           // add selector tag to the given mod
           std::stringstream ss;
-          ss << sel.getTag( jEntry );
+          ss << sel.getEntryList()[jEntry].tag;
           if( not ss.str().empty() ) ss << " & ";
           ss << "#" << presetModIndex;
           sel.setTag( jEntry, ss.str() );
@@ -236,7 +235,7 @@ void ModsPresetHandler::showConflictingFiles( size_t entryIndex_ ) {
     std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
     GenericToolbox::Switch::Terminal::printLeft("Total size of the preset:" + GenericToolbox::parseSizeUnits(presetSize), GenericToolbox::ColorCodes::greenBackground);
     std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-    GenericToolbox::Switch::Terminal::printLeft("Page (" + std::to_string(sel.getCurrentPage() + 1) + "/" + std::to_string(
+    GenericToolbox::Switch::Terminal::printLeft("Page (" + std::to_string(sel.getCursorPage() + 1) + "/" + std::to_string(
         sel.getNbPages()) + ")");
     std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
     GenericToolbox::Switch::Terminal::printLeft(" A : OK");
@@ -277,10 +276,10 @@ std::vector<std::string> ModsPresetHandler::generatePresetNameList() const{
 }
 
 const std::string& ModsPresetHandler::getSelectedModPresetName() const {
-  return _presetList_[_selector_.getSelectedEntryIndex()].name;
+  return _presetList_[_selector_.getCursorPosition()].name;
 }
 const std::vector<std::string>& ModsPresetHandler::getSelectedPresetModList() const{
-  return _presetList_[_selector_.getSelectedEntryIndex()].modList;
+  return _presetList_[_selector_.getCursorPosition()].modList;
 }
 
 void ModsPresetHandler::readConfigFile() {
@@ -337,7 +336,7 @@ void ModsPresetHandler::writeConfigFile() {
 
 }
 void ModsPresetHandler::fillSelector(){
-  _selector_.reset();
+  _selector_ = Selector();
 
   if( _presetList_.empty() ){
     _selector_.setEntryList({{"NO MODS PRESETS"}});

@@ -26,7 +26,7 @@ tsl::elm::Element *ModBrowserGui::createUI() {
 
   GlobalObjects::getModBrowser().change_directory(new_path);
   GlobalObjects::getModBrowser().getModManager().setCurrentModsFolder(new_path);
-  GlobalObjects::getModBrowser().getModsPreseter().readParameterFile(new_path);
+  GlobalObjects::getModBrowser().getModPresetHandler().readParameterFile(new_path);
 
   _list_ = new tsl::elm::List();
 

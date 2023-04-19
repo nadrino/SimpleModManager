@@ -19,6 +19,7 @@ void Selector::setMaxItemsPerPage(size_t maxItemsPerPage_){
 // non native setters
 void Selector::setEntryList(const std::vector<std::string>& entryTitleList_) {
   this->invalidateCache();
+  _cursorPosition_ = 0;
   _entryList_.clear();
   _entryList_.reserve( entryTitleList_.size() );
   for( auto& title : entryTitleList_ ){
@@ -85,6 +86,9 @@ size_t Selector::getCursorPage() const{
 size_t Selector::getNbPages() const {
   this->refillPageEntryCache();
   return _pageEntryCache_.size();
+}
+bool Selector::isSelectedEntry(const SelectorEntry& entry_) const{
+  return &entry_ == &(this->getSelectedEntry());
 }
 
 // io

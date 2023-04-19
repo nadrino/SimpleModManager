@@ -360,7 +360,7 @@ bool GuiModManager::applyModPresetFunction(const std::string& presetName_){
     _loadingBox_.getLoadingView()->setEnableSubLoadingBar(true);
     _loadingBox_.getLoadingView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["copyFile"]);
   }
-  auto modsList = GlobalObjects::getModBrowser().getModsPreseter().getModsList(presetName_);
+  auto modsList = GlobalObjects::getModBrowser().getModPresetHandler().getModsList(presetName_);
   GuiModManager::applyModsList(modsList);
 
   LogInfo("Checking all mods status...");

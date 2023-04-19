@@ -397,7 +397,7 @@ void ModManager::display_mod_files_status(std::string mod_folder_path_){
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       sel.print();
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      GenericToolbox::Switch::Terminal::printLeft("Page (" + std::to_string(sel.getCurrentPage() + 1) + "/" + std::to_string(
+      GenericToolbox::Switch::Terminal::printLeft("Page (" + std::to_string(sel.getCursorPage() + 1) + "/" + std::to_string(
           sel.getNbPages()) + ")");
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       GenericToolbox::Switch::Terminal::printLeftRight(" B : Go back", "");

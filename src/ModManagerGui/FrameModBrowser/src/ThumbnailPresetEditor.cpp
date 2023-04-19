@@ -72,8 +72,8 @@ void ThumbnailPresetEditor::initialize() {
 //  this->updateActionHint(brls::Key::PLUS, ""); // make the change visible
 
   if(GenericToolbox::doesElementIsInVector(_presetName_,
-                                           GlobalObjects::getModBrowser().getModsPreseter().getPresetsList())){
-    _selectedModsList_ = GlobalObjects::getModBrowser().getModsPreseter().getModsList(_presetName_);
+                                           GlobalObjects::getModBrowser().getModPresetHandler().getPresetsList())){
+    _selectedModsList_ = GlobalObjects::getModBrowser().getModPresetHandler().getModsList(_presetName_);
   }
   this->process_tags();
 
@@ -118,10 +118,10 @@ std::vector<std::string> & ThumbnailPresetEditor::getSelectedModsList() {
 
 void ThumbnailPresetEditor::save() {
 
-  auto& dataHandler = GlobalObjects::getModBrowser().getModsPreseter().getDataHandler();
-  auto* PresetsListPtr = &GlobalObjects::getModBrowser().getModsPreseter().getPresetsList();
+  auto& dataHandler = GlobalObjects::getModBrowser().getModPresetHandler().getDataHandler();
+  auto* PresetsListPtr = &GlobalObjects::getModBrowser().getModPresetHandler().getPresetsList();
 
-  auto& modsList = GlobalObjects::getModBrowser().getModsPreseter().getModsList( _presetName_ );
+  auto& modsList = GlobalObjects::getModBrowser().getModPresetHandler().getModsList(_presetName_ );
 
   (*dataHandlerPtr)[_presetName_].clear();
   (*dataHandlerPtr)[_presetName_].resize(0);
@@ -146,9 +146,9 @@ void ThumbnailPresetEditor::save() {
   // TODO: Check for conflicts
 //  showConflictingFiles(_presetName_);
 
-  GlobalObjects::getModBrowser().getModsPreseter().fillSelector();
-  GlobalObjects::getModBrowser().getModsPreseter().writeConfigFile();
-  GlobalObjects::getModBrowser().getModsPreseter().readParameterFile();
+  GlobalObjects::getModBrowser().getModPresetHandler().fillSelector();
+  GlobalObjects::getModBrowser().getModPresetHandler().writeConfigFile();
+  GlobalObjects::getModBrowser().getModPresetHandler().readParameterFile();
 
   _owner_->getTabModPresets()->setTriggerUpdateItem( true );
 
@@ -163,7 +163,7 @@ void ThumbnailPresetEditor::autoAssignPresetName() {
   _presetName_ = autoName;
   int count = 0;
   while( GenericToolbox::doesElementIsInVector(
-      _presetName_, GlobalObjects::getModBrowser().getModsPreseter().getPresetsList())
+      _presetName_, GlobalObjects::getModBrowser().getModPresetHandler().getPresetsList())
       ){
     _presetName_ = autoName + "-" + std::to_string(count);
     count++;
