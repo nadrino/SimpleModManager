@@ -16,26 +16,6 @@
 #include <cstring>
 
 
-void ModBrowser::initialize(){
-
-  _parameters_handler_.initialize();
-  _main_config_preset_ = _parameters_handler_.get_current_config_preset_name();
-
-  set_base_folder(_parameters_handler_.get_parameter("stored-mods-base-folder"));
-  _modManager_.set_install_mods_base_folder(_parameters_handler_.get_parameter("install-mods-base-folder"));
-  _modManager_.set_parameters_handler_ptr(&_parameters_handler_);
-  _modManager_.initialize();
-
-  change_directory(_baseFolder_);
-
-}
-void ModBrowser::reset(){
-  _main_config_preset_ = _parameters_handler_.get_current_config_preset_name();
-}
-
-void ModBrowser::set_base_folder(std::string base_folder_){
-  _baseFolder_ = std::move(base_folder_);
-}
 void ModBrowser::set_max_relative_depth(int max_relative_depth_){
   _max_relative_depth_ = max_relative_depth_;
 }
@@ -52,14 +32,11 @@ int ModBrowser::get_max_relative_depth(){
 std::string ModBrowser::get_current_directory(){
   return _currentDirectory_;
 }
-std::string ModBrowser::get_base_folder(){
-  return _baseFolder_;
-}
 std::string ModBrowser::get_main_config_preset(){
   return _main_config_preset_;
 }
 ConfigHandler &ModBrowser::get_parameters_handler(){
-  return _parameters_handler_;
+  return _configHandler_;
 }
 Selector &ModBrowser::getSelector(){
   return _selector_;
@@ -85,15 +62,15 @@ void ModBrowser::scan_inputs(u64 kDown, u64 kHeld){
       GenericToolbox::Switch::Terminal::printLeft("Checking...", GenericToolbox::ColorCodes::magentaBackground, true);
       _selector_.setTag(
           _selector_.getCursorPosition(),
-          _modManager_.getModStatus(_selector_.getSelectedEntryTitle())
+          _modManager_.generateStatusStr(_selector_.getSelectedEntryTitle())
       );
 
     }
     else if(kDown & HidNpadButton_X){ // disable mod
-      _modManager_.removeMod(_selector_.getSelectedEntryTitle());
+      _modManager_.removeMod(_selector_.getSelectedEntryTitle(), 0);
       _selector_.setTag(
           _selector_.getCursorPosition(),
-          _modManager_.getModStatus(_selector_.getSelectedEntryTitle())
+          _modManager_.generateStatusStr(_selector_.getSelectedEntryTitle())
       );
     }
     else if(kDown & HidNpadButton_Y){ // mod detailed infos
@@ -107,7 +84,7 @@ void ModBrowser::scan_inputs(u64 kDown, u64 kHeld){
         }
       );
       if(answer == display_mod_files_status_str){
-        _modManager_.display_mod_files_status(get_current_directory() + "/" + _selector_.getSelectedEntryTitle());
+        _modManager_.displayModFilesStatus( _selector_.getSelectedEntryTitle() );
       }
       else if(answer == display_mod_files_conflicts_str){
         displayConflictsWithOtherMods( _selector_.getCursorPosition() );
@@ -130,7 +107,7 @@ void ModBrowser::scan_inputs(u64 kDown, u64 kHeld){
         auto answer = Selector::ask_question("Do you which to recheck all mods ?",
                                             std::vector<std::string>({"Yes", "No"}));
         if(answer == "Yes"){
-          _modManager_.resetAllModsCacheStatus();
+          _modManager_.resetAllModsCacheAndFile();
           check_mods_status();
         }
       }
@@ -147,11 +124,11 @@ void ModBrowser::scan_inputs(u64 kDown, u64 kHeld){
         config_presets_list.emplace_back(null_preset);
         config_presets_description_list.emplace_back(std::vector<std::string>());
 
-        for(const auto& preset_name: _parameters_handler_.get_presets_list()){
+        for(const auto& preset_name: _configHandler_.get_presets_list()){
           config_presets_list.emplace_back(preset_name);
           config_presets_description_list.emplace_back(std::vector<std::string>());
           config_presets_description_list.back().emplace_back(
-            "install-mods-base-folder: "+_parameters_handler_.get_parameter(
+              "install-mods-base-folder: " + _configHandler_.get_parameter(
               preset_name+"-install-mods-base-folder"
             )
           );
@@ -201,16 +178,16 @@ void ModBrowser::scan_inputs(u64 kDown, u64 kHeld){
     if(kDown & HidNpadButton_A){ // select folder / apply mod
       go_to_selected_directory();
       if(get_current_relative_depth() == get_max_relative_depth()){
-        _modManager_.setCurrentModsFolder(_currentDirectory_);
+        _modManager_.setGameFolderPath(_currentDirectory_);
         check_mods_status();
         _modPresetHandler_.setModFolder(_currentDirectory_ );
       }
     }
     else if(kDown & HidNpadButton_Y){ // switch between config preset
       if(get_current_relative_depth() == 0){
-        _parameters_handler_.selectNextPreset();
+        _configHandler_.selectNextPreset();
         _modManager_.set_install_mods_base_folder(
-          _parameters_handler_.get_parameter("install-mods-base-folder")
+            _configHandler_.get_parameter("install-mods-base-folder")
           );
       }
     }
@@ -252,7 +229,7 @@ void ModBrowser::print_menu(){
   GenericToolbox::Switch::Terminal::printLeft(
       std::string("Configuration preset : ")
       + GenericToolbox::ColorCodes::greenBackground
-      + _parameters_handler_.get_current_config_preset_name()
+      + _configHandler_.get_current_config_preset_name()
       + GenericToolbox::ColorCodes::resetColor
     );
   GenericToolbox::Switch::Terminal::printLeft("install-mods-base-folder = " + _modManager_.get_install_mods_base_folder());
@@ -371,7 +348,7 @@ void ModBrowser::check_mods_status(){
     ss << _selector_.getEntryList()[iMod].title << "...";
     GenericToolbox::Switch::Terminal::printLeft(ss.str(), GenericToolbox::ColorCodes::magentaBackground);
     consoleUpdate(nullptr);
-    _selector_.setTag(iMod, _modManager_.getModStatus(_selector_.getEntryList()[iMod].title));
+    _selector_.setTag(iMod, _modManager_.generateStatusStr(_selector_.getEntryList()[iMod].title));
   }
 }
 bool ModBrowser::change_directory(std::string new_directory_){
@@ -419,14 +396,14 @@ bool ModBrowser::change_directory(std::string new_directory_){
   if(new_path_relative_depth == _max_relative_depth_){
     std::string thisFolderConfigFilePath = _currentDirectory_ + "/this_folder_config.txt";
     if(GenericToolbox::doesPathIsFile(thisFolderConfigFilePath)){
-      _main_config_preset_ = _parameters_handler_.get_current_config_preset_name(); // backup
+      _main_config_preset_ = _configHandler_.get_current_config_preset_name(); // backup
       auto vector_this_folder_config = GenericToolbox::dumpFileAsVectorString(thisFolderConfigFilePath);
       if(not vector_this_folder_config.empty()){ this->change_config_preset(vector_this_folder_config[0]); }
     }
   }
   else{
     // restore initial config preset
-    if(_main_config_preset_ != _parameters_handler_.get_current_config_preset_name()){
+    if(_main_config_preset_ != _configHandler_.get_current_config_preset_name()){
       change_config_preset(_main_config_preset_);
     }
   }
@@ -435,9 +412,9 @@ bool ModBrowser::change_directory(std::string new_directory_){
 }
 void ModBrowser::change_config_preset(const std::string& new_config_preset_){
 
-  _parameters_handler_.selectPresetWithName(new_config_preset_);
+  _configHandler_.selectPresetWithName(new_config_preset_);
   _modManager_.set_install_mods_base_folder(
-    _parameters_handler_.get_parameter("install-mods-base-folder")
+      _configHandler_.get_parameter("install-mods-base-folder")
   );
 
 }
@@ -462,7 +439,7 @@ bool ModBrowser::go_back(){
 }
 int ModBrowser::get_relative_path_depth(std::string& path_){
   int path_depth = getPathDepth(path_);
-  int base_depth = getPathDepth(_baseFolder_);
+  int base_depth = getPathDepth( _configHandler_.getConfig().baseFolder );
   int relative_path_depth = path_depth - base_depth;
   return relative_path_depth;
 }
@@ -491,7 +468,7 @@ void ModBrowser::removeAllMods(bool force_){
   }
   if(answer == "Yes") {
     for( auto& mod : _selector_.getEntryList() ){
-      _modManager_.removeMod( mod.title );
+      _modManager_.removeMod(mod.title, 0);
     }
   }
   GenericToolbox::Switch::IO::p.useCrcCheck = true;
@@ -502,4 +479,8 @@ int ModBrowser::getPathDepth(const std::string& path_){
   if(GenericToolbox::doesStringStartsWithSubstring(path_, "/")) pathDepth--;
   if(GenericToolbox::doesStringEndsWithSubstring(path_, "/")) pathDepth--;
   return pathDepth;
+}
+
+const ConfigHandler &ModBrowser::getConfigHandler() const {
+  return _configHandler_;
 }

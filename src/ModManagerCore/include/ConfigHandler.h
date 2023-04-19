@@ -30,19 +30,21 @@ struct ConfigHolder{
 
   void setSelectedPresetIndex(int selectedPresetIndex_);
   [[nodiscard]] std::string getCurrentPresetName() const;
+  [[nodiscard]] const PresetConfig& getCurrentPreset() const { return presetList[selectedPresetIndex]; }
 };
 
 class ConfigHandler {
 
 public:
-  ConfigHandler() = default;
+  ConfigHandler(){ this->loadConfig(); }
+  ~ConfigHandler(){ this->dumpConfigToFile(); }
 
   // getters
   [[nodiscard]] const ConfigHolder &getConfig() const;
   ConfigHolder &getConfig();
 
   // io
-  void loadConfig(const std::string& configFilePath_);
+  void loadConfig(const std::string& configFilePath_ = "");
   void dumpConfigToFile() const;
 
   // change preset

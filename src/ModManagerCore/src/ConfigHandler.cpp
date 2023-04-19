@@ -35,9 +35,18 @@ void ConfigHandler::loadConfig(const std::string &configFilePath_) {
   config.presetList.clear(); // reset the default presets
   config.configFilePath = configFilePath_;
 
+  if( config.configFilePath.empty() ){
+    // default path or reload
+    config.configFilePath = _config_.configFilePath;
+  }
+
   std::string lastUsedPresetName{"default"};
 
-  if( not GenericToolbox::doesPathIsFile(config.configFilePath) ) return;
+  if( not GenericToolbox::doesPathIsFile(config.configFilePath) ){
+    // immediately dump the default config to the file
+    this->dumpConfigToFile();
+    return;
+  }
 
   // parse the config file
   auto configLines = GenericToolbox::dumpFileAsVectorString( config.configFilePath, true );
@@ -47,7 +56,7 @@ void ConfigHandler::loadConfig(const std::string &configFilePath_) {
     GenericToolbox::trimInputString(line, " ");
 
     // check if it is a comment
-    if(line[0] == '#') continue;
+    if( GenericToolbox::doesStringStartsWithSubstring(line, "#") ) continue;
 
     // check if it is a valid piece of data
     auto elements = GenericToolbox::splitString(line, "=");

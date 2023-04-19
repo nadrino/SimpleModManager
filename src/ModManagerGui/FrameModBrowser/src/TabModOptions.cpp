@@ -71,7 +71,7 @@ void TabModOptions::buildFolderInstallPresetItem() {
         this->_itemFolderInstallPreset_->setValue(_inheritedTitle_);
       }
 
-      GlobalObjects::getModBrowser().getModManager().resetAllModsCacheStatus();
+      GlobalObjects::getModBrowser().getModManager().resetAllModsCacheAndFile();
 
     }; // Callback sequence
 

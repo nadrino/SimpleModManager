@@ -7,67 +7,66 @@
 
 #include <ConfigHandler.h>
 
+#include <utility>
 #include <vector>
 #include <string>
 #include <map>
 
+
+struct ModEntry{
+  ModEntry() = default;
+  explicit ModEntry(std::string  modName_): modName(std::move(modName_)) {}
+
+  std::string modName;
+  std::string statusStr{"UNCHECKED"};
+  double applyFraction{0};
+};
+
+
+class ModBrowser;
+
 class ModManager {
 
 public:
+  explicit ModManager(ModBrowser* owner_);
 
-  ModManager();
-  ~ModManager();
+  // setters
+  void setGameFolderPath(const std::string &gameFolderPath_);
+  void setIgnoredFileList(std::vector<std::string>& ignoredFileList_);
 
-  void initialize();
-  void reset();
+  // getters
+  [[nodiscard]] const std::string & getCurrentModFolderPath() const;
+  [[nodiscard]] const std::vector<std::string> & getIgnoredFileList() const;
 
-  void set_install_mods_base_folder(std::string install_mods_base_folder_);
-  void set_use_cache_only_for_status_check(bool use_cache_only_for_status_check_);
-  void set_ignored_file_list(std::vector<std::string>& ignored_file_list_);
+  void updateModList();
+  void dumpModStatusCache();
+  void resetModCache(const std::string &modName_);
+  void resetAllModsCacheAndFile();
 
-  std::string get_install_mods_base_folder();
-  std::string & getCurrentModFolderPath();
-  std::vector<std::string>& get_ignored_file_list();
-  std::map<std::string, std::string> & getModsStatusCache();
-  bool isUseCacheOnlyForStatusCheck();
-  std::map<std::string, double> &getModsStatusCacheFraction();
-  ConfigHandler *getParametersHandlerPtr();
+  void updateModStatus(std::string& modName_);
 
-  void set_parameters_handler_ptr(ConfigHandler *parameters_handler_ptr_);
-  void setCurrentModsFolder(const std::string &folder_path_);
-  void load_mods_status_cache_file();
-  void save_mods_status_cache_file();
-  void reset_mod_cache_status(std::string mod_name_);
-  void resetAllModsCacheStatus();
+  double getModApplyFraction(const std::string &modName_);
+  std::string generateStatusStr(const std::string& modName_);
 
-  double get_mod_status_fraction(std::string mod_name_);
-  std::string getModStatus(std::string mod_name_);
-
-  void applyMod(const std::string& mod_name_, bool force_ = false);
+  void applyMod(const std::string& modName_, bool overrideConflicts_ = false);
   void applyModList(const std::vector<std::string> &modNamesList_);
-  void removeMod(std::string mod_name_);
-  void display_mod_files_status(std::string mod_folder_path_);
+  void removeMod(const std::string &modName_);
 
-protected:
+  void displayModFilesStatus(const std::string &modName_);
 
-  std::string ask_to_replace(std::string path_);
+  ModEntry* fetchModEntry(const std::string& modName_);
+
 
 private:
+  ModBrowser* _owner_{nullptr};
 
-  bool _use_cache_only_for_status_check_;
-  bool _internal_parameters_handler_;
-
-  std::string _install_mods_base_folder_;
-  std::string _current_mods_folder_path_;
-  std::vector<std::string> _ignored_file_list_;
+  bool _ignoreCacheFiles_{true};
+  std::string _gameFolderPath_{};
+  std::vector<std::string> _ignoredFileList_{};
 //  std::map<std::string, std::vector<std::string>> _relative_file_path_list_cache_;
-  std::map<std::string, std::string> _mods_status_cache_;
-  std::map<std::string, double> _mods_status_cache_fraction_;
 
-  ConfigHandler* _parameters_handler_ptr_;
-
-
-
+  std::vector<ModEntry> _modList_{};
+  static ModEntry dummyModEntry;
 
 };
 

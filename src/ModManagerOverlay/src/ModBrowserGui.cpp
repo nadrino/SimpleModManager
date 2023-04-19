@@ -25,7 +25,7 @@ tsl::elm::Element *ModBrowserGui::createUI() {
   new_path = GenericToolbox::removeRepeatedCharacters(new_path, "/");
 
   GlobalObjects::getModBrowser().change_directory(new_path);
-  GlobalObjects::getModBrowser().getModManager().setCurrentModsFolder(new_path);
+  GlobalObjects::getModBrowser().getModManager().setGameFolderPath(new_path);
   GlobalObjects::getModBrowser().getModPresetHandler().readParameterFile(new_path);
 
   _list_ = new tsl::elm::List();
@@ -68,15 +68,15 @@ void ModBrowserGui::fill_item_list() {
         GlobalObjects::getModBrowser().getModManager().applyMod(selected_mod_name, true);
         GlobalObjects::getModBrowser().getSelector().setTag(
             GlobalObjects::getModBrowser().getSelector().fetchEntryIndex(selected_mod_name),
-            GlobalObjects::getModBrowser().getModManager().getModStatus(selected_mod_name)
+            GlobalObjects::getModBrowser().getModManager().generateStatusStr(selected_mod_name)
         );
         this->set_trigger_item_list_update(true);
         return true;
       } else if (keys & HidNpadButton_X) {
-        GlobalObjects::getModBrowser().getModManager().removeMod(selected_mod_name);
+        GlobalObjects::getModBrowser().getModManager().removeMod(selected_mod_name, 0);
         GlobalObjects::getModBrowser().getSelector().setTag(
             GlobalObjects::getModBrowser().getSelector().fetchEntryIndex(selected_mod_name),
-            GlobalObjects::getModBrowser().getModManager().getModStatus(selected_mod_name)
+            GlobalObjects::getModBrowser().getModManager().generateStatusStr(selected_mod_name)
         );
         this->set_trigger_item_list_update(true);
         return true;
@@ -124,7 +124,7 @@ void ModBrowserGui::updateModStatusBars(){
   auto mods_list = GlobalObjects::getModBrowser().getSelector().generateEntryTitleList();
   for (int i_folder = 0; i_folder < int(mods_list.size()); i_folder++) {
     std::string selected_mod_name = mods_list[i_folder];
-    double mod_fraction = GlobalObjects::getModBrowser().getModManager().get_mod_status_fraction(mods_list[i_folder]);
+    double mod_fraction = GlobalObjects::getModBrowser().getModManager().getModApplyFraction(mods_list[i_folder]);
     if (mod_fraction == -1) mod_fraction = 0;
 
     _statusBarMap_[selected_mod_name]->getMRenderFunc() = [mod_fraction](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {

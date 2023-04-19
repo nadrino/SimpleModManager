@@ -14,22 +14,20 @@
 
 #include <string>
 
+
 class ModBrowser{
 
 public:
   ModBrowser() = default;
 
-  void initialize();
-  void reset();
+  const ConfigHandler &getConfigHandler() const;
 
-  void set_base_folder(std::string base_folder_);
   void set_max_relative_depth(int max_relative_depth_);
   void set_only_show_folders(bool only_show_folders_);
 
   int get_current_relative_depth();
   int get_max_relative_depth();
   std::string get_current_directory();
-  std::string get_base_folder();
   std::string get_main_config_preset();
   ConfigHandler &get_parameters_handler();
   Selector &getSelector();
@@ -63,15 +61,14 @@ private:
   int _last_page_;
   int _last_cursor_position_;
 
-  std::string _baseFolder_{"/"};
-  std::string _currentDirectory_{_baseFolder_};
+  std::string _currentDirectory_{};
 
   std::string _last_directory_;
   std::string _main_config_preset_;
 
   Selector _selector_;
-  ModManager _modManager_;
-  ConfigHandler _parameters_handler_;
+  ModManager _modManager_{this};
+  ConfigHandler _configHandler_;
   ModsPresetHandler _modPresetHandler_;
 
 };

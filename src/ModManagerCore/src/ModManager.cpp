@@ -17,373 +17,324 @@
 #include <fstream>
 #include <utility>
 
-ModManager::ModManager() {
 
-  _internal_parameters_handler_ = false;
-  reset();
+ModManager::ModManager(ModBrowser* owner_) : _owner_(owner_) {}
 
+// setters
+void ModManager::setGameFolderPath(const std::string &gameFolderPath_) {
+  _gameFolderPath_ = gameFolderPath_;
+  this->updateModList();
 }
-ModManager::~ModManager(){
-
-  reset();
-
+void ModManager::setIgnoredFileList(std::vector<std::string>& ignoredFileList_){
+  _ignoredFileList_ = ignoredFileList_;
 }
 
-void ModManager::initialize() {
+// getters
+const std::string & ModManager::getCurrentModFolderPath() const {
+  return _gameFolderPath_;
+}
+const std::vector<std::string> & ModManager::getIgnoredFileList() const {
+  return _ignoredFileList_;
+}
 
-  if(_parameters_handler_ptr_ == nullptr){
-    _internal_parameters_handler_ = true;
-    _parameters_handler_ptr_ = new ConfigHandler();
+
+void ModManager::updateModList() {
+
+  auto folderList = GenericToolbox::getListOfSubFoldersInFolder(_gameFolderPath_);
+  _modList_.clear(); _modList_.reserve( folderList.size() );
+  for( auto& folder : folderList ){
+    _modList_.emplace_back( folder );
+  }
+
+  std::string cacheFilePath = _gameFolderPath_ + "/mods_status_cache.txt";
+  if( not GenericToolbox::doesPathIsFile(cacheFilePath) ) return;
+
+  auto lines = GenericToolbox::dumpFileAsVectorString(cacheFilePath);
+  for( auto & line : lines ){
+    GenericToolbox::trimInputString(line, " ");
+
+    if( GenericToolbox::doesStringStartsWithSubstring(line, "#") ) continue;
+
+    auto elements = GenericToolbox::splitString(line, "=");
+    for( auto& element : elements ){ GenericToolbox::trimInputString(element, " "); }
+
+    // useless entry
+    if( elements.size() < 2 ) continue;
+
+    auto* modEntryPtr = this->fetchModEntry( elements[0] );
+    if( modEntryPtr == nullptr ){ continue; }
+
+    modEntryPtr->statusStr = elements[1];
+
+    // v < 1.5.0
+    if( elements.size() < 3 ){ continue; }
+
+    // v >= 1.5.0
+    modEntryPtr->applyFraction = std::stod( elements[2] );
   }
 
 }
-void ModManager::reset(){
+void ModManager::dumpModStatusCache() {
+  std::stringstream ss;
 
-  _install_mods_base_folder_ = "/atmosphere/"; // should not be used
-  _current_mods_folder_path_ = "";
-  _use_cache_only_for_status_check_ = false;
+  for( auto& mod : _modList_ ){
+    ss << mod.modName << " = " << mod.statusStr << " = " << mod.applyFraction << std::endl;
+  }
 
-  if(_internal_parameters_handler_ and _parameters_handler_ptr_ != nullptr) delete _parameters_handler_ptr_;
-  _parameters_handler_ptr_ = nullptr;
-  _internal_parameters_handler_ = false;
+  std::string cacheFilePath = _gameFolderPath_ + "/mods_status_cache.txt";
+  GenericToolbox::dumpStringInFile(cacheFilePath, ss.str());
+}
+void ModManager::resetModCache(const std::string &modName_){
+  auto* modPtr = this->fetchModEntry( modName_ );
+  if( modPtr == nullptr ) return;
 
+  // reset with default field
+  (*modPtr) = ModEntry(modName_);
+}
+void ModManager::resetAllModsCacheAndFile(){
+  GenericToolbox::deleteFile(_gameFolderPath_ + "/mods_status_cache.txt");
+  this->updateModList();
 }
 
-void ModManager::set_install_mods_base_folder(std::string install_mods_base_folder_){
-  _install_mods_base_folder_ = std::move(install_mods_base_folder_);
-}
-void ModManager::set_use_cache_only_for_status_check(bool use_cache_only_for_status_check_){
-  _use_cache_only_for_status_check_ = use_cache_only_for_status_check_;
-}
-void ModManager::set_ignored_file_list(std::vector<std::string>& ignored_file_list_){
-  _ignored_file_list_ = ignored_file_list_;
-}
+void ModManager::updateModStatus(std::string& modName_){
+  auto* modPtr = this->fetchModEntry( modName_ );
+  if( modPtr == nullptr ) return;
 
-std::string ModManager::get_install_mods_base_folder() {
-  return _install_mods_base_folder_;
-}
-std::string & ModManager::getCurrentModFolderPath(){
-  return _current_mods_folder_path_;
-}
-std::vector<std::string>& ModManager::get_ignored_file_list(){
-  return _ignored_file_list_;
-}
+  GenericToolbox::Switch::Terminal::printLeft("   Checking : Listing mod files...", GenericToolbox::ColorCodes::magentaBackground, true);
+  consoleUpdate(nullptr);
 
-void ModManager::set_parameters_handler_ptr(ConfigHandler *parameters_handler_ptr_){
-  _parameters_handler_ptr_ = parameters_handler_ptr_;
-}
-void ModManager::setCurrentModsFolder(const std::string &folder_path_) {
-  _current_mods_folder_path_ = folder_path_;
-//  _relative_file_path_list_cache_.clear();
-  _mods_status_cache_.clear();
-  _mods_status_cache_fraction_.clear();
-  load_mods_status_cache_file();
-}
-void ModManager::load_mods_status_cache_file() {
+  std::string modFolderPath = _gameFolderPath_ + "/" + modPtr->modName;
+  auto filesList = GenericToolbox::getListOfFilesInSubFolders( modFolderPath );
 
-  _mods_status_cache_.clear();
-  _mods_status_cache_fraction_.clear();
-  std::string cache_file_path = _current_mods_folder_path_ + "/mods_status_cache.txt";
-  if(GenericToolbox::doesPathIsFile(cache_file_path)){
-
-    auto lines = GenericToolbox::dumpFileAsVectorString(cache_file_path);
-    for(int i_line = 0 ; i_line < int(lines.size()) ; i_line++){
-      auto line_elements = GenericToolbox::splitString(lines[i_line], "=");
-      if(line_elements.size() < 2) continue; // useless entry
-
-      int index_mod_name = 0;
-      if(line_elements.size() == 4){ // TO BE SUPPRESSED -> old test
-        index_mod_name = 1;
-      }
-      _mods_status_cache_[line_elements[index_mod_name]] = line_elements[index_mod_name+1];
-      if(line_elements.size() < 3) continue; // v < 1.5.0
-      // v >= 1.5.0
-      _mods_status_cache_fraction_[line_elements[index_mod_name]] = std::stod(line_elements[index_mod_name+2]);
+  size_t nSameFiles{0};
+  size_t nIgnoredFiles{0};
+  size_t iFile{0};
+  for( auto& file : filesList ){
+    if( _ignoreCacheFiles_ and GenericToolbox::doesStringStartsWithSubstring(GenericToolbox::getFileNameFromFilePath(file), ".") ) {
+      nIgnoredFiles++; continue;
     }
 
-  }
+    std::string installedPathCandidate{_owner_->getConfigHandler().getConfig().getCurrentPreset().installBaseFolder};
+    installedPathCandidate += "/" + file;
 
-}
-void ModManager::save_mods_status_cache_file() {
+    std::string modFilePath{modFolderPath};
+    modFilePath += "/" + file;
 
-  std::string cache_file_path = _current_mods_folder_path_ + "/mods_status_cache.txt";
-  std::string data_string;
+    std::stringstream ssPbar;
+    ssPbar << "Checking : (" << iFile+1 << "/" << filesList.size() << ") " << GenericToolbox::getFileNameFromFilePath(file);
+    GenericToolbox::Switch::Terminal::displayProgressBar( iFile, filesList.size(), ssPbar.str() );
 
-  for(auto const &mod_status : _mods_status_cache_){
-    if(not mod_status.second.empty()){
-      data_string += mod_status.first;
-      data_string += "=" ;
-      data_string += mod_status.second;
-      data_string += "=" ;
-      data_string += std::to_string(_mods_status_cache_fraction_[mod_status.first]) ;
-      data_string += "\n";
+    if( GenericToolbox::Switch::IO::doFilesAreIdentical( installedPathCandidate, modFilePath ) ){
+      nSameFiles++;
     }
   }
-
-  GenericToolbox::dumpStringInFile(cache_file_path, data_string);
-
-}
-void ModManager::reset_mod_cache_status(std::string mod_name_){
-  _mods_status_cache_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_] = "";
-  _mods_status_cache_fraction_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_] = -1;
-}
-void ModManager::resetAllModsCacheStatus(){
-
-  GenericToolbox::deleteFile(_current_mods_folder_path_ + "/mods_status_cache.txt");
-  load_mods_status_cache_file();
-
-//  for(auto &mod_status_cache : _mods_status_cache_){
-//    if(GenericToolbox::doesStringStartsWithSubstring(mod_status_cache.first, _parameters_handler_ptr_->get_selected_install_preset_name())){
-//      _mods_status_cache_[mod_status_cache.first] = "";
-//      _mods_status_cache_fraction_[mod_status_cache.first] = -1;
-//    }
-//  }
-}
-
-double ModManager::get_mod_status_fraction(std::string mod_name_){
-  getModStatus(mod_name_);
-  return _mods_status_cache_fraction_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_];
-}
-std::string ModManager::getModStatus(std::string mod_name_){
 
   // (XX/XX) Files Applied
   // ACTIVE
   // INACTIVE
+  modPtr->applyFraction = double(nSameFiles) / double(filesList.size() - nIgnoredFiles);
+  if     ( modPtr->applyFraction == 0 ){ modPtr->statusStr = "INACTIVE"; }
+  else if( modPtr->applyFraction == 1 ){ modPtr->statusStr = "ACTIVE"; }
+  else{
+    std::stringstream ss;
+    ss << "PARTIAL (" << nSameFiles << "/" << filesList.size() - nIgnoredFiles << ")";
+    modPtr->statusStr = ss.str();
+  }
 
-  if(not _mods_status_cache_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_].empty())
-    return _mods_status_cache_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_];
+  // immediately save
+  this->dumpModStatusCache();
+}
 
-  if(_use_cache_only_for_status_check_)
-    return "Not Checked";
+double ModManager::getModApplyFraction(const std::string &modName_){
+  auto* modPtr = this->fetchModEntry( modName_ );
+  if( modPtr == nullptr ) return 0;
+  return modPtr->applyFraction;
+}
+std::string ModManager::generateStatusStr(const std::string& modName_){
+  auto* modPtr = this->fetchModEntry( modName_ );
+  if( modPtr == nullptr ) return {"INVALID MOD"};
 
-  std::string absolute_mod_folder_path = _current_mods_folder_path_ + "/" + mod_name_;
+  return modPtr->statusStr;
+}
+void ModManager::applyMod(const std::string& modName_, bool overrideConflicts_) {
+  auto* modPtr = this->fetchModEntry( modName_ );
+  if( modPtr == nullptr ) return;
 
-  int same_files_count = 0;
+  GenericToolbox::Switch::Terminal::printLeft("Applying : " + modName_ + "...", GenericToolbox::ColorCodes::greenBackground);
+  std::string modFolderPath = _gameFolderPath_ + "/" + modPtr->modName;
 
-  GenericToolbox::Switch::Terminal::printLeft("   Checking : Listing mod files...", GenericToolbox::ColorCodes::magentaBackground, true);
-  consoleUpdate(nullptr);
-  std::vector<std::string> relative_file_path_list;
-//  if(_relative_file_path_list_cache_[mod_name_].empty()){
-//    relative_file_path_list = GenericToolbox::getListFilesInSubfolders(absolute_mod_folder_path);
-//    _relative_file_path_list_cache_[mod_name_] = relative_file_path_list;
-//  } else{
-//    relative_file_path_list = _relative_file_path_list_cache_[mod_name_];
-//  }
+  GenericToolbox::Switch::Terminal::printLeft("   Getting files list...", GenericToolbox::ColorCodes::greenBackground, true);
+  auto filesList = GenericToolbox::getListOfFilesInSubFolders( modFolderPath );
 
-  relative_file_path_list = GenericToolbox::getListOfFilesInSubFolders(absolute_mod_folder_path);
+  // filtering files
+  GenericToolbox::removeEntryIf(filesList, [&](const std::string &file_) {
+    return (
+        (_ignoreCacheFiles_ and
+         GenericToolbox::doesStringStartsWithSubstring(
+             GenericToolbox::getFileNameFromFilePath(file_), "."
+         ))
+        or
+        (GenericToolbox::doesElementIsInVector(file_, _ignoredFileList_))
+    );
+  });
 
-  int total_files_count = relative_file_path_list.size();
-  Toolbox::reset_last_displayed_value();
-  for(int i_file = 0 ; i_file < total_files_count ; i_file++){
+  std::string onConflictAction{};
+  if( overrideConflicts_ ){ onConflictAction = "Yes to all"; }
 
-    std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path_list[i_file];
+  size_t iFile{0};
+  for( auto& file : filesList ){
+
+    std::string srcFilePath{modFolderPath}; srcFilePath += "/" + file;
+    std::string fileSize = GenericToolbox::parseSizeUnits(double(GenericToolbox::getFileSize(srcFilePath)));
 
     GenericToolbox::Switch::Terminal::displayProgressBar(
-        i_file, total_files_count,
-      "Checking : (" + std::to_string(i_file + 1) + "/" + std::to_string(total_files_count) + ") " +
-      GenericToolbox::getFileNameFromFilePath(absolute_file_path)
+        iFile, filesList.size(),
+        "(" + std::to_string(iFile+1) + "/" + std::to_string(filesList.size()) + ") " +
+        GenericToolbox::getFileNameFromFilePath(file) + " (" + fileSize + ")");
+    iFile++;
+
+    std::string dstFilePath{_owner_->getConfigHandler().getConfig().getCurrentPreset().installBaseFolder};
+    dstFilePath += "/" + file;
+
+    bool installFile{false};
+
+    // on conflict:
+    if     ( onConflictAction == "Yes to all" ){ installFile = true; } // no IO first
+    else if( onConflictAction == "No to all" ){ installFile = false; }
+    else if( not GenericToolbox::doesPathIsFile( dstFilePath ) ){ installFile = true; }
+    else if( GenericToolbox::Switch::IO::doFilesAreIdentical( dstFilePath, srcFilePath ) ){ installFile = false; }
+    else{
+      onConflictAction = Selector::ask_question(
+          file + " already exists. Replace ?",
+          {{"Yes"}, {"Yes to all"}, {"No"}, {"No to all"}}
       );
 
-    if(GenericToolbox::Switch::IO::doFilesAreIdentical(
-      _install_mods_base_folder_ + "/" + relative_file_path_list[i_file],
-      absolute_file_path
-    )) same_files_count++;
+      if( onConflictAction == "Yes" or onConflictAction == "Yes to all" ){ installFile = true; }
+      if( onConflictAction == "No" or onConflictAction == "No to all" ){ installFile = false; }
+    }
+
+    if( installFile ){ GenericToolbox::Switch::IO::copyFile( srcFilePath, dstFilePath ); }
+
   }
 
-  _mods_status_cache_fraction_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_] = double(same_files_count) / double(total_files_count);
-
-  if(same_files_count == total_files_count) _mods_status_cache_[
-                                              _parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_] = "ACTIVE";
-  else if(same_files_count == 0) _mods_status_cache_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_] = "INACTIVE";
-  else _mods_status_cache_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_] = "PARTIAL (" + std::to_string(same_files_count) + "/" + std::to_string(total_files_count) + ")";
-
-  save_mods_status_cache_file();
-  return _mods_status_cache_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_];
-
-}
-void ModManager::applyMod(const std::string& mod_name_, bool force_) {
-
-  GenericToolbox::Switch::Terminal::printLeft("Applying : " + mod_name_ + "...", GenericToolbox::ColorCodes::greenBackground);
-  std::string absolute_mod_folder_path = _current_mods_folder_path_ + "/" + mod_name_;
-
-  std::vector<std::string> relative_file_path_list;
-  GenericToolbox::Switch::Terminal::printLeft("   Getting files list...", GenericToolbox::ColorCodes::greenBackground, true);
-
-//  if(_relative_file_path_list_cache_[mod_name_].empty()){
-//    relative_file_path_list = GenericToolbox::getListFilesInSubfolders(absolute_mod_folder_path);
-//    _relative_file_path_list_cache_[mod_name_] = relative_file_path_list;
-//  } else {
-//    relative_file_path_list = _relative_file_path_list_cache_[mod_name_];
-//  }
-
-  relative_file_path_list = GenericToolbox::getListOfFilesInSubFolders(absolute_mod_folder_path);
-
-  // deleting ignored entries
-  for(int i_mod = int(relative_file_path_list.size())-1 ; i_mod >= 0 ; i_mod--){
-    if(GenericToolbox::doesElementIsInVector(relative_file_path_list[i_mod], _ignored_file_list_)){
-      relative_file_path_list.erase(relative_file_path_list.begin() + i_mod);
-    }
-  }
-
-  std::string replace_option;
-  if(force_) replace_option = "Yes to all";
-  bool is_conflict;
-  std::stringstream ss_files_list;
-
-  Toolbox::reset_last_displayed_value();
-  for(int i_file = 0 ; i_file < int(relative_file_path_list.size()) ; i_file++){
-
-    if(relative_file_path_list[i_file][0] == '.'){
-      // ignoring cached files
-      continue;
-    }
-    std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path_list[i_file];
-
-    std::string file_size = GenericToolbox::parseSizeUnits(double(GenericToolbox::getFileSize(absolute_file_path)));
-
-    GenericToolbox::Switch::Terminal::displayProgressBar(
-        i_file, int(relative_file_path_list.size()),
-      "(" + std::to_string(i_file + 1) + "/" + std::to_string(relative_file_path_list.size()) + ") " +
-      GenericToolbox::getFileNameFromFilePath(relative_file_path_list[i_file]) + " (" + file_size + ")");
-
-    std::string install_path = _install_mods_base_folder_ + "/" + relative_file_path_list[i_file];
-    if(GenericToolbox::doesPathIsFile(install_path)) {
-      is_conflict = true;
-      if (replace_option == "Yes to all") {
-        // remove log entry ? if log enabled
-      }
-      else if (replace_option == "No to all") {
-        continue; // do nothing
-      }
-      else {
-        replace_option = ask_to_replace(relative_file_path_list[i_file]);
-        std::cout << ss_files_list.str();
-      }
-    }
-    else {
-      is_conflict = false;
-    }
-    if(not is_conflict or replace_option == "Yes to all" or replace_option == "Yes"){
-      GenericToolbox::Switch::IO::copyFile(absolute_file_path, install_path);
-    }
-  }
-  reset_mod_cache_status(mod_name_);
-
+  this->resetModCache( modName_ );
 }
 void ModManager::applyModList(const std::vector<std::string> &modNamesList_){
 
   // checking for overwritten files in advance
-  std::vector<std::string> applied_files_listing;
-  std::vector<std::vector<std::string>> mods_ignored_files_list(modNamesList_.size());
-  for(int i_mod = int(modNamesList_.size()) - 1 ; i_mod >= 0 ; i_mod--){
-    std::string mod_path = _current_mods_folder_path_ + "/" + modNamesList_[i_mod];
-    auto mod_files_list = GenericToolbox::getListOfFilesInSubFolders(mod_path);
-    for(auto& mod_file : mod_files_list){
-      if(GenericToolbox::doesElementIsInVector(mod_file, applied_files_listing)){
-        mods_ignored_files_list[i_mod].emplace_back(mod_file);
+  std::vector<std::string> appliedFileList;
+  std::vector<std::vector<std::string>> ignoredFileListPerMod(modNamesList_.size());
+
+  for( int iMod = int( modNamesList_.size() ) - 1 ; iMod >= 0 ; iMod-- ){
+    std::string modFolder = _gameFolderPath_ + "/" + modNamesList_[iMod];
+    auto fileList = GenericToolbox::getListOfFilesInSubFolders(modFolder );
+    for(auto& file : fileList){
+      if( GenericToolbox::doesElementIsInVector(file, appliedFileList) ){
+        ignoredFileListPerMod[iMod].emplace_back(file);
       }
       else {
-        applied_files_listing.emplace_back(mod_file);
+        appliedFileList.emplace_back(file);
       }
     }
   }
 
   // applying mods with ignored files
-  for(int i_mod = 0 ; i_mod < int(modNamesList_.size()) ; i_mod++){
-    _ignored_file_list_ = mods_ignored_files_list[i_mod];
-    applyMod(modNamesList_[i_mod], true); // normally should work without force (tested) but just in case...
-    _ignored_file_list_.clear();
+  for( size_t iMod = 0 ; iMod < modNamesList_.size() ; iMod++ ){
+    _ignoredFileList_ = ignoredFileListPerMod[iMod];
+    this->applyMod( modNamesList_[iMod], true );
+    _ignoredFileList_.clear();
   }
 
 }
-void ModManager::removeMod(std::string mod_name_){
+void ModManager::removeMod(const std::string &modName_) {
 
-  GenericToolbox::Switch::Terminal::printLeft("Disabling : " + mod_name_, GenericToolbox::ColorCodes::redBackground);
-  std::string absolute_mod_folder_path = _current_mods_folder_path_ + "/" + mod_name_;
+  GenericToolbox::Switch::Terminal::printLeft("Disabling : " + modName_, GenericToolbox::ColorCodes::redBackground);
 
-  std::vector<std::string> relative_file_path_list;
+  std::string srcFolder = _gameFolderPath_ + "/" + modName_;
+  auto fileList{GenericToolbox::getListOfFilesInSubFolders(srcFolder)};
 
-  relative_file_path_list = GenericToolbox::getListOfFilesInSubFolders(absolute_mod_folder_path);
+  size_t iFile{0};
+  for( auto& file : fileList ){
+    std::string srcFilePath{srcFolder};
+    srcFilePath += "/" + file;
 
-  int i_file=0;
-  Toolbox::reset_last_displayed_value();
-  for(auto &relative_file_path : relative_file_path_list){
+    std::string dstFilePath{_owner_->getConfigHandler().getConfig().getCurrentPreset().installBaseFolder};
+    dstFilePath += "/" + file;
 
-    i_file++;
-    std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path;
-    absolute_file_path = GenericToolbox::removeRepeatedCharacters(absolute_file_path, "/");
-    std::string file_size = GenericToolbox::parseSizeUnits(double(GenericToolbox::getFileSize(absolute_file_path)));
+    std::string fileSize{
+      GenericToolbox::parseSizeUnits(double(GenericToolbox::getFileSize(srcFilePath)))
+    };
 
     GenericToolbox::Switch::Terminal::displayProgressBar(
-        i_file, relative_file_path_list.size(),
-      GenericToolbox::getFileNameFromFilePath(relative_file_path) + " (" + file_size + ")"
-      );
+        iFile++, fileList.size(),
+        GenericToolbox::getFileNameFromFilePath(file) + " (" + fileSize + ")"
+    );
 
-    std::string installed_file_path = _install_mods_base_folder_ + "/" + relative_file_path;
-    installed_file_path = GenericToolbox::removeRepeatedCharacters(installed_file_path, "/");
     // Check if the installed mod belongs to the selected mod
-    if( GenericToolbox::Switch::IO::doFilesAreIdentical( absolute_file_path, installed_file_path ) ){
+    if( GenericToolbox::Switch::IO::doFilesAreIdentical( dstFilePath, srcFilePath ) ){
 
       // Remove the mod file
-      GenericToolbox::deleteFile(installed_file_path);
+      GenericToolbox::deleteFile( dstFilePath );
 
       // Delete the folder if no other files is present
-      std::string empty_folder_path_candidate = GenericToolbox::getFolderPathFromFilePath(installed_file_path);
-      while( GenericToolbox::isFolderEmpty( empty_folder_path_candidate ) ) {
-
-        GenericToolbox::deleteEmptyDirectory(empty_folder_path_candidate);
-
-        std::vector<std::string> sub_folder_list = GenericToolbox::splitString(empty_folder_path_candidate, "/");
-        if(sub_folder_list.empty()) break; // virtually impossible -> would mean everything has been deleted on the sd
-        // decrement folder depth
-        empty_folder_path_candidate =
-          "/" + GenericToolbox::joinVectorString(
-            sub_folder_list,
-            "/",
-            0,
-            int(sub_folder_list.size()) - 1
-            );
+      std::string emptyFolderCandidate = GenericToolbox::getFolderPathFromFilePath(dstFilePath );
+      while( GenericToolbox::isFolderEmpty( emptyFolderCandidate ) ) {
+        if( emptyFolderCandidate.empty() ) break;
+        GenericToolbox::deleteEmptyDirectory( emptyFolderCandidate );
+        emptyFolderCandidate = GenericToolbox::getFolderPathFromFilePath( emptyFolderCandidate );
       }
     }
   }
-  reset_mod_cache_status(mod_name_);
 
+  this->resetModCache( modName_ );
 }
 
-void ModManager::display_mod_files_status(std::string mod_folder_path_){
+ModEntry* ModManager::fetchModEntry(const std::string& modName_) {
+  for( auto& modEntry : _modList_ ){ if( modEntry.modName == modName_ ) return &modEntry; }
+  return nullptr;
+}
 
-  std::vector<std::string> file_path_list;
+void ModManager::displayModFilesStatus(const std::string &modName_){
+
   GenericToolbox::Switch::Terminal::printLeft("Listing Files...", GenericToolbox::ColorCodes::redBackground);
   consoleUpdate(nullptr);
 
-  file_path_list = GenericToolbox::getListOfFilesInSubFolders(mod_folder_path_);
-  Selector sel;
-  sel.setEntryList(file_path_list);
+  std::stringstream ssSrcFolder;
+  ssSrcFolder << _gameFolderPath_ << "/" << modName_;
+  auto fileList = GenericToolbox::getListOfFilesInSubFolders( ssSrcFolder.str() );
+
   GenericToolbox::Switch::Terminal::printLeft("Checking Files...", GenericToolbox::ColorCodes::redBackground);
   consoleUpdate(nullptr);
-  Toolbox::reset_last_displayed_value();
-  for(int i_file = 0 ; i_file < int(file_path_list.size()) ; i_file++){
 
+  Selector selector(fileList);
+
+  size_t iFile{0};
+  for( auto& file : fileList ){
     GenericToolbox::Switch::Terminal::displayProgressBar(
-        i_file, file_path_list.size(),
-      "(" + std::to_string(i_file + 1) + "/" + std::to_string(file_path_list.size()) + ") " +
-      GenericToolbox::getFileNameFromFilePath(file_path_list[i_file])
-      );
+        iFile, fileList.size(),
+        "(" + std::to_string(iFile + 1) + "/" + std::to_string(fileList.size()) + ") " +
+        GenericToolbox::getFileNameFromFilePath(file)
+    );
 
-    std::string installed_file_path = _install_mods_base_folder_ + "/" + file_path_list[i_file];
-    if(GenericToolbox::Switch::IO::doFilesAreIdentical(
-        mod_folder_path_+ "/" + file_path_list[i_file],
-        installed_file_path
-        )){
-      sel.setTag(i_file, "-> Installed");
-    } else if(GenericToolbox::doesPathIsFile(installed_file_path)){
-      sel.setTag(i_file, "-> Not Same");
-    } else {
-      sel.setTag(i_file, "-> Not Installed");
+    std::stringstream ssSrc;
+    ssSrc << ssSrcFolder.str() << "/" << file;
+    std::stringstream ssDst;
+    ssDst << _owner_->getConfigHandler().getConfig().getCurrentPreset().installBaseFolder << "/" << file;
+
+    if( GenericToolbox::Switch::IO::doFilesAreIdentical( ssDst.str(), ssSrc.str() ) ){
+      selector.setTag(iFile, "-> Installed");
     }
+    else if( GenericToolbox::doesPathIsFile( ssDst.str() ) ){
+      selector.setTag(iFile, "-> Not same");
+    }
+    else{
+      selector.setTag(iFile, "-> Not installed");
+    }
+
+    iFile++;
   }
 
-  sel.setMaxItemsPerPage(GenericToolbox::Switch::Hardware::getTerminalHeight() - 9);
+  selector.setMaxItemsPerPage(GenericToolbox::Switch::Hardware::getTerminalHeight() - 9);
 
   // Main loop
   u64 kDown = 1;
@@ -393,15 +344,15 @@ void ModManager::display_mod_files_status(std::string mod_folder_path_){
 
     if(kDown != 0 or kHeld != 0){
       consoleClear();
-      GenericToolbox::Switch::Terminal::printLeft(mod_folder_path_, GenericToolbox::ColorCodes::redBackground);
+      GenericToolbox::Switch::Terminal::printLeft(modName_, GenericToolbox::ColorCodes::redBackground);
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      sel.print();
+      selector.print();
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      GenericToolbox::Switch::Terminal::printLeft("Page (" + std::to_string(sel.getCursorPage() + 1) + "/" + std::to_string(
-          sel.getNbPages()) + ")");
+      GenericToolbox::Switch::Terminal::printLeft("Page (" + std::to_string(selector.getCursorPage() + 1) + "/" + std::to_string(
+          selector.getNbPages()) + ")");
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       GenericToolbox::Switch::Terminal::printLeftRight(" B : Go back", "");
-      if(sel.getNbPages() > 1) GenericToolbox::Switch::Terminal::printLeftRight(" <- : Previous Page", "-> : Next Page ");
+      if(selector.getNbPages() > 1) GenericToolbox::Switch::Terminal::printLeftRight(" <- : Previous Page", "-> : Next Page ");
       consoleUpdate(nullptr);
     }
 
@@ -416,37 +367,7 @@ void ModManager::display_mod_files_status(std::string mod_folder_path_){
       break; // break in order to return to hbmenu
     }
 
-    sel.scanInputs(kDown, kHeld);
+    selector.scanInputs(kDown, kHeld);
 
   }
-
-
 }
-
-std::string ModManager::ask_to_replace(std::string path_) {
-
-  std::vector<std::string> options;
-  options.emplace_back("Yes");
-  options.emplace_back("Yes to all");
-  options.emplace_back("No");
-  options.emplace_back("No to all");
-  return Selector::ask_question(path_ + " already exists. Replace ?", options);
-
-}
-
-std::map<std::string, std::string> & ModManager::getModsStatusCache() {
-  return _mods_status_cache_;
-}
-
-bool ModManager::isUseCacheOnlyForStatusCheck() {
-  return _use_cache_only_for_status_check_;
-}
-
-std::map<std::string, double> &ModManager::getModsStatusCacheFraction() {
-  return _mods_status_cache_fraction_;
-}
-
-ConfigHandler *ModManager::getParametersHandlerPtr() {
-  return _parameters_handler_ptr_;
-}
-

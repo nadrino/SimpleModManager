@@ -24,6 +24,7 @@ class Selector {
 
 public:
   Selector() = default;
+  explicit Selector(const std::vector<std::string>& entryTitleList_){ this->setEntryList(entryTitleList_); }
 
   // native setters
   void setMaxItemsPerPage(size_t maxItemsPerPage_);

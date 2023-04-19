@@ -200,8 +200,10 @@ void Selector::jumpToPreviousPage(){
 std::string Selector::ask_question(const std::string& question_, const std::vector<std::string>& answers_,
                                 const std::vector<std::vector<std::string>>& descriptions_ ) {
 
+  // TODO: move this in a util namespace
+
   std::string answer;
-  auto sel = Selector();
+  Selector sel;
 
   int nb_lines_layout = 0;
   nb_lines_layout++; // toolbox::print_right("SimpleModManager v"+toolbox::get_app_version());
