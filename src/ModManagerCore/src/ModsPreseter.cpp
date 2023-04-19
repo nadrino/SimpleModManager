@@ -41,7 +41,7 @@ void ModsPresetHandler::selectModPreset() {
     std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
     _selector_.print();
     std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-    GenericToolbox::Switch::Terminal::printLeft("  Page (" + std::to_string(_selector_.getCurrentPage() + 1) + "/" + std::to_string(
+    GenericToolbox::Switch::Terminal::printLeft("  Page (" + std::to_string(_selector_.getCursorPage() + 1) + "/" + std::to_string(
         _selector_.getNbPages()) + ")");
     std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
     GenericToolbox::Switch::Terminal::printLeftRight(" A : Select mod preset", " X : Delete mod preset ");
@@ -71,7 +71,7 @@ void ModsPresetHandler::selectModPreset() {
       if( answer == "Yes" ) this->deleteSelectedPreset();
     }
     else if(kDown & HidNpadButton_Plus){ createNewPreset(); }
-    else if(kDown & HidNpadButton_Y){ this->editPreset( _selector_.getSelectedEntryIndex() ); }
+    else if(kDown & HidNpadButton_Y){ this->editPreset( _selector_.getCursorPage() ); }
 
     if( kDown != 0 or kHeld != 0 ){ drawSelectorPage(); }
 
@@ -152,7 +152,7 @@ void ModsPresetHandler::editPreset( size_t entryIndex_ ) {
     u64 kHeld = padGetButtons(&GlobalObjects::gPad);
     sel.scanInputs(kDown, kHeld);
     if(kDown & HidNpadButton_A){
-      preset.modList.emplace_back( sel.getSelectedString() );
+      preset.modList.emplace_back(sel.getSelectedEntryTitle() );
       reprocessSelectorTags();
     }
     else if(kDown & HidNpadButton_X){

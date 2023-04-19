@@ -68,15 +68,15 @@ void ModBrowserGui::fill_item_list() {
         GlobalObjects::getModBrowser().getModManager().applyMod(selected_mod_name, true);
         GlobalObjects::getModBrowser().getSelector().setTag(
             GlobalObjects::getModBrowser().getSelector().fetchEntryIndex(selected_mod_name),
-            GlobalObjects::getModBrowser().getModManager().get_mod_status(selected_mod_name)
+            GlobalObjects::getModBrowser().getModManager().getModStatus(selected_mod_name)
         );
         this->set_trigger_item_list_update(true);
         return true;
       } else if (keys & HidNpadButton_X) {
-        GlobalObjects::getModBrowser().getModManager().remove_mod(selected_mod_name);
+        GlobalObjects::getModBrowser().getModManager().removeMod(selected_mod_name);
         GlobalObjects::getModBrowser().getSelector().setTag(
             GlobalObjects::getModBrowser().getSelector().fetchEntryIndex(selected_mod_name),
-            GlobalObjects::getModBrowser().getModManager().get_mod_status(selected_mod_name)
+            GlobalObjects::getModBrowser().getModManager().getModStatus(selected_mod_name)
         );
         this->set_trigger_item_list_update(true);
         return true;

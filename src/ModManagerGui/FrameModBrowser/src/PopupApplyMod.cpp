@@ -25,7 +25,7 @@ void PopupApplyMod::start_applying() {
   _apply_mod_thread_ = std::async(std::launch::async, [this](){
     GlobalObjects::getModBrowser().getModManager().applyMod(this->_mod_name_, true);
     if(this->_mod_item_ != nullptr){
-      this->_mod_item_->setValue(GlobalObjects::getModBrowser().getModManager().get_mod_status(this->_mod_name_));
+      this->_mod_item_->setValue(GlobalObjects::getModBrowser().getModManager().getModStatus(this->_mod_name_));
     }
 
     this->close();

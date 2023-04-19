@@ -41,11 +41,11 @@ public:
   void resetAllModsCacheStatus();
 
   double get_mod_status_fraction(std::string mod_name_);
-  std::string get_mod_status(std::string mod_name_);
+  std::string getModStatus(std::string mod_name_);
 
   void applyMod(const std::string& mod_name_, bool force_ = false);
   void applyModList(const std::vector<std::string> &modNamesList_);
-  void remove_mod(std::string mod_name_);
+  void removeMod(std::string mod_name_);
   void display_mod_files_status(std::string mod_folder_path_);
 
 protected:

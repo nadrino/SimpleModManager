@@ -141,10 +141,10 @@ void ModManager::resetAllModsCacheStatus(){
 }
 
 double ModManager::get_mod_status_fraction(std::string mod_name_){
-  get_mod_status(mod_name_);
+  getModStatus(mod_name_);
   return _mods_status_cache_fraction_[_parameters_handler_ptr_->get_current_config_preset_name() + ": " + mod_name_];
 }
-std::string ModManager::get_mod_status(std::string mod_name_){
+std::string ModManager::getModStatus(std::string mod_name_){
 
   // (XX/XX) Files Applied
   // ACTIVE
@@ -296,7 +296,7 @@ void ModManager::applyModList(const std::vector<std::string> &modNamesList_){
   }
 
 }
-void ModManager::remove_mod(std::string mod_name_){
+void ModManager::removeMod(std::string mod_name_){
 
   GenericToolbox::Switch::Terminal::printLeft("Disabling : " + mod_name_, GenericToolbox::ColorCodes::redBackground);
   std::string absolute_mod_folder_path = _current_mods_folder_path_ + "/" + mod_name_;
