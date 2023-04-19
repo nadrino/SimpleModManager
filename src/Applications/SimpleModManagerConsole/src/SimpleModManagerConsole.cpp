@@ -22,7 +22,7 @@ int main( int argc, char **argv ){
 
   std::string old_config_path = GenericToolbox::getCurrentWorkingDirectory() + "/parameters.ini"; // before 1.5.0
   if(GenericToolbox::doesPathIsFile(old_config_path)){
-    ParametersHandler p;
+    ConfigHandler p;
     p.initialize();
     std::string new_param_file = p.get_parameters_file_path();
     GenericToolbox::Switch::Terminal::printLeft("");

@@ -8,7 +8,7 @@ set( SRC_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ModBrowser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ModManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ModsPreseter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ParametersHandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ConfigHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Selector.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Toolbox.cpp
     )

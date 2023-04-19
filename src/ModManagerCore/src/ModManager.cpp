@@ -33,7 +33,7 @@ void ModManager::initialize() {
 
   if(_parameters_handler_ptr_ == nullptr){
     _internal_parameters_handler_ = true;
-    _parameters_handler_ptr_ = new ParametersHandler();
+    _parameters_handler_ptr_ = new ConfigHandler();
   }
 
 }
@@ -69,7 +69,7 @@ std::vector<std::string>& ModManager::get_ignored_file_list(){
   return _ignored_file_list_;
 }
 
-void ModManager::set_parameters_handler_ptr(ParametersHandler *parameters_handler_ptr_){
+void ModManager::set_parameters_handler_ptr(ConfigHandler *parameters_handler_ptr_){
   _parameters_handler_ptr_ = parameters_handler_ptr_;
 }
 void ModManager::setCurrentModsFolder(const std::string &folder_path_) {
@@ -446,7 +446,7 @@ std::map<std::string, double> &ModManager::getModsStatusCacheFraction() {
   return _mods_status_cache_fraction_;
 }
 
-ParametersHandler *ModManager::getParametersHandlerPtr() {
+ConfigHandler *ModManager::getParametersHandlerPtr() {
   return _parameters_handler_ptr_;
 }
 

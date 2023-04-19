@@ -15,16 +15,8 @@
 #include <utility>
 #include <cstring>
 
-ModBrowser::ModBrowser(){
-
-  reset();
-
-}
-ModBrowser::~ModBrowser() { reset(); }
 
 void ModBrowser::initialize(){
-
-  _selector_.setMaxItemsPerPage(30);
 
   _parameters_handler_.initialize();
   _main_config_preset_ = _parameters_handler_.get_current_config_preset_name();
@@ -34,29 +26,15 @@ void ModBrowser::initialize(){
   _modManager_.set_parameters_handler_ptr(&_parameters_handler_);
   _modManager_.initialize();
 
-  change_directory(_base_folder_);
-
-  _is_initialized_ = true;
+  change_directory(_baseFolder_);
 
 }
 void ModBrowser::reset(){
-
-  _is_initialized_ = false;
-
-  _max_relative_depth_ = -1;
-  _base_folder_ = "/";
-  _currentDirectory_ = _base_folder_;
-  _only_show_folders_ = false;
   _main_config_preset_ = _parameters_handler_.get_current_config_preset_name();
-
-  _modManager_.reset();
-  _parameters_handler_.reset();
-  _selector_ = Selector();
-
 }
 
 void ModBrowser::set_base_folder(std::string base_folder_){
-  _base_folder_ = std::move(base_folder_);
+  _baseFolder_ = std::move(base_folder_);
 }
 void ModBrowser::set_max_relative_depth(int max_relative_depth_){
   _max_relative_depth_ = max_relative_depth_;
@@ -75,12 +53,12 @@ std::string ModBrowser::get_current_directory(){
   return _currentDirectory_;
 }
 std::string ModBrowser::get_base_folder(){
-  return _base_folder_;
+  return _baseFolder_;
 }
 std::string ModBrowser::get_main_config_preset(){
   return _main_config_preset_;
 }
-ParametersHandler &ModBrowser::get_parameters_handler(){
+ConfigHandler &ModBrowser::get_parameters_handler(){
   return _parameters_handler_;
 }
 Selector &ModBrowser::getSelector(){
@@ -230,7 +208,7 @@ void ModBrowser::scan_inputs(u64 kDown, u64 kHeld){
     }
     else if(kDown & HidNpadButton_Y){ // switch between config preset
       if(get_current_relative_depth() == 0){
-        _parameters_handler_.increment_selected_preset_id();
+        _parameters_handler_.selectNextPreset();
         _modManager_.set_install_mods_base_folder(
           _parameters_handler_.get_parameter("install-mods-base-folder")
           );
@@ -457,7 +435,7 @@ bool ModBrowser::change_directory(std::string new_directory_){
 }
 void ModBrowser::change_config_preset(const std::string& new_config_preset_){
 
-  _parameters_handler_.set_current_config_preset_name(new_config_preset_);
+  _parameters_handler_.selectPresetWithName(new_config_preset_);
   _modManager_.set_install_mods_base_folder(
     _parameters_handler_.get_parameter("install-mods-base-folder")
   );
@@ -484,7 +462,7 @@ bool ModBrowser::go_back(){
 }
 int ModBrowser::get_relative_path_depth(std::string& path_){
   int path_depth = getPathDepth(path_);
-  int base_depth = getPathDepth(_base_folder_);
+  int base_depth = getPathDepth(_baseFolder_);
   int relative_path_depth = path_depth - base_depth;
   return relative_path_depth;
 }

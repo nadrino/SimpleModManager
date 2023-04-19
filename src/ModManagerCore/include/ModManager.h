@@ -5,7 +5,7 @@
 #ifndef MODAPPLIER_MOD_MANAGER_H
 #define MODAPPLIER_MOD_MANAGER_H
 
-#include <ParametersHandler.h>
+#include <ConfigHandler.h>
 
 #include <vector>
 #include <string>
@@ -31,9 +31,9 @@ public:
   std::map<std::string, std::string> & getModsStatusCache();
   bool isUseCacheOnlyForStatusCheck();
   std::map<std::string, double> &getModsStatusCacheFraction();
-  ParametersHandler *getParametersHandlerPtr();
+  ConfigHandler *getParametersHandlerPtr();
 
-  void set_parameters_handler_ptr(ParametersHandler *parameters_handler_ptr_);
+  void set_parameters_handler_ptr(ConfigHandler *parameters_handler_ptr_);
   void setCurrentModsFolder(const std::string &folder_path_);
   void load_mods_status_cache_file();
   void save_mods_status_cache_file();
@@ -64,7 +64,7 @@ private:
   std::map<std::string, std::string> _mods_status_cache_;
   std::map<std::string, double> _mods_status_cache_fraction_;
 
-  ParametersHandler* _parameters_handler_ptr_;
+  ConfigHandler* _parameters_handler_ptr_;
 
 
 

@@ -7,7 +7,7 @@
 
 #include <Selector.h>
 #include <ModManager.h>
-#include <ParametersHandler.h>
+#include <ConfigHandler.h>
 #include <ModsPresetHandler.h>
 
 #include <switch.h>
@@ -17,9 +17,7 @@
 class ModBrowser{
 
 public:
-
-  ModBrowser();
-  ~ModBrowser();
+  ModBrowser() = default;
 
   void initialize();
   void reset();
@@ -33,7 +31,7 @@ public:
   std::string get_current_directory();
   std::string get_base_folder();
   std::string get_main_config_preset();
-  ParametersHandler &get_parameters_handler();
+  ConfigHandler &get_parameters_handler();
   Selector &getSelector();
   ModManager &getModManager();
   ModsPresetHandler &getModPresetHandler();
@@ -57,22 +55,23 @@ public:
 
 private:
 
-  bool _only_show_folders_;
+  bool _only_show_folders_{false};
 
-  int _max_relative_depth_;
+  int _max_relative_depth_{-1};
   int _current_relative_depth_;
 
   int _last_page_;
   int _last_cursor_position_;
 
-  std::string _currentDirectory_;
+  std::string _baseFolder_{"/"};
+  std::string _currentDirectory_{_baseFolder_};
+
   std::string _last_directory_;
-  std::string _base_folder_;
   std::string _main_config_preset_;
 
   Selector _selector_;
   ModManager _modManager_;
-  ParametersHandler _parameters_handler_;
+  ConfigHandler _parameters_handler_;
   ModsPresetHandler _modPresetHandler_;
 
 };

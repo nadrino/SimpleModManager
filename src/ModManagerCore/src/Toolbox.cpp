@@ -2,29 +2,19 @@
 // Created by Nadrino on 04/09/2019.
 //
 
-#include "GlobalObjects.h"
 #include <Toolbox.h>
 #include <version_config.h>
-#include <Selector.h>
 
 #include "GenericToolbox.Switch.h"
 
 #include <switch.h>
-#include <zlib.h>
 
-#include <cstring>
 #include <cmath>
 #include <sys/stat.h>
-#include <dirent.h>
 #include <iostream>
-#include <fstream>
-#include <functional>
-#include <iomanip> // stringstream
 #include <sstream>
-#include <filesystem> // cpp 17 functions -> does not work
-#include <exception>
-#include <chrono>
-#include <unistd.h>
+#include "string"
+
 
 namespace Toolbox{
 
