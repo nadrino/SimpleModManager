@@ -16,6 +16,8 @@
 #include <cstring>
 
 
+using namespace GenericToolbox;
+
 // setters
 
 
@@ -26,6 +28,25 @@ ModManager &ModBrowser::getModManager(){
 const ConfigHandler &ModBrowser::getConfigHandler() const {
   return _configHandler_;
 }
+
+// Browse
+void ModBrowser::selectGame(const std::string &gameName_) {
+  if( _isGameSelected_ ){
+    GenericToolbox::Switch::Terminal::makePause( "SHOULD GET THERE: " + __METHOD_NAME__ );
+    return;
+  }
+
+  // reset the mod selector
+  _modSelector_ = Selector();
+
+  // list mods
+  auto modList = GenericToolbox::getListOfSubFoldersInFolder(
+      _configHandler_.getConfig().baseFolder + "/" + gameName_
+  );
+
+  _modManager_.setGameFolderPath( _configHandler_.getConfig().baseFolder + "/" + gameName_ );
+}
+
 
 std::string ModBrowser::get_current_directory(){
   return _currentDirectory_;
@@ -48,27 +69,31 @@ void ModBrowser::scanInputs(u64 kDown, u64 kHeld){
   // nothing to do?
   if( kDown == 0 and kHeld == 0 ){ return; }
 
+  Selector* currentSelector{ &_gameSelector_ };
+  if( _isGameSelected_ ){ currentSelector = &_modSelector_; }
+
   // forward to the selector
-  _gameSelector_.scanInputs(kDown, kHeld );
+  currentSelector->scanInputs(kDown, kHeld );
 
 
-  if( _isSelectorInGameFolder_ ){
+  if( _isGameSelected_ ){
     if     (kDown & HidNpadButton_A){ // select folder / apply mod
       // make mod action (ACTIVATE OR DEACTIVATE)
-      _modManager_.applyMod(_gameSelector_.getSelectedEntryTitle());
+      _modManager_.applyMod( currentSelector->getSelectedEntryTitle() );
 
-      GenericToolbox::Switch::Terminal::printLeft("Checking...", GenericToolbox::ColorCodes::magentaBackground, true);
-      _gameSelector_.setTag(
-          _gameSelector_.getCursorPosition(),
-          _modManager_.generateStatusStr(_gameSelector_.getSelectedEntryTitle())
+      Switch::Terminal::printLeft("Checking...", ColorCodes::magentaBackground, true);
+      currentSelector->setTag(
+          currentSelector->getCursorPosition(),
+          _modManager_.generateStatusStr( currentSelector->getSelectedEntryTitle() )
       );
 
     }
-    else if(kDown & HidNpadButton_X){ // disable mod
-      _modManager_.removeMod(_gameSelector_.getSelectedEntryTitle(), 0);
-      _gameSelector_.setTag(
-          _gameSelector_.getCursorPosition(),
-          _modManager_.generateStatusStr(_gameSelector_.getSelectedEntryTitle())
+    else if(kDown & HidNpadButton_X){
+      // disable mod
+      _modManager_.removeMod( currentSelector->getSelectedEntryTitle() );
+      currentSelector->setTag(
+          currentSelector->getCursorPosition(),
+          _modManager_.generateStatusStr(currentSelector->getSelectedEntryTitle())
       );
     }
     else if(kDown & HidNpadButton_Y){ // mod detailed infos
@@ -82,10 +107,10 @@ void ModBrowser::scanInputs(u64 kDown, u64 kHeld){
           }
       );
       if(answer == display_mod_files_status_str){
-        _modManager_.displayModFilesStatus(_gameSelector_.getSelectedEntryTitle() );
+        _modManager_.displayModFilesStatus(currentSelector->getSelectedEntryTitle() );
       }
       else if(answer == display_mod_files_conflicts_str){
-        displayConflictsWithOtherMods(_gameSelector_.getCursorPosition() );
+        displayConflictsWithOtherMods(currentSelector->getCursorPosition() );
       }
     }
     else if(kDown & HidNpadButton_ZL or kDown & HidNpadButton_ZR){ // recheck all mods
@@ -137,9 +162,9 @@ void ModBrowser::scanInputs(u64 kDown, u64 kHeld){
 
         // overwriting
         std::string this_folder_config_file_path = _currentDirectory_ + "/this_folder_config.txt";
-        GenericToolbox::deleteFile(this_folder_config_file_path);
+        deleteFile(this_folder_config_file_path);
         if(answer != null_preset){
-          GenericToolbox::dumpStringInFile(this_folder_config_file_path, answer);
+          dumpStringInFile(this_folder_config_file_path, answer);
           change_config_preset(answer);
         }
         else{
@@ -207,43 +232,37 @@ void ModBrowser::scanInputs(u64 kDown, u64 kHeld){
 
 }
 void ModBrowser::printConsole(){
-  consoleClear();
-  GenericToolbox::Switch::Terminal::printRight("SimpleModManager v" + Toolbox::get_app_version());
 
-  // ls
-  GenericToolbox::Switch::Terminal::printLeft("Current Folder : " + _currentDirectory_, GenericToolbox::ColorCodes::redBackground);
-  std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-  _gameSelector_.print();
-  std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
+  Selector* currentSelector{ &_gameSelector_ };
+  if( _isGameSelected_ ){ currentSelector = &_modSelector_; }
 
-  std::cout << "  Page (" << _gameSelector_.getCursorPage() + 1 << "/" << _gameSelector_.getNbPages() << ")" << std::endl;
-  std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-  if(get_current_relative_depth() == get_max_relative_depth())
-    GenericToolbox::Switch::Terminal::printLeft("Mod preset : " + _modPresetHandler_.getSelectedModPresetName());
-  GenericToolbox::Switch::Terminal::printLeft(
-      std::string("Configuration preset : ")
-      + GenericToolbox::ColorCodes::greenBackground
-      + _configHandler_.get_current_config_preset_name()
-      + GenericToolbox::ColorCodes::resetColor
-    );
-  GenericToolbox::Switch::Terminal::printLeft("install-mods-base-folder = " + _modManager_.get_install_mods_base_folder());
-  std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-  if(get_current_relative_depth() == get_max_relative_depth()){
-    GenericToolbox::Switch::Terminal::printLeftRight(" ZL : Rescan all mods", "ZR : Disable all mods ");
-    GenericToolbox::Switch::Terminal::printLeftRight(" A/X : Apply/Disable mod", "L/R : Previous/Next preset ");
-    GenericToolbox::Switch::Terminal::printLeftRight(" -/+ : Select/Apply mod preset", "Y : Mod options ");
+  currentSelector->clearMenu();
+  currentSelector->getHeader() >> "SimpleModManager v" + Toolbox::getAppVersion() << std::endl;
+  currentSelector->getHeader() << ColorCodes::redBackground << "Current Folder : " + _currentDirectory_ << ColorCodes::resetColor << std::endl;
+  currentSelector->getHeader() << repeatString("*", Switch::Hardware::getTerminalWidth()) << std::endl;
+
+  currentSelector->getFooter() << repeatString("*", Switch::Hardware::getTerminalWidth()) << std::endl;
+  currentSelector->getFooter() << "  Page (" << currentSelector->getCursorPage() + 1 << "/" << currentSelector->getNbPages() << ")" << std::endl;
+  currentSelector->getFooter() << repeatString("*", Switch::Hardware::getTerminalWidth()) << std::endl;
+  if( _isGameSelected_ ){
+    currentSelector->getFooter() << "Mod preset : " << _modPresetHandler_.getSelectedModPresetName() << std::endl;
+  }
+  currentSelector->getFooter() << "Configuration preset : " << ColorCodes::greenBackground;
+  currentSelector->getFooter() << _configHandler_.getConfig().getCurrentPresetName() << ColorCodes::resetColor << std::endl;
+  currentSelector->getFooter() << "install-mods-base-folder = " + _configHandler_.getConfig().getCurrentPreset().installBaseFolder << std::endl;
+  currentSelector->getFooter() << repeatString("*", Switch::Hardware::getTerminalWidth()) << std::endl;
+  if( _isGameSelected_ ){
+    currentSelector->getFooter() << " ZL : Rescan all mods" >> "ZR : Disable all mods " << std::endl;
+    currentSelector->getFooter() << " A/X : Apply/Disable mod" >> "L/R : Previous/Next preset " << std::endl;
+    currentSelector->getFooter() << " -/+ : Select/Apply mod preset" >> "Y : Mod options " << std::endl;
+    currentSelector->getFooter() << " B : Go back" << std::endl;
   }
   else{
-    GenericToolbox::Switch::Terminal::printLeftRight(" A : Select folder", "Y : Change config preset ");
-    GenericToolbox::Switch::Terminal::printLeftRight(" B : Quit", "ZL/ZR : Switch back to the GUI ");
+    currentSelector->getFooter() << " A : Select folder" >> "Y : Change config preset " << std::endl;
+    currentSelector->getFooter() << " B : Quit" >> "ZL/ZR : Switch back to the GUI " << std::endl;
   }
-  if(get_current_relative_depth() > 0) GenericToolbox::Switch::Terminal::printLeft(" B : Go back");
-//  toolbox::print_left_right(
-//    GenericToolbox::Switch::Hardware::getMemoryUsageStr(GenericToolbox::Switch::Hardware::Applet),
-//    GenericToolbox::Switch::Hardware::getMemoryUsageStr(GenericToolbox::Switch::Hardware::System),
-//    toolbox::green_bg
-//    );
-  consoleUpdate(nullptr);
+
+  currentSelector->printTerminal();
 
 }
 void ModBrowser::displayConflictsWithOtherMods(size_t modIndex_){
@@ -256,8 +275,8 @@ void ModBrowser::displayConflictsWithOtherMods(size_t modIndex_){
   };
 
 
-  auto fileList = GenericToolbox::getListOfFilesInSubFolders(
-      _modManager_.getCurrentModFolderPath() + "/" + _gameSelector_.getSelectedEntryTitle()
+  auto fileList = getListOfFilesInSubFolders(
+      _modManager_.getCurrentModFolderPath() + "/" + _modSelector_.getSelectedEntryTitle()
   );
   std::vector<ModFileConflict> modFileList;
 
@@ -287,7 +306,7 @@ void ModBrowser::displayConflictsWithOtherMods(size_t modIndex_){
   sel.set_selection_list(sel_list);
   sel.set_description_list(mods_conflict_files_list);
 
-  sel.set_max_items_per_page(GenericToolbox::Switch::Hardware::getTerminalHeight() - 9);
+  sel.set_max_items_per_page(Switch::Hardware::getTerminalHeight() - 9);
 
   // Main loop
   u64 kDown = 1;
@@ -297,14 +316,14 @@ void ModBrowser::displayConflictsWithOtherMods(size_t modIndex_){
 
     if(kDown != 0 or kHeld != 0){
       consoleClear();
-      GenericToolbox::Switch::Terminal::printLeft("Conflicts with " + selected_mod_, GenericToolbox::ColorCodes::redBackground);
-      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      sel.print();
-      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      GenericToolbox::Switch::Terminal::printLeft("Page (" + std::to_string(sel.get_current_page() + 1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
-      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      GenericToolbox::Switch::Terminal::printLeftRight(" B : Go back", "");
-      if(sel.get_nb_pages() > 1) GenericToolbox::Switch::Terminal::printLeftRight(" <- : Previous Page", "-> : Next Page ");
+      Switch::Terminal::printLeft("Conflicts with " + selected_mod_, ColorCodes::redBackground);
+      std::cout << repeatString("*", Switch::Hardware::getTerminalWidth());
+      sel.printTerminal();
+      std::cout << repeatString("*", Switch::Hardware::getTerminalWidth());
+      Switch::Terminal::printLeft("Page (" + std::to_string(sel.get_current_page() + 1) + "/" + std::to_string(sel.get_nb_pages()) + ")");
+      std::cout << repeatString("*", Switch::Hardware::getTerminalWidth());
+      Switch::Terminal::printLeftRight(" B : Go back", "");
+      if(sel.get_nb_pages() > 1) Switch::Terminal::printLeftRight(" <- : Previous Page", "-> : Next Page ");
       consoleUpdate(nullptr);
     }
 
@@ -340,69 +359,10 @@ void ModBrowser::check_mods_status(){
     std::stringstream ss;
     ss << "Checking (" << iMod + 1 << "/" << _gameSelector_.getEntryList().size() << ") : ";
     ss << _gameSelector_.getEntryList()[iMod].title << "...";
-    GenericToolbox::Switch::Terminal::printLeft(ss.str(), GenericToolbox::ColorCodes::magentaBackground);
+    Switch::Terminal::printLeft(ss.str(), ColorCodes::magentaBackground);
     consoleUpdate(nullptr);
     _gameSelector_.setTag(iMod, _modManager_.generateStatusStr(_gameSelector_.getEntryList()[iMod].title));
   }
-}
-bool ModBrowser::change_directory(std::string new_directory_){
-
-  // removing trailing /
-  if(new_directory_.size() != 1 and new_directory_[new_directory_.size()-1] == '/'){ // remove '/' tail unless "/" is the whole path
-    new_directory_ = new_directory_.substr(0, new_directory_.size()-1);
-  }
-
-  // sanity check
-  if(not GenericToolbox::doesPathIsFolder(new_directory_)) return false;
-  auto new_path_relative_depth = get_relative_path_depth(new_directory_);
-  if(new_path_relative_depth != -1 and new_path_relative_depth > _max_relative_depth_) return false;
-
-  // update objects
-  int restored_cursor_position = -1;
-  int restored_page = -1;
-  if(new_directory_ == _last_directory_){
-    restored_cursor_position = _last_cursor_position_;
-    restored_page = _last_page_;
-  }
-  _last_directory_ = _currentDirectory_;
-  _last_cursor_position_ = long(_gameSelector_.getCursorPosition() );
-  _last_page_ = _gameSelector_.getCursorPage();
-  _currentDirectory_ = new_directory_;
-  _current_relative_depth_ = new_path_relative_depth;
-
-  // update list of entries
-  std::vector<std::string> selection_list;
-  if(not _only_show_folders_) { selection_list = GenericToolbox::getListOfEntriesInFolder(_currentDirectory_); }
-  else                        { selection_list = GenericToolbox::getListOfSubFoldersInFolder(_currentDirectory_); }
-
-  selection_list.erase(std::remove(selection_list.begin(), selection_list.end(), ".plugins"), selection_list.end());
-  std::sort(selection_list.begin(), selection_list.end());
-  _gameSelector_.setEntryList(selection_list);
-
-  // restoring cursor position
-  if(restored_page != -1){
-    while(_gameSelector_.getCurrentPage() != restored_page){
-      _gameSelector_.next_page();
-    }
-    _gameSelector_.moveCursorPosition(restored_cursor_position);
-  }
-
-  if(new_path_relative_depth == _max_relative_depth_){
-    std::string thisFolderConfigFilePath = _currentDirectory_ + "/this_folder_config.txt";
-    if(GenericToolbox::doesPathIsFile(thisFolderConfigFilePath)){
-      _main_config_preset_ = _configHandler_.get_current_config_preset_name(); // backup
-      auto vector_this_folder_config = GenericToolbox::dumpFileAsVectorString(thisFolderConfigFilePath);
-      if(not vector_this_folder_config.empty()){ this->change_config_preset(vector_this_folder_config[0]); }
-    }
-  }
-  else{
-    // restore initial config preset
-    if(_main_config_preset_ != _configHandler_.get_current_config_preset_name()){
-      change_config_preset(_main_config_preset_);
-    }
-  }
-
-  return true;
 }
 void ModBrowser::change_config_preset(const std::string& new_config_preset_){
 
@@ -414,17 +374,17 @@ void ModBrowser::change_config_preset(const std::string& new_config_preset_){
 }
 bool ModBrowser::goToGameDirectory(){
   std::string new_path = _currentDirectory_ + "/" + _gameSelector_.getSelectedEntryTitle();
-  new_path = GenericToolbox::removeRepeatedCharacters(new_path, "/");
+  new_path = removeRepeatedCharacters(new_path, "/");
   return change_directory(new_path);
 }
 bool ModBrowser::go_back(){
 
   if(get_relative_path_depth(_currentDirectory_) <= 0 or _currentDirectory_ == "/") return false; // already at maximum root
 
-  auto folder_elements = GenericToolbox::splitString(_currentDirectory_, "/");
-  auto new_path = "/" + GenericToolbox::joinVectorString(folder_elements, "/", 0, folder_elements.size()-1);
-  new_path = GenericToolbox::removeRepeatedCharacters(new_path, "/");
-  if(not GenericToolbox::doesPathIsFolder(new_path)){
+  auto folder_elements = splitString(_currentDirectory_, "/");
+  auto new_path = "/" + joinVectorString(folder_elements, "/", 0, folder_elements.size()-1);
+  new_path = removeRepeatedCharacters(new_path, "/");
+  if(not doesPathIsFolder(new_path)){
     std::cerr << "Can't go back, \"" << new_path << "\" is not a folder" << std::endl;
     return false;
   }
@@ -443,7 +403,7 @@ uint8_t* ModBrowser::getFolderIcon(const std::string& gameFolder_){
 
   if(get_current_relative_depth() == get_max_relative_depth()-1){
     std::string game_folder_path = get_current_directory() + "/" + gameFolder_;
-    icon = GenericToolbox::Switch::Utils::getFolderIconFromTitleId(GenericToolbox::Switch::Utils::lookForTidInSubFolders(game_folder_path));
+    icon = Switch::Utils::getFolderIconFromTitleId(Switch::Utils::lookForTidInSubFolders(game_folder_path));
   }
 
   return icon;
@@ -451,7 +411,7 @@ uint8_t* ModBrowser::getFolderIcon(const std::string& gameFolder_){
 
 void ModBrowser::removeAllMods(bool force_){
   std::string answer;
-  GenericToolbox::Switch::IO::p.useCrcCheck = false;
+  Switch::IO::p.useCrcCheck = false;
   if(not force_){
     answer = Selector::askQuestion(
         "Do you want to disable all mods ?",
@@ -466,13 +426,13 @@ void ModBrowser::removeAllMods(bool force_){
       _modManager_.removeMod(mod.title, 0);
     }
   }
-  GenericToolbox::Switch::IO::p.useCrcCheck = true;
+  Switch::IO::p.useCrcCheck = true;
 }
 
 int ModBrowser::getPathDepth(const std::string& path_){
-  int pathDepth = int((GenericToolbox::splitString(path_, "/")).size() );
-  if(GenericToolbox::doesStringStartsWithSubstring(path_, "/")) pathDepth--;
-  if(GenericToolbox::doesStringEndsWithSubstring(path_, "/")) pathDepth--;
+  int pathDepth = int((splitString(path_, "/")).size() );
+  if(doesStringStartsWithSubstring(path_, "/")) pathDepth--;
+  if(doesStringEndsWithSubstring(path_, "/")) pathDepth--;
   return pathDepth;
 }
 

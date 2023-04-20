@@ -26,7 +26,7 @@ namespace Toolbox{
   bool get_CRC_check_is_enabled();
 
   //! External function
-  std::string get_app_version();
+  std::string getAppVersion();
 }
 
 #endif //SIMPLEMODMANAGER_TOOLBOX_H

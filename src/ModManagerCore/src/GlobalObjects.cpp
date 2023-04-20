@@ -10,7 +10,7 @@
 namespace GlobalObjects{
 
   static bool _quit_now_triggered_ = false;
-  std::string _version_str_ = "v" + Toolbox::get_app_version();
+  std::string _version_str_ = "v" + Toolbox::getAppVersion();
   PadState gPad{};
 
   ModBrowser &getModBrowser() {

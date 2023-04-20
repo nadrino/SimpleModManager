@@ -34,11 +34,11 @@ void ModsPresetHandler::selectModPreset() {
 
   auto drawSelectorPage = [&]{
     consoleClear();
-    GenericToolbox::Switch::Terminal::printRight("SimpleModManager v" + Toolbox::get_app_version());
+    GenericToolbox::Switch::Terminal::printRight("SimpleModManager v" + Toolbox::getAppVersion());
     std::cout << GenericToolbox::ColorCodes::redBackground << std::setw(GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::left;
     std::cout << "Select mod preset" << GenericToolbox::ColorCodes::resetColor;
     std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-    _selector_.print();
+    _selector_.printTerminal();
     std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
     GenericToolbox::Switch::Terminal::printLeft("  Page (" + std::to_string(_selector_.getCursorPage() + 1) + "/" + std::to_string(
         _selector_.getNbPages()) + ")");
@@ -130,12 +130,12 @@ void ModsPresetHandler::editPreset( size_t entryIndex_ ) {
 
   auto printSelector = [&]{
     consoleClear();
-    GenericToolbox::Switch::Terminal::printRight("SimpleModManager v" + Toolbox::get_app_version());
+    GenericToolbox::Switch::Terminal::printRight("SimpleModManager v" + Toolbox::getAppVersion());
     std::cout << GenericToolbox::ColorCodes::redBackground << std::setw(GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::left;
     std::string header_title = "Creating preset : " + preset.name + ". Select the mods you want.";
     std::cout << header_title << GenericToolbox::ColorCodes::resetColor;
     std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-    sel.print();
+    sel.printTerminal();
     std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
     GenericToolbox::Switch::Terminal::printLeftRight(" A : Add mod", "X : Cancel mod ");
     GenericToolbox::Switch::Terminal::printLeftRight(" + : SAVE", "B : Abort / Go back ");
@@ -228,10 +228,10 @@ void ModsPresetHandler::showConflictingFiles( size_t entryIndex_ ) {
 
   auto printSelector = [&]{
     consoleClear();
-    GenericToolbox::Switch::Terminal::printRight("SimpleModManager v" + Toolbox::get_app_version());
+    GenericToolbox::Switch::Terminal::printRight("SimpleModManager v" + Toolbox::getAppVersion());
     GenericToolbox::Switch::Terminal::printLeft("Conflicted files for the preset \"" + preset.name + "\":", GenericToolbox::ColorCodes::redBackground);
     std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-    sel.print();
+    sel.printTerminal();
     std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
     GenericToolbox::Switch::Terminal::printLeft("Total size of the preset:" + GenericToolbox::parseSizeUnits(presetSize), GenericToolbox::ColorCodes::greenBackground);
     std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());

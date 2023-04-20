@@ -349,7 +349,7 @@ void ModManager::displayModFilesStatus(const std::string &modName_){
       consoleClear();
       GenericToolbox::Switch::Terminal::printLeft(modName_, GenericToolbox::ColorCodes::redBackground);
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      selector.print();
+      selector.printTerminal();
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       GenericToolbox::Switch::Terminal::printLeft("Page (" + std::to_string(selector.getCursorPage() + 1) + "/" + std::to_string(
           selector.getNbPages()) + ")");

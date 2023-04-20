@@ -81,12 +81,12 @@ void upgradeFrom150(){
     GenericToolbox::deleteFile( oldPath );
 
     Terminal::printLeft("");
-    Terminal::printLeft("Welcome in SimpleModManager v" + Toolbox::get_app_version(), GenericToolbox::ColorCodes::greenBackground);
+    Terminal::printLeft("Welcome in SimpleModManager v" + Toolbox::getAppVersion(), GenericToolbox::ColorCodes::greenBackground);
     Terminal::printLeft("");
     Terminal::printLeft("");
     Terminal::printLeft("");
     Terminal::printLeft("");
-    Terminal::printLeft(" > Looks like you've been running on a version <= " + Toolbox::get_app_version());
+    Terminal::printLeft(" > Looks like you've been running on a version <= " + Toolbox::getAppVersion());
     Terminal::printLeft(" > Now parameters.ini is read from : " + p.getConfig().configFilePath);
     Terminal::printLeft(" > The old file has been moved to this location.");
     Terminal::printLeft("");

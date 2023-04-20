@@ -50,7 +50,7 @@ namespace Toolbox{
   }
 
   //! External function
-  std::string get_app_version(){
+  std::string getAppVersion(){
     std::stringstream ss;
     ss << get_version_major() << "." << get_version_minor() << "." << get_version_micro() << get_version_tag();
     return ss.str();

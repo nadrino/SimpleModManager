@@ -131,7 +131,7 @@ void ConfigHandler::dumpConfigToFile() const {
     ssConfig << std::endl;
   }
   ssConfig << "# DO NOT TOUCH THIS : used to recognise the last version of the program config" << std::endl;
-  ssConfig << "last-program-version = " << Toolbox::get_app_version() << std::endl;
+  ssConfig << "last-program-version = " << Toolbox::getAppVersion() << std::endl;
   ssConfig << std::endl;
 
   GenericToolbox::dumpStringInFile(_config_.configFilePath, ssConfig.str());

@@ -10,6 +10,7 @@
 
 #include <switch.h>
 
+using namespace GenericToolbox::Switch;
 
 // non native setters
 void Selector::setEntryList(const std::vector<std::string>& entryTitleList_) {
@@ -74,7 +75,7 @@ const std::string& Selector::getSelectedEntryTitle() const {
   return this->getSelectedEntry().title;
 }
 size_t Selector::getNbMenuLines() const{
-  return _header_.size() + _footer_.size();
+  return _header_.lineList.size() + _footer_.lineList.size();
 }
 size_t Selector::getCursorPage() const{
   this->refillPageEntryCache();
@@ -97,17 +98,17 @@ bool Selector::isSelectedEntry(const SelectorEntry& entry_) const{
 }
 
 // io
-void Selector::print() const {
+void Selector::printTerminal() const {
+  // clear console
+  consoleClear();
+
+  Selector::printMenu( _header_ );
+
+  // get the paging wrt headers/footers
   this->refillPageEntryCache();
 
   // fetch the current page to print using the cursor position
   size_t currentPage{ this->getCursorPage()  };
-
-
-  consoleClear();
-
-  // TODO: print header
-
 
   // print only the entries that
   std::stringstream ssLeft;
@@ -119,13 +120,13 @@ void Selector::print() const {
     else{ ssLeft << " "; }
     ssLeft << " " << _entryList_[entryIndex].title;
 
-    GenericToolbox::Switch::Terminal::printLeftRight(
+    Terminal::printLeftRight(
         ssLeft.str(), _entryList_[entryIndex].tag,
         (entryIndex == _cursorPosition_ ? GenericToolbox::ColorCodes::blueBackground : "")
     );
 
     for( auto& descriptionLine : _entryList_[entryIndex].description ){
-      GenericToolbox::Switch::Terminal::printLeft(
+      Terminal::printLeft(
           descriptionLine,
           (entryIndex == _cursorPosition_ ? GenericToolbox::ColorCodes::blueBackground : "")
       );
@@ -133,8 +134,7 @@ void Selector::print() const {
 
   }
 
-
-  // TODO: print footer
+  Selector::printMenu( _footer_ );
 
   consoleUpdate(nullptr);
 }
@@ -217,55 +217,53 @@ void Selector::jumpToPreviousPage(){
 }
 
 // static
+void Selector::printMenu(const MenuLineList& menu_){
+  for( auto& menuLine : menu_.lineList ){
+    if(not menuLine.leftPrint.str().empty() and not menuLine.rightPrint.str().empty() ){
+      Terminal::printLeftRight(menuLine.leftPrint.str(), menuLine.rightPrint.str() );
+    }
+    else if( not menuLine.leftPrint.str().empty() ){
+      Terminal::printLeft(menuLine.leftPrint.str() );
+    }
+    else if( not menuLine.rightPrint.str().empty() ){
+      Terminal::printRight(menuLine.rightPrint.str() );
+    }
+  }
+}
 std::string Selector::askQuestion(const std::string& question_, const std::vector<std::string>& answers_,
                                   const std::vector<std::vector<std::string>>& descriptions_ ) {
 
   std::string answer;
   Selector sel;
 
-  int nb_lines_layout = 0;
-  nb_lines_layout++; // toolbox::print_right("SimpleModManager v"+toolbox::get_app_version());
-  nb_lines_layout++; // std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
-  nb_lines_layout += int(question_.size()) / GenericToolbox::Switch::Hardware::getTerminalWidth();
-  nb_lines_layout++; // std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
-  nb_lines_layout++; // std::cout << GenericToolbox::repeatString("*",toolbox::get_terminal_width());
-  nb_lines_layout++; // toolbox::printLeft_right(" A: Select", "B: Back ");
-  sel.setMaxItemsPerPage(GenericToolbox::Switch::Hardware::getTerminalHeight() - nb_lines_layout);
+  // set the layout with the question:
+  sel.getHeader() >> "SimpleModManager v" >> Toolbox::getAppVersion() << std::endl;
+  sel.getHeader() << GenericToolbox::repeatString("*", Hardware::getTerminalWidth()) << std::endl;
+  sel.getHeader() << question_ << std::endl;
+  sel.getHeader() << GenericToolbox::repeatString("*", Hardware::getTerminalWidth());
 
-  sel.setEntryList(answers_);
-  if(not descriptions_.empty() and descriptions_.size() == answers_.size()){
-    sel.setDescriptionList(descriptions_);
+  // possible answers
+  sel.setEntryList( answers_ );
+
+  // fill optional description of the selectable items
+  if( descriptions_.size() == answers_.size() ){
+    sel.setDescriptionList( descriptions_ );
   }
+
+  // footer
+  sel.getFooter() << GenericToolbox::repeatString("*", Hardware::getTerminalWidth()) << std::endl;
+  sel.getFooter() << " A: Select" >> "B: back";
+
+
 
   u64 kDown = 1;
   while(appletMainLoop()){
 
-    if( kDown != 0 ) {
-      sel.clearMenu();
-      sel.getHeader() >> "SimpleModManager v" >> Toolbox::get_app_version() << std::endl;
-      sel.getHeader() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
-      sel.getHeader() << question_ << std::endl;
-      sel.getHeader() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-
-      sel.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
-      sel.getFooter() << " A: Select" >> "B: back";
-
-      sel.print();
-
-
-
-      GenericToolbox::Switch::Terminal::printRight("SimpleModManager v" + Toolbox::get_app_version());
-      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      std::cout << question_ << std::endl;
-      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      sel.print();
-      std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-      GenericToolbox::Switch::Terminal::printLeftRight(" A: Select", "B: Back ");
-      consoleUpdate(nullptr);
-    }
+    // printout
+    if( kDown != 0 ) { sel.printTerminal(); }
 
     //Scan all the inputs. This should be done once for each frame
-    padUpdate(&GlobalObjects::gPad);;
+    padUpdate( &GlobalObjects::gPad );
 
     //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
     kDown = padGetButtonsDown(&GlobalObjects::gPad);

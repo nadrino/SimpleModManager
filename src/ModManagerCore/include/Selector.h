@@ -85,7 +85,7 @@ public:
   bool isSelectedEntry(const SelectorEntry& entry_) const;
 
   // io
-  void print() const;
+  void printTerminal() const;
   void scanInputs(u64 kDown, u64 kHeld);
   void clearMenu();
 
@@ -98,6 +98,7 @@ public:
   void jumpToPreviousPage();
 
   // printout
+  static void printMenu(const MenuLineList& menu_);
   static std::string askQuestion(
       const std::string& question_, const std::vector<std::string>& answers_,
       const std::vector<std::vector<std::string>>& descriptions_= {}

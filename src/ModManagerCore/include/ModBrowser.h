@@ -25,20 +25,26 @@ public:
 
   // getters
   const ConfigHandler &getConfigHandler() const;
+  Selector &getSelector();
+  ModManager &getModManager();
+  ModsPresetHandler &getModPresetHandler();
 
 
   std::string get_current_directory();
   std::string get_main_config_preset();
   ConfigHandler &get_parameters_handler();
-  Selector &getSelector();
-  ModManager &getModManager();
-  ModsPresetHandler &getModPresetHandler();
 
+  // browse
+  void selectGame(const std::string &gameName_);
+
+  // IO
   void scanInputs(u64 kDown, u64 kHeld);
   void printConsole();
   void displayConflictsWithOtherMods(size_t modIndex_);
+
+
+
   void check_mods_status();
-  bool change_directory(std::string new_directory_);
   void change_config_preset(const std::string& new_config_preset_);
   bool goToGameDirectory();
   bool go_back();
@@ -52,7 +58,7 @@ public:
   static int getPathDepth(const std::string& path_);
 
 private:
-  bool _isSelectorInGameFolder_{false};
+  bool _isGameSelected_{false};
 
   int _last_page_;
   int _last_cursor_position_;

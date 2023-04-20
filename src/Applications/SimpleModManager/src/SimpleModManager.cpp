@@ -100,14 +100,14 @@ void runConsole(){
   int this_version = std::stoi(
       GenericToolbox::joinVectorString(
           GenericToolbox::splitString(
-              Toolbox::get_app_version()
+              Toolbox::getAppVersion()
               , "."),
           ""
       )
   );
   if(lastVersion != this_version){
     GenericToolbox::Switch::Terminal::printLeft("");
-    GenericToolbox::Switch::Terminal::printLeft("Welcome in SimpleModManager v" + Toolbox::get_app_version(), GenericToolbox::ColorCodes::greenBackground);
+    GenericToolbox::Switch::Terminal::printLeft("Welcome in SimpleModManager v" + Toolbox::getAppVersion(), GenericToolbox::ColorCodes::greenBackground);
     GenericToolbox::Switch::Terminal::printLeft("");
     GenericToolbox::Switch::Terminal::printLeft("");
     GenericToolbox::Switch::Terminal::printLeft("");
