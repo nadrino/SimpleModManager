@@ -204,9 +204,12 @@ void ModManager::applyMod(const std::string& modName_, bool overrideConflicts_) 
     else if( not GenericToolbox::doesPathIsFile( dstFilePath ) ){ installFile = true; }
     else if( GenericToolbox::Switch::IO::doFilesAreIdentical( dstFilePath, srcFilePath ) ){ installFile = false; }
     else{
-      onConflictAction = Selector::ask_question(
+      onConflictAction = Selector::askQuestion(
           file + " already exists. Replace ?",
-          {{"Yes"}, {"Yes to all"}, {"No"}, {"No to all"}}
+          {{"Yes"},
+           {"Yes to all"},
+           {"No"},
+           {"No to all"}}
       );
 
       if( onConflictAction == "Yes" or onConflictAction == "Yes to all" ){ installFile = true; }

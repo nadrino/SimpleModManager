@@ -10,11 +10,6 @@
 
 #include <switch.h>
 
-// native setters
-void Selector::setMaxItemsPerPage(size_t maxItemsPerPage_){
-  this->invalidateCache();
-  _maxItemsPerPage_ = maxItemsPerPage_;
-}
 
 // non native setters
 void Selector::setEntryList(const std::vector<std::string>& entryTitleList_) {
@@ -62,6 +57,13 @@ size_t Selector::getCursorPosition() const {
 const std::vector<SelectorEntry> &Selector::getEntryList() const {
   return _entryList_;
 }
+MenuLineList &Selector::getHeader() {
+  return _header_;
+}
+MenuLineList &Selector::getFooter() {
+  return _footer_;
+}
+
 
 // non native getters
 const SelectorEntry& Selector::getSelectedEntry() const {
@@ -70,6 +72,9 @@ const SelectorEntry& Selector::getSelectedEntry() const {
 }
 const std::string& Selector::getSelectedEntryTitle() const {
   return this->getSelectedEntry().title;
+}
+size_t Selector::getNbMenuLines() const{
+  return _header_.size() + _footer_.size();
 }
 size_t Selector::getCursorPage() const{
   this->refillPageEntryCache();
@@ -98,6 +103,12 @@ void Selector::print() const {
   // fetch the current page to print using the cursor position
   size_t currentPage{ this->getCursorPage()  };
 
+
+  consoleClear();
+
+  // TODO: print header
+
+
   // print only the entries that
   std::stringstream ssLeft;
   for( auto& entryIndex : _pageEntryCache_[currentPage] ){
@@ -121,6 +132,11 @@ void Selector::print() const {
     }
 
   }
+
+
+  // TODO: print footer
+
+  consoleUpdate(nullptr);
 }
 void Selector::scanInputs( u64 kDown, u64 kHeld ){
 
@@ -154,6 +170,10 @@ void Selector::scanInputs( u64 kDown, u64 kHeld ){
     this->jumpToNextPage();
   }
 
+}
+void Selector::clearMenu(){
+  _header_.clear();
+  _footer_.clear();
 }
 
 // move cursor
@@ -197,10 +217,8 @@ void Selector::jumpToPreviousPage(){
 }
 
 // static
-std::string Selector::ask_question(const std::string& question_, const std::vector<std::string>& answers_,
-                                const std::vector<std::vector<std::string>>& descriptions_ ) {
-
-  // TODO: move this in a util namespace
+std::string Selector::askQuestion(const std::string& question_, const std::vector<std::string>& answers_,
+                                  const std::vector<std::vector<std::string>>& descriptions_ ) {
 
   std::string answer;
   Selector sel;
@@ -222,8 +240,20 @@ std::string Selector::ask_question(const std::string& question_, const std::vect
   u64 kDown = 1;
   while(appletMainLoop()){
 
-    if(kDown != 0) {
-      consoleClear();
+    if( kDown != 0 ) {
+      sel.clearMenu();
+      sel.getHeader() >> "SimpleModManager v" >> Toolbox::get_app_version() << std::endl;
+      sel.getHeader() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+      sel.getHeader() << question_ << std::endl;
+      sel.getHeader() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
+
+      sel.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+      sel.getFooter() << " A: Select" >> "B: back";
+
+      sel.print();
+
+
+
       GenericToolbox::Switch::Terminal::printRight("SimpleModManager v" + Toolbox::get_app_version());
       std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
       std::cout << question_ << std::endl;
@@ -270,7 +300,7 @@ void Selector::refillPageEntryCache() const {
   _pageEntryCache_.clear();
   _pageEntryCache_.emplace_back();
 
-  long nLinesLeft{long(_maxItemsPerPage_)};
+  long nLinesLeft{long(this->getNbMenuLines())};
   for( size_t iEntry = 0 ; iEntry < _entryList_.size() ; iEntry++ ){
 
     // count how many lines would be left if the entry got printed
@@ -282,7 +312,7 @@ void Selector::refillPageEntryCache() const {
     else if( nLinesLeft < 0 ){
       // next page and reset counter
       _pageEntryCache_.emplace_back();
-      nLinesLeft = long(_maxItemsPerPage_);
+      nLinesLeft = long(this->getNbMenuLines());
 
       // it's going to be printed on this new page. Count for it
       nLinesLeft -= long( _entryList_[iEntry].getNbPrintLines() );

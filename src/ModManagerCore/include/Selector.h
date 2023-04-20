@@ -11,6 +11,41 @@
 #include <vector>
 #include <string>
 #include "map"
+#include "sstream"
+
+
+struct MenuLine{
+  std::stringstream leftPrint{};
+  std::stringstream rightPrint{};
+
+  template<typename T> MenuLine &operator<<(const T &data){
+    leftPrint << data;
+    return *this;
+  }
+  template<typename T> MenuLine &operator>>(const T &data){
+    rightPrint << data;
+    return *this;
+  }
+};
+
+struct MenuLineList{
+  std::vector<MenuLine> lineList;
+
+  template<typename T> MenuLineList &operator<<(const T &data){
+    lineList.back().leftPrint << data;
+    return *this;
+  }
+  template<typename T> MenuLineList &operator>>(const T &data){
+    lineList.back().rightPrint << data;
+    return *this;
+  }
+  MenuLineList &operator<<(std::ostream &(*f)(std::ostream &)){
+    lineList.emplace_back();
+    return *this;
+  }
+
+  void clear(){ lineList.clear(); }
+};
 
 struct SelectorEntry{
   std::string title{};
@@ -20,14 +55,12 @@ struct SelectorEntry{
   [[nodiscard]] size_t getNbPrintLines() const { return 1 + description.size(); }
 };
 
+
 class Selector {
 
 public:
   Selector() = default;
   explicit Selector(const std::vector<std::string>& entryTitleList_){ this->setEntryList(entryTitleList_); }
-
-  // native setters
-  void setMaxItemsPerPage(size_t maxItemsPerPage_);
 
   // non native setters
   void setEntryList(const std::vector<std::string>& entryTitleList_);
@@ -40,10 +73,13 @@ public:
   // native getters
   size_t getCursorPosition() const;
   [[nodiscard]] const std::vector<SelectorEntry> &getEntryList() const;
+  MenuLineList &getHeader();
+  MenuLineList &getFooter();
 
   // non native getters
   const SelectorEntry& getSelectedEntry() const;
   const std::string& getSelectedEntryTitle() const;
+  size_t getNbMenuLines() const;
   size_t getCursorPage() const;
   size_t getNbPages() const;
   bool isSelectedEntry(const SelectorEntry& entry_) const;
@@ -51,6 +87,7 @@ public:
   // io
   void print() const;
   void scanInputs(u64 kDown, u64 kHeld);
+  void clearMenu();
 
   // cursor moving
   void moveCursorPosition(long cursorPosition_);
@@ -61,9 +98,9 @@ public:
   void jumpToPreviousPage();
 
   // printout
-  static std::string ask_question(
+  static std::string askQuestion(
       const std::string& question_, const std::vector<std::string>& answers_,
-      const std::vector<std::vector<std::string>>& descriptions_={}
+      const std::vector<std::vector<std::string>>& descriptions_= {}
   );
 
 protected:
@@ -72,12 +109,13 @@ protected:
 
 private:
   // user parameters
-  size_t _maxItemsPerPage_{30};
   std::string _cursorMarker_{">"};
 
   // selector data
   size_t _cursorPosition_{0};
-  std::vector<SelectorEntry> _entryList_;
+  MenuLineList _header_{};
+  MenuLineList _footer_{};
+  std::vector<SelectorEntry> _entryList_{};
 
   // caches
   mutable bool _isPageEntryCacheValid_{false};

@@ -38,7 +38,7 @@ int main(int argc, char* argv[]){
 //  const auto password = config["password"].as<std::string>();
 
   int max_depth = 1; // could be a parameter in the future
-  GlobalObjects::getModBrowser().set_only_show_folders(true);
+  GlobalObjects::getModBrowser().setOnlyShowFolders(true);
   GlobalObjects::getModBrowser().set_max_relative_depth(max_depth);
   GlobalObjects::getModBrowser().initialize();
 
@@ -115,10 +115,10 @@ void runConsole(){
     GenericToolbox::Switch::Terminal::printLeft(" > The application have successfully been upgraded.");
     GenericToolbox::Switch::Terminal::printLeft("");
     GenericToolbox::Switch::Terminal::printLeft("");
-    Selector::ask_question("To continue, press A.", {"Ok"});
+    Selector::askQuestion("To continue, press A.", {"Ok"});
   }
 
-  GlobalObjects::getModBrowser().print_menu();
+  GlobalObjects::getModBrowser().printConsole();
 
   // Main loop
   while(appletMainLoop())
@@ -136,7 +136,7 @@ void runConsole(){
       break;
     }
 
-    GlobalObjects::getModBrowser().scan_inputs(kDown, kHeld);
+    GlobalObjects::getModBrowser().scanInputs(kDown, kHeld);
 
   } // while
 

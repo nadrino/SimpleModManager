@@ -9,6 +9,12 @@
 #include <switch.h>
 
 
+using namespace GenericToolbox::Switch;
+
+
+void upgradeFrom150();
+
+
 // MAIN
 int main( int argc, char **argv ){
 
@@ -20,55 +26,73 @@ int main( int argc, char **argv ){
   // Initialize the default gamepad (which reads handheld mode inputs as well as the first connected controller)
   padInitializeDefault(&GlobalObjects::gPad);
 
-  std::string old_config_path = GenericToolbox::getCurrentWorkingDirectory() + "/parameters.ini"; // before 1.5.0
-  if(GenericToolbox::doesPathIsFile(old_config_path)){
-    ConfigHandler p;
-    p.initialize();
-    std::string new_param_file = p.get_parameters_file_path();
-    GenericToolbox::Switch::Terminal::printLeft("");
-    GenericToolbox::Switch::Terminal::printLeft("Welcome in SimpleModManager v" + Toolbox::get_app_version(), GenericToolbox::ColorCodes::greenBackground);
-    GenericToolbox::Switch::Terminal::printLeft("");
-    GenericToolbox::Switch::Terminal::printLeft("");
-    GenericToolbox::Switch::Terminal::printLeft("");
-    GenericToolbox::Switch::Terminal::printLeft("");
-    GenericToolbox::Switch::Terminal::printLeft(" > Looks like you've been running on a version <= " + Toolbox::get_app_version());
-    GenericToolbox::Switch::Terminal::printLeft(" > Now parameters.ini is read from : " + new_param_file);
-    GenericToolbox::Switch::Terminal::printLeft(" > The old file will be moved to this location.");
-    GenericToolbox::Switch::Terminal::printLeft("");
-    GenericToolbox::Switch::Terminal::printLeft("");
-    Selector::ask_question("Confirm by pressing A.", {"Ok"});
-    GenericToolbox::mvFile(old_config_path, new_param_file, true);
-  }
-
-  int max_depth = 1; // could be a parameter in the future
-
-  GlobalObjects::getModBrowser().set_only_show_folders(true);
-  GlobalObjects::getModBrowser().set_max_relative_depth(max_depth);
-  GlobalObjects::getModBrowser().initialize();
-  GlobalObjects::getModBrowser().print_menu();
+  GlobalObjects::getModBrowser().printConsole();
 
   // Main loop
   u64 kDown, kHeld;
-  while(appletMainLoop())
-  {
+  while( appletMainLoop() ) {
     //Scan all the inputs. This should be done once for each frame
-    padUpdate(&GlobalObjects::gPad);;
+    padUpdate( &GlobalObjects::gPad );;
 
     //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
-    kDown = padGetButtonsDown(&GlobalObjects::gPad);
-    kHeld = padGetButtons(&GlobalObjects::gPad);
+    kDown = padGetButtonsDown( &GlobalObjects::gPad );
+    kHeld = padGetButtons( &GlobalObjects::gPad );
 
-    if(kDown & HidNpadButton_B){ // back
+
+    if( kDown & HidNpadButton_B ){ // back
       if(GlobalObjects::getModBrowser().get_current_relative_depth() == 0){
         break;
       }
     }
 
-    GlobalObjects::getModBrowser().scan_inputs(kDown, kHeld);
+    GlobalObjects::getModBrowser().scanInputs( kDown, kHeld );
+
+    if( kDown != 0 or kHeld != 0 ){
+      // update display
+      GlobalObjects::getModBrowser().printConsole();
+    }
 
   } // while
 
   consoleExit(nullptr);
   return EXIT_SUCCESS;
+
+}
+
+void upgradeFrom150(){
+
+  std::string oldPath = GenericToolbox::getCurrentWorkingDirectory() + "/parameters.ini"; // before 1.5.0
+  if(GenericToolbox::doesPathIsFile(oldPath)){
+    ConfigHandler p;
+
+    // get the new default path
+    std::string newPath = p.getConfig().configFilePath;
+
+    // load the old file
+    p.loadConfig( oldPath );
+
+    // change its path
+    p.getConfig().configFilePath = newPath;
+
+    // write to the new path
+    p.dumpConfigToFile();
+
+    // delete the old config file
+    GenericToolbox::deleteFile( oldPath );
+
+    Terminal::printLeft("");
+    Terminal::printLeft("Welcome in SimpleModManager v" + Toolbox::get_app_version(), GenericToolbox::ColorCodes::greenBackground);
+    Terminal::printLeft("");
+    Terminal::printLeft("");
+    Terminal::printLeft("");
+    Terminal::printLeft("");
+    Terminal::printLeft(" > Looks like you've been running on a version <= " + Toolbox::get_app_version());
+    Terminal::printLeft(" > Now parameters.ini is read from : " + p.getConfig().configFilePath);
+    Terminal::printLeft(" > The old file has been moved to this location.");
+    Terminal::printLeft("");
+    Terminal::printLeft("");
+
+    Selector::askQuestion("Confirm by pressing A.", {"Ok"});
+  }
 
 }

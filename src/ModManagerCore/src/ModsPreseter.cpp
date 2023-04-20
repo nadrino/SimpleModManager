@@ -63,9 +63,9 @@ void ModsPresetHandler::selectModPreset() {
       return;
     }
     else if(kDown & HidNpadButton_X and not _presetList_.empty()){
-      std::string answer = Selector::ask_question(
-        "Are you sure you want to remove this preset ?",
-        std::vector<std::string>({"Yes", "No"})
+      std::string answer = Selector::askQuestion(
+          "Are you sure you want to remove this preset ?",
+          std::vector<std::string>({"Yes", "No"})
       );
       if( answer == "Yes" ) this->deleteSelectedPreset();
     }
