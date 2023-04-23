@@ -119,7 +119,7 @@ void ModManager::updateModStatus(int modIndex_){
   auto* modPtr = &_modList_[modIndex_];
   if( modPtr == nullptr ) return;
 
-  GenericToolbox::Switch::Terminal::printLeft("   Checking : Listing mod files...", GenericToolbox::ColorCodes::magentaBackground, true);
+  GenericToolbox::Switch::Terminal::printLeft("Checking : " + modPtr->modName, GenericToolbox::ColorCodes::magentaBackground);
   consoleUpdate(nullptr);
 
   std::string modFolderPath = _gameFolderPath_ + "/" + modPtr->modName;
@@ -141,7 +141,7 @@ void ModManager::updateModStatus(int modIndex_){
 
     std::stringstream ssPbar;
     ssPbar << "Checking : (" << iFile+1 << "/" << filesList.size() << ") " << GenericToolbox::getFileNameFromFilePath(file);
-    GenericToolbox::Switch::Terminal::displayProgressBar( iFile, filesList.size(), ssPbar.str() );
+    GenericToolbox::Switch::Terminal::displayProgressBar( iFile++, filesList.size(), ssPbar.str() );
 
     if( GenericToolbox::Switch::IO::doFilesAreIdentical( installedPathCandidate, modFilePath ) ){
       nSameFiles++;
@@ -152,7 +152,8 @@ void ModManager::updateModStatus(int modIndex_){
   // ACTIVE
   // INACTIVE
   modPtr->applyFraction = double(nSameFiles) / double(filesList.size() - nIgnoredFiles);
-  if     ( modPtr->applyFraction == 0 ){ modPtr->statusStr = "INACTIVE"; }
+  if     ( filesList.empty() )         { modPtr->statusStr = "NO FILE"; }
+  else if( modPtr->applyFraction == 0 ){ modPtr->statusStr = "INACTIVE"; }
   else if( modPtr->applyFraction == 1 ){ modPtr->statusStr = "ACTIVE"; }
   else{
     std::stringstream ss;
@@ -228,7 +229,8 @@ void ModManager::applyMod(int modIndex_, bool overrideConflicts_){
     GenericToolbox::Switch::Terminal::displayProgressBar(
         iFile, filesList.size(),
         "(" + std::to_string(iFile+1) + "/" + std::to_string(filesList.size()) + ") " +
-        GenericToolbox::getFileNameFromFilePath(file) + " (" + fileSize + ")");
+        GenericToolbox::getFileNameFromFilePath(file) + " (" + fileSize + ")"
+    );
     iFile++;
 
     std::string dstFilePath{_owner_->getConfigHandler().getConfig().getCurrentPreset().installBaseFolder};
@@ -431,7 +433,8 @@ void ModManager::scanInputs(u64 kDown, u64 kHeld){
     // Enter the mods preset menu a mods preset
     _owner_->getModPresetHandler().selectModPreset();
   }
-  else if( kDown & HidNpadButton_Plus ){ // Apply a mods preset
+  else if( kDown & HidNpadButton_Plus ){
+    // Apply a mods preset
     std::string answer = Selector::askQuestion(
         "Do you want to apply " + _owner_->getModPresetHandler().getSelectedModPresetName() + " ?",
         {{"Yes"}, {"No"}}
@@ -474,7 +477,7 @@ void ModManager::rebuildSelectorMenu(){
   _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
   _selector_.getFooter() << "Mod preset : " << _owner_->getModPresetHandler().getSelectedModPresetName() << std::endl;
   _selector_.getFooter() << "Configuration preset : " << GenericToolbox::ColorCodes::greenBackground;
-  _selector_.getFooter() << _owner_->getConfigHandler().getConfig().getCurrentPresetName() << std::endl;
+  _selector_.getFooter() << _owner_->getConfigHandler().getConfig().getCurrentPresetName() << GenericToolbox::ColorCodes::resetColor << std::endl;
   _selector_.getFooter() << "install-mods-base-folder = " + _owner_->getConfigHandler().getConfig().getCurrentPreset().installBaseFolder << std::endl;
   _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
   _selector_.getFooter() << " ZL : Rescan all mods" >> "ZR : Disable all mods " << std::endl;
