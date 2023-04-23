@@ -65,6 +65,11 @@ struct MenuLineList{
 
   void clear(){ lineList.clear(); }
   [[nodiscard]] bool empty() const { return lineList.empty(); }
+  size_t size() const {
+    if( this->empty() ) return 0;
+    if( lineList.back().empty() ) return lineList.size() - 1; // last line won't be printed
+    return lineList.size();
+  }
 };
 
 struct SelectorEntry{

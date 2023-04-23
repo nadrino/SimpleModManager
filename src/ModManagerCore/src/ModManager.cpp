@@ -5,17 +5,13 @@
 #include "ModManager.h"
 #include <Toolbox.h>
 #include <GameBrowser.h>
-#include "GlobalObjects.h"
 
 #include "GenericToolbox.Switch.h"
 
 #include <switch.h>
 
 #include <iostream>
-#include <sys/stat.h>
 #include <sstream>
-#include <fstream>
-#include <utility>
 
 
 ModManager::ModManager(GameBrowser* owner_) : _owner_(owner_) {}
@@ -54,14 +50,18 @@ void ModManager::updateModList() {
   for( auto& mod : _modList_ ){
     _selector_.getEntryList().emplace_back();
     _selector_.getEntryList().back().title = mod.modName;
-    _selector_.getEntryList().back().tag = mod.statusStr;
+    _selector_.getEntryList().back().tag = mod.applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].statusStr;
   }
+
+  _selector_.clearMenu();
 }
 void ModManager::dumpModStatusCache() {
   std::stringstream ss;
 
   for( auto& mod : _modList_ ){
-    ss << mod.modName << " = " << mod.statusStr << " = " << mod.applyFraction << std::endl;
+    ss << _owner_->getConfigHandler().getConfig().getCurrentPresetName() << ": " << mod.modName
+    << " = " << mod.applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].statusStr
+    << " = " << mod.applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].applyFraction << std::endl;
   }
 
   std::string cacheFilePath = _gameFolderPath_ + "/mods_status_cache.txt";
@@ -78,22 +78,25 @@ void ModManager::reloadModStatusCache(){
     if( GenericToolbox::doesStringStartsWithSubstring(line, "#") ) continue;
 
     auto elements = GenericToolbox::splitString(line, "=");
+    if( elements.size() < 2 ) continue;
     for( auto& element : elements ){ GenericToolbox::trimInputString(element, " "); }
 
-    // useless entry
-    if( elements.size() < 2 ) continue;
+    // split config preset "default: Mod name ..."
+    auto presetModName = GenericToolbox::splitString(elements[0], ":");
+    if( presetModName.size() != 2 ){ continue; }
+    for( auto& element : presetModName ){ GenericToolbox::trimInputString(element, " "); }
 
-    int modIndex = this->getModIndex( elements[0] );
+    int modIndex = this->getModIndex( presetModName[1] );
     if( modIndex == -1 ) continue;
     auto* modEntryPtr = &_modList_[modIndex];
 
-    modEntryPtr->statusStr = elements[1];
+    modEntryPtr->applyCache[presetModName[0]].statusStr = elements[1];
 
     // v < 1.5.0
     if( elements.size() < 3 ){ continue; }
 
     // v >= 1.5.0
-    modEntryPtr->applyFraction = std::stod( elements[2] );
+    modEntryPtr->applyCache[presetModName[0]].applyFraction = std::stod( elements[2] );
   }
 }
 void ModManager::resetAllModsCacheAndFile(){
@@ -151,18 +154,18 @@ void ModManager::updateModStatus(int modIndex_){
   // (XX/XX) Files Applied
   // ACTIVE
   // INACTIVE
-  modPtr->applyFraction = double(nSameFiles) / double(filesList.size() - nIgnoredFiles);
-  if     ( filesList.empty() )         { modPtr->statusStr = "NO FILE"; }
-  else if( modPtr->applyFraction == 0 ){ modPtr->statusStr = "INACTIVE"; }
-  else if( modPtr->applyFraction == 1 ){ modPtr->statusStr = "ACTIVE"; }
+  modPtr->applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].applyFraction = double(nSameFiles) / double(filesList.size() - nIgnoredFiles);
+  if     ( filesList.empty() )         { modPtr->applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].statusStr = "NO FILE"; }
+  else if( modPtr->applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].applyFraction == 0 ){ modPtr->applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].statusStr = "INACTIVE"; }
+  else if( modPtr->applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].applyFraction == 1 ){ modPtr->applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].statusStr = "ACTIVE"; }
   else{
     std::stringstream ss;
     ss << "PARTIAL (" << nSameFiles << "/" << filesList.size() - nIgnoredFiles << ")";
-    modPtr->statusStr = ss.str();
+    modPtr->applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].statusStr = ss.str();
   }
 
   // update selector
-  _selector_.setTag(modIndex_, modPtr->statusStr);
+  _selector_.setTag(modIndex_, modPtr->applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].statusStr);
 
   // immediately save
   this->dumpModStatusCache();
@@ -418,14 +421,9 @@ void ModManager::scanInputs(u64 kDown, u64 kHeld){
       std::string configFilePath = _gameFolderPath_ + "/this_folder_config.txt";
       GenericToolbox::deleteFile( configFilePath );
       if( selectedPreset != presetsList[0] ){
-        GenericToolbox::dumpStringInFile(configFilePath, selectedPreset );
-        _installPresetPath_ = selectedPreset;
+        GenericToolbox::dumpStringInFile( configFilePath, selectedPreset );
+        _owner_->getConfigHandler().getConfig().setSelectedPreset( selectedPreset );
       }
-      else{
-        // restore the config preset
-        _installPresetPath_ = "";
-      }
-
     }
 
   }
@@ -484,6 +482,8 @@ void ModManager::rebuildSelectorMenu(){
   _selector_.getFooter() << " A/X : Apply/Disable mod" >> "L/R : Previous/Next preset " << std::endl;
   _selector_.getFooter() << " -/+ : Select/Apply mod preset" >> "Y : Mod options " << std::endl;
   _selector_.getFooter() << " B : Go back" << std::endl;
+  _selector_.getFooter() << std::endl;
+  _selector_.getFooter() << std::endl;
 
   _selector_.invalidatePageCache();
   _selector_.refillPageEntryCache();

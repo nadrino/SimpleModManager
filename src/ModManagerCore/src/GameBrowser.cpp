@@ -125,6 +125,9 @@ void GameBrowser::rebuildSelectorMenu(){
   _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
   _selector_.getFooter() << " A : Select folder" >> "Y : Change config preset " << std::endl;
   _selector_.getFooter() << " B : Quit" >> "ZL/ZR : Switch back to the GUI " << std::endl;
+  _selector_.getFooter() << std::endl;
+  _selector_.getFooter() << std::endl;
+  _selector_.getFooter() << std::endl;
 
   _selector_.invalidatePageCache();
   _selector_.refillPageEntryCache();

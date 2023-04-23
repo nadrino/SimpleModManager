@@ -39,11 +39,6 @@ int main( int argc, char **argv ){
     kDown = padGetButtonsDown( &pad );
     kHeld = padGetButtons( &pad );
 
-    if( kDown == 0 and kHeld == 0 ){
-      // nothing to reprocess
-      continue;
-    }
-
     if( kDown & HidNpadButton_B ){
       // quit
       if( not gameBrowser.isGameSelected() ){
@@ -52,6 +47,12 @@ int main( int argc, char **argv ){
     }
 
     gameBrowser.scanInputs( kDown, kHeld );
+
+    if( kDown == 0 and kHeld == 0 ){
+      // don't reprint
+      continue;
+    }
+
     gameBrowser.printTerminal();
 
   } // while

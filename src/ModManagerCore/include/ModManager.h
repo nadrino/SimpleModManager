@@ -13,14 +13,17 @@
 #include <string>
 #include <map>
 
+struct ApplyCache{
+  std::string statusStr{"UNCHECKED"};
+  double applyFraction{0};
+};
 
 struct ModEntry{
   ModEntry() = default;
   explicit ModEntry(std::string  modName_): modName(std::move(modName_)) {}
 
   std::string modName;
-  std::string statusStr{"UNCHECKED"};
-  double applyFraction{0};
+  std::map<std::string, ApplyCache> applyCache;
 };
 
 
@@ -81,7 +84,6 @@ private:
 
   bool _ignoreCacheFiles_{true};
   std::string _gameFolderPath_{};
-  std::string _installPresetPath_{};
   std::vector<std::string> _ignoredFileList_{};
 
   Selector _selector_;

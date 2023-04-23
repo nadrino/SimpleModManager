@@ -77,7 +77,7 @@ const std::string& Selector::getSelectedEntryTitle() const {
   return this->getSelectedEntry().title;
 }
 size_t Selector::getNbMenuLines() const{
-  return _header_.lineList.size() + _footer_.lineList.size();
+  return _header_.size() + _footer_.size();
 }
 size_t Selector::getCursorPage() const{
   this->refillPageEntryCache();
@@ -229,7 +229,9 @@ void Selector::refillPageEntryCache() const {
   _pageEntryCache_.clear();
   _pageEntryCache_.emplace_back();
 
-  long nLinesLeft{GenericToolbox::Switch::Hardware::getTerminalHeight()};
+  long nTotalLines{long(GenericToolbox::Switch::Hardware::getTerminalHeight()) - long(this->getNbMenuLines())};
+  if( nTotalLines < 0 ) nTotalLines = 1; // ?
+  long nLinesLeft{nTotalLines};
   for( size_t iEntry = 0 ; iEntry < _entryList_.size() ; iEntry++ ){
 
     // count how many lines would be left if the entry got printed
@@ -241,7 +243,7 @@ void Selector::refillPageEntryCache() const {
     else if( nLinesLeft < 0 ){
       // next page and reset counter
       _pageEntryCache_.emplace_back();
-      nLinesLeft = long(this->getNbMenuLines());
+      nLinesLeft = nTotalLines;
 
       // it's going to be printed on this new page. Count for it
       nLinesLeft -= long( _entryList_[iEntry].getNbPrintLines() );

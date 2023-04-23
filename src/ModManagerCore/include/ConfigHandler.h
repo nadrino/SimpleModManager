@@ -29,6 +29,7 @@ struct ConfigHolder{
   std::string configFilePath{"/config/SimpleModManager/parameters.ini"};
 
   void setSelectedPresetIndex(int selectedPresetIndex_);
+  void setSelectedPreset(const std::string& preset_);
   [[nodiscard]] std::string getCurrentPresetName() const;
   [[nodiscard]] const PresetConfig& getCurrentPreset() const { return presetList[selectedPresetIndex]; }
 };

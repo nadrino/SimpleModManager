@@ -16,6 +16,9 @@ void ConfigHolder::setSelectedPresetIndex(int selectedPresetIndex_){
   if( selectedPresetIndex_ < 0 ) selectedPresetIndex_ += int( presetList.size() );
   selectedPresetIndex = selectedPresetIndex_;
 }
+void ConfigHolder::setSelectedPreset(const std::string& preset_){
+  setSelectedPresetIndex( GenericToolbox::findElementIndex(preset_, presetList, [](const PresetConfig& entry_){ return entry_.name; }) );
+}
 std::string ConfigHolder::getCurrentPresetName() const{
   if( presetList.empty() or selectedPresetIndex >= int( presetList.size() ) ){ return {}; }
   return presetList[selectedPresetIndex].name;
