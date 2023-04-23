@@ -18,7 +18,7 @@ LoggerInit([]{
 TabGames::TabGames() {
   LogWarning << "Building game tab..." << std::endl;
 
-  auto gameFolderList = GlobalObjects::getModBrowser().getSelector().generateEntryTitleList();
+  auto gameFolderList = GlobalObjects::gGameBrowser.getSelector().generateEntryTitleList();
 
   if( gameFolderList.empty() ){
     LogInfo << "No game found." << std::endl;
@@ -26,11 +26,11 @@ TabGames::TabGames() {
     std::stringstream ssTitle;
     std::stringstream ssSubTitle;
 
-    ssTitle << "No game folders have been found in " << GlobalObjects::getModBrowser().get_base_folder();
+    ssTitle << "No game folders have been found in " << GlobalObjects::gGameBrowser.get_base_folder();
 
-    ssSubTitle << "- To add mods, you need to copy them such as: " << GlobalObjects::getModBrowser().get_base_folder();
+    ssSubTitle << "- To add mods, you need to copy them such as: " << GlobalObjects::gGameBrowser.get_base_folder();
     ssSubTitle << "<name-of-the-game>/<name-of-the-mod>/<mods-files-and-folders>." << std::endl;
-    ssSubTitle << "- You can also change this folder (" + GlobalObjects::getModBrowser().get_base_folder();
+    ssSubTitle << "- You can also change this folder (" + GlobalObjects::gGameBrowser.get_base_folder();
     ssSubTitle << ") by editing the config file in /config/SimpleModManager/parameters.ini";
 
     _gameList_.emplace_back();
@@ -49,15 +49,15 @@ TabGames::TabGames() {
       iGame++;
 
       int nMods = int( GenericToolbox::getListOfSubFoldersInFolder(
-          GlobalObjects::getModBrowser().get_current_directory() + "/" + gameFolder
+          GlobalObjects::gGameBrowser.get_current_directory() + "/" + gameFolder
       ).size() );
 
       // memory allocation
       auto* item = new brls::ListItem(gameFolder, "", std::to_string(nMods) + " mod(s) available.");
-      item->setValue(GlobalObjects::getModBrowser().getSelector().getTag(iGame));
+      item->setValue(GlobalObjects::gGameBrowser.getSelector().getTag(iGame));
 
       // TODO: should be moved to a utils library
-      auto* icon = GlobalObjects::getModBrowser().getFolderIcon( gameFolder );
+      auto* icon = GlobalObjects::gGameBrowser.getFolderIcon( gameFolder );
       if(icon != nullptr){ item->setThumbnail(icon, 0x20000); }
       item->getClickEvent()->subscribe([gameFolder](View* view) {
         LogWarning << "Opening \"" << gameFolder << "\"" << std::endl;

@@ -14,7 +14,7 @@ using namespace GenericToolbox::Switch;
 
 // non native setters
 void Selector::setEntryList(const std::vector<std::string>& entryTitleList_) {
-  this->invalidateCache();
+  this->invalidatePageCache();
   _cursorPosition_ = 0;
   _entryList_.clear();
   _entryList_.reserve( entryTitleList_.size() );
@@ -24,30 +24,30 @@ void Selector::setEntryList(const std::vector<std::string>& entryTitleList_) {
   }
 }
 void Selector::setTag(size_t entryIndex_, const std::string &tag_){
-  this->invalidateCache();
+  this->invalidatePageCache();
   if( entryIndex_ >= _entryList_.size() ) return;
   _entryList_[entryIndex_].tag = tag_;
 }
 void Selector::setTagList(const std::vector<std::string>& tagList_){
-  this->invalidateCache();
+  this->invalidatePageCache();
   if( tagList_.size() != _entryList_.size() ) return;
   for( size_t iEntry = 0 ; iEntry < _entryList_.size() ; iEntry++ ){
     _entryList_[iEntry].tag = tagList_[iEntry];
   }
 }
 void Selector::setDescriptionList(const std::vector<std::vector<std::string>> &descriptionList_){
-  this->invalidateCache();
+  this->invalidatePageCache();
   if(descriptionList_.size() != _entryList_.size()) return;
   for( size_t iEntry = 0 ; iEntry < _entryList_.size() ; iEntry++ ){
     _entryList_[iEntry].description = descriptionList_[iEntry];
   }
 }
 void Selector::clearTags(){
-  this->invalidateCache();
+  this->invalidatePageCache();
   for( auto& entry : _entryList_ ){ entry.tag = ""; }
 }
 void Selector::clearDescriptions(){
-  this->invalidateCache();
+  this->invalidatePageCache();
   for( auto& entry : _entryList_ ){ entry.description.clear(); }
 }
 
@@ -64,11 +64,13 @@ MenuLineList &Selector::getHeader() {
 MenuLineList &Selector::getFooter() {
   return _footer_;
 }
+std::vector<SelectorEntry> &Selector::getEntryList(){
+  return _entryList_;
+}
 
 
 // non native getters
 const SelectorEntry& Selector::getSelectedEntry() const {
-  if( _entryList_.empty() ){ return _dummyEntry_; }
   return _entryList_[_cursorPosition_];
 }
 const std::string& Selector::getSelectedEntryTitle() const {
@@ -216,18 +218,49 @@ void Selector::jumpToPreviousPage(){
   this->jumpToPage( long( this->getCursorPage() ) - 1 );
 }
 
+// paging
+void Selector::invalidatePageCache() const{
+  _isPageEntryCacheValid_ = false;
+}
+void Selector::refillPageEntryCache() const {
+  if( _isPageEntryCacheValid_ ) return;
+
+  // reset the cache
+  _pageEntryCache_.clear();
+  _pageEntryCache_.emplace_back();
+
+  long nLinesLeft{long(this->getNbMenuLines())};
+  for( size_t iEntry = 0 ; iEntry < _entryList_.size() ; iEntry++ ){
+
+    // count how many lines would be left if the entry got printed
+    nLinesLeft -= long( _entryList_[iEntry].getNbPrintLines() );
+
+    if( _pageEntryCache_.back().empty() ){
+      // add the entry even if it's too long
+    }
+    else if( nLinesLeft < 0 ){
+      // next page and reset counter
+      _pageEntryCache_.emplace_back();
+      nLinesLeft = long(this->getNbMenuLines());
+
+      // it's going to be printed on this new page. Count for it
+      nLinesLeft -= long( _entryList_[iEntry].getNbPrintLines() );
+    }
+
+    _pageEntryCache_.back().emplace_back( iEntry );
+  }
+
+  _isPageEntryCacheValid_ = true;
+}
+
 // static
 void Selector::printMenu(const MenuLineList& menu_){
   for( auto& menuLine : menu_.lineList ){
-    if(not menuLine.leftPrint.str().empty() and not menuLine.rightPrint.str().empty() ){
-      Terminal::printLeftRight(menuLine.leftPrint.str(), menuLine.rightPrint.str() );
-    }
-    else if( not menuLine.leftPrint.str().empty() ){
-      Terminal::printLeft(menuLine.leftPrint.str() );
-    }
-    else if( not menuLine.rightPrint.str().empty() ){
-      Terminal::printRight(menuLine.rightPrint.str() );
-    }
+    // if is last but empty, skip. It's just a trailing std::endl
+    if( &menuLine == &menu_.lineList.back() and menuLine.empty() ){ break; }
+
+    // printout to terminal
+    menuLine.print();
   }
 }
 std::string Selector::askQuestion(const std::string& question_, const std::vector<std::string>& answers_,
@@ -285,40 +318,5 @@ std::string Selector::askQuestion(const std::string& question_, const std::vecto
   }
   consoleClear();
   return answer;
-}
-
-// protected
-void Selector::invalidateCache() const{
-  _isPageEntryCacheValid_ = false;
-}
-void Selector::refillPageEntryCache() const {
-  if( _isPageEntryCacheValid_ ) return;
-
-  // reset the cache
-  _pageEntryCache_.clear();
-  _pageEntryCache_.emplace_back();
-
-  long nLinesLeft{long(this->getNbMenuLines())};
-  for( size_t iEntry = 0 ; iEntry < _entryList_.size() ; iEntry++ ){
-
-    // count how many lines would be left if the entry got printed
-    nLinesLeft -= long( _entryList_[iEntry].getNbPrintLines() );
-
-    if( _pageEntryCache_.back().empty() ){
-      // add the entry even if it's too long
-    }
-    else if( nLinesLeft < 0 ){
-      // next page and reset counter
-      _pageEntryCache_.emplace_back();
-      nLinesLeft = long(this->getNbMenuLines());
-
-      // it's going to be printed on this new page. Count for it
-      nLinesLeft -= long( _entryList_[iEntry].getNbPrintLines() );
-    }
-
-    _pageEntryCache_.back().emplace_back( iEntry );
-  }
-
-  _isPageEntryCacheValid_ = true;
 }
 

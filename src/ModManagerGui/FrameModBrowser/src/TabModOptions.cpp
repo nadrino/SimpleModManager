@@ -22,10 +22,10 @@ void TabModOptions::buildFolderInstallPresetItem() {
   _itemFolderInstallPreset_->setValue(_inheritedTitle_);
 
   // Find the current selection
-  std::string folderConfigFilePath = GlobalObjects::getModBrowser().get_current_directory() + "/this_folder_config.txt";
+  std::string folderConfigFilePath = GlobalObjects::gGameBrowser.get_current_directory() + "/this_folder_config.txt";
   if(GenericToolbox::doesPathIsFile(folderConfigFilePath)){
-    _preSelection_ = 1 + GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_id();
-    _itemFolderInstallPreset_->setValue(GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name());
+    _preSelection_ = 1 + GlobalObjects::gGameBrowser.getConfigHandler().get_current_config_preset_id();
+    _itemFolderInstallPreset_->setValue(GlobalObjects::gGameBrowser.getConfigHandler().get_current_config_preset_name());
   }
 
   // On click : show scrolling up menu
@@ -34,7 +34,7 @@ void TabModOptions::buildFolderInstallPresetItem() {
     // build the choice list
     std::vector<std::string> config_presets_list;
     config_presets_list.emplace_back(this->_inheritedTitle_);
-    for(const auto& preset_name: GlobalObjects::getModBrowser().get_parameters_handler().get_presets_list()){
+    for(const auto& preset_name: GlobalObjects::gGameBrowser.getConfigHandler().get_presets_list()){
       config_presets_list.emplace_back(preset_name);
     }
 
@@ -51,27 +51,27 @@ void TabModOptions::buildFolderInstallPresetItem() {
 
       // overwriting
       std::string this_folder_config_file_path =
-          GlobalObjects::getModBrowser().get_current_directory() + "/this_folder_config.txt";
+          GlobalObjects::gGameBrowser.get_current_directory() + "/this_folder_config.txt";
       GenericToolbox::deleteFile(this_folder_config_file_path);
       if(result > 0){
         // then a preset has been specified
         GenericToolbox::dumpStringInFile(this_folder_config_file_path,
-            GlobalObjects::getModBrowser().get_parameters_handler().get_presets_list()[result - 1]
+                                         GlobalObjects::gGameBrowser.getConfigHandler().get_presets_list()[result - 1]
         );
-        GlobalObjects::getModBrowser().change_config_preset(
-            GlobalObjects::getModBrowser().get_parameters_handler().get_presets_list()[result - 1]
+        GlobalObjects::gGameBrowser.change_config_preset(
+            GlobalObjects::gGameBrowser.getConfigHandler().get_presets_list()[result - 1]
         );
-        this->_itemFolderInstallPreset_->setValue(GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name());
+        this->_itemFolderInstallPreset_->setValue(GlobalObjects::gGameBrowser.getConfigHandler().get_current_config_preset_name());
       }
       else{
         // restore the config preset from the main menu
-        GlobalObjects::getModBrowser().change_config_preset(
-            GlobalObjects::getModBrowser().get_main_config_preset()
+        GlobalObjects::gGameBrowser.change_config_preset(
+            GlobalObjects::gGameBrowser.get_main_config_preset()
         );
         this->_itemFolderInstallPreset_->setValue(_inheritedTitle_);
       }
 
-      GlobalObjects::getModBrowser().getModManager().resetAllModsCacheAndFile();
+      GlobalObjects::gGameBrowser.getModManager().resetAllModsCacheAndFile();
 
     }; // Callback sequence
 

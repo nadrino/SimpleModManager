@@ -26,7 +26,7 @@ TabModPlugins::TabModPlugins() {
 
 	// Setup the list
 	auto plugin_nros_list = GenericToolbox::getListOfEntriesInFolder(
-      GlobalObjects::getModBrowser().get_current_directory() + "/.plugins");
+      GlobalObjects::gGameBrowser.get_current_directory() + "/.plugins");
 	plugin_nros_list.erase(std::remove_if(plugin_nros_list.begin(), plugin_nros_list.end(), [this](std::string &x) {
 							   return get_extension(x) != ".smm"; // put your condition here
 						   }),
@@ -35,7 +35,7 @@ TabModPlugins::TabModPlugins() {
 	{
 		std::string selected_plugin = remove_extension(plugin_nros_list[i_nro]);
 		std::string selected_plugin_path =
-        GlobalObjects::getModBrowser().get_current_directory() + "/.plugins/" + plugin_nros_list[i_nro];
+        GlobalObjects::gGameBrowser.get_current_directory() + "/.plugins/" + plugin_nros_list[i_nro];
 		std::string selected_plugin_author;
 		std::string selected_plugin_version;
 		LogDebug("Adding plugin: %s", selected_plugin.c_str());
@@ -109,7 +109,7 @@ TabModPlugins::TabModPlugins() {
 	{
 
 		auto *emptyListLabel = new brls::ListItem(
-        "No plugins have been found in " + GlobalObjects::getModBrowser().get_current_directory() + "/.plugins",
+        "No plugins have been found in " + GlobalObjects::gGameBrowser.get_current_directory() + "/.plugins",
 			"There you need to put your plugins such as: ./<name-of-the-plugin>.smm");
 		emptyListLabel->show([]() {}, false);
 		this->addView(emptyListLabel);

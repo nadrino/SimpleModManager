@@ -22,14 +22,14 @@ LoggerInit([]{
 TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
 
   // Fetch the available mods
-  auto modFoldersList = GlobalObjects::getModBrowser().getSelector().generateEntryTitleList();
+  auto modFoldersList = GlobalObjects::gGameBrowser.getSelector().generateEntryTitleList();
 
   if( modFoldersList.empty() ){
     LogInfo << "No mod found." << std::endl;
 
     _modList_.emplace_back();
     _modList_.back().item = new brls::ListItem(
-        "No mods have been found in " + GlobalObjects::getModBrowser().get_current_directory(),
+        "No mods have been found in " + GlobalObjects::gGameBrowser.get_current_directory(),
         "There you need to put your mods such as: ./<name-of-the-mod>/<file-structure-in-installed-directory>"
     );
     _modList_.back().item->show( [](){}, false );
@@ -123,7 +123,7 @@ void TabModBrowser::draw(NVGcontext *vg, int x, int y, unsigned int width, unsig
 void TabModBrowser::updateDisplayedModsStatus(){
   LogDebug << __METHOD_NAME__ << std::endl;
 
-  auto* modManager = &GlobalObjects::getModBrowser().getModManager();
+  auto* modManager = &GlobalObjects::gGameBrowser.getModManager();
 
   LogReturnIf( _modList_.size() == 1 and _modList_[0].title.empty(), "No mod in this folder. Nothing to update." );
 
@@ -140,11 +140,11 @@ void TabModBrowser::updateDisplayedModsStatus(){
 
     NVGcolor color;
     // processing color
-    if     ( GlobalObjects::getModBrowser().getModManager().getModsStatusCacheFraction()[modRefStr] == 0 ){
+    if     ( GlobalObjects::gGameBrowser.getModManager().getModsStatusCacheFraction()[modRefStr] == 0 ){
       // inactive color
       color = nvgRGB(80, 80, 80);
     }
-    else if( GlobalObjects::getModBrowser().getModManager().getModsStatusCacheFraction()[modRefStr] == 1 ){
+    else if( GlobalObjects::gGameBrowser.getModManager().getModsStatusCacheFraction()[modRefStr] == 1 ){
       // applied color
       color = nvgRGB(88, 195, 169);
     }

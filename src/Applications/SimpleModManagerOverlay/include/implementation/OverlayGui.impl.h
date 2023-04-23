@@ -20,9 +20,9 @@ std::unique_ptr<tsl::Gui> OverlayGuiLoader::loadInitialGui() {
 void OverlayGuiLoader::initServices() {
   // libtesla already initialized fs, hid, pl, pmdmnt, hid:sys and set:sys
 
-  GlobalObjects::getModBrowser().set_only_show_folders(true);
-  GlobalObjects::getModBrowser().set_max_relative_depth(1);
-  GlobalObjects::getModBrowser().initialize();
+  GlobalObjects::gGameBrowser.set_only_show_folders(true);
+  GlobalObjects::gGameBrowser.set_max_relative_depth(1);
+  GlobalObjects::gGameBrowser.initialize();
 
   tsl::hlp::ScopeGuard dirGuard( [&]{} );
 

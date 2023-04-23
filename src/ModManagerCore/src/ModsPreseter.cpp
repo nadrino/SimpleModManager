@@ -224,33 +224,49 @@ void ModsPresetHandler::showConflictingFiles( size_t entryIndex_ ) {
   Selector sel;
   sel.setEntryList(conflictFileList);
   sel.setTagList(overridingModList);
-  sel.setMaxItemsPerPage(GenericToolbox::Switch::Hardware::getTerminalHeight() - 9);
+
+  auto rebuildHeader = [&]{
+    consoleClear();
+
+    sel.getHeader() >> "SimpleModManager v" >> Toolbox::getAppVersion() << std::endl;
+    sel.getHeader() << GenericToolbox::ColorCodes::redBackground << "Conflicted files for the preset \"" << preset.name << "\":" << std::endl;
+    sel.getHeader() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+
+    sel.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+    sel.getFooter() << GenericToolbox::ColorCodes::greenBackground << "Total size of the preset:" + GenericToolbox::parseSizeUnits(presetSize) << std::endl;
+    sel.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+    sel.getFooter() << "Page (" << sel.getCursorPage() << "/" << sel.getNbPages() << ")" << std::endl;
+    sel.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+    sel.getFooter() << " A : OK" << std::endl;
+    sel.getFooter() << " <- : Previous Page" >> "-> : Next Page " << std::endl;
+
+    sel.invalidatePageCache();
+    sel.refillPageEntryCache();
+  };
+
 
   auto printSelector = [&]{
+    // first nb page processing
+    if( sel.getFooter().empty() ) rebuildHeader();
+
+    // update page number
+    rebuildHeader();
+
     consoleClear();
-    GenericToolbox::Switch::Terminal::printRight("SimpleModManager v" + Toolbox::getAppVersion());
-    GenericToolbox::Switch::Terminal::printLeft("Conflicted files for the preset \"" + preset.name + "\":", GenericToolbox::ColorCodes::redBackground);
-    std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
     sel.printTerminal();
-    std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-    GenericToolbox::Switch::Terminal::printLeft("Total size of the preset:" + GenericToolbox::parseSizeUnits(presetSize), GenericToolbox::ColorCodes::greenBackground);
-    std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-    GenericToolbox::Switch::Terminal::printLeft("Page (" + std::to_string(sel.getCursorPage() + 1) + "/" + std::to_string(
-        sel.getNbPages()) + ")");
-    std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-    GenericToolbox::Switch::Terminal::printLeft(" A : OK");
-    if(sel.getNbPages() > 1) GenericToolbox::Switch::Terminal::printLeftRight(" <- : Previous Page", "-> : Next Page ");
     consoleUpdate(nullptr);
   };
 
+  printSelector();
+
+
+
   // Main loop
   u64 kDown{0}, kHeld{0};
-  printSelector();
-  while(appletMainLoop())
-  {
+  while(appletMainLoop()) {
 
     //Scan all the inputs. This should be done once for each frame
-    padUpdate(&GlobalObjects::gPad);;
+    padUpdate(&GlobalObjects::gPad);
 
     //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
     kDown = padGetButtonsDown(&GlobalObjects::gPad);
@@ -261,7 +277,10 @@ void ModsPresetHandler::showConflictingFiles( size_t entryIndex_ ) {
     }
 
     sel.scanInputs(kDown, kHeld);
-    if( kDown != 0 or kHeld != 0 ){ printSelector(); }
+
+    if( kDown != 0 or kHeld != 0 ){
+      printSelector();
+    }
   }
 
 }

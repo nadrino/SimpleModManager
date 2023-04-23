@@ -61,7 +61,7 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
       auto* dialog = new brls::Dialog("Do you want to delete the preset \"" + item->getLabel() + "\" ?");
 
       dialog->addButton("Yes", [item, dialog](brls::View* view) {
-        GlobalObjects::getModBrowser().getModPresetHandler().deleteModPreset(item->getLabel() );
+        GlobalObjects::gGameBrowser.getModPresetHandler().deleteModPreset(item->getLabel() );
         dialog->close();
 //        _triggerUpdateItem_ = true;
       });
@@ -122,7 +122,7 @@ void TabModPresets::updatePresetItems() {
 
   this->clear();
 
-  auto presetsList = GlobalObjects::getModBrowser().getModPresetHandler().getPresetsList();
+  auto presetsList = GlobalObjects::gGameBrowser.getModPresetHandler().getPresetsList();
 
   LogInfo << "Adding " << presetsList.size() << " presets..." << std::endl;
 
@@ -134,7 +134,7 @@ void TabModPresets::updatePresetItems() {
 
     _itemList_.emplace_back( new brls::ListItem( preset ) );
 
-    auto modsList = GlobalObjects::getModBrowser().getModPresetHandler().getModsList(preset );
+    auto modsList = GlobalObjects::gGameBrowser.getModPresetHandler().getModsList(preset );
     _itemList_.back()->setValue(std::to_string(modsList.size()) + " mods in this set" );
 
     this->assignButtons( _itemList_.back(), true );

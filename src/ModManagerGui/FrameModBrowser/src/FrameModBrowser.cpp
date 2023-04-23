@@ -23,21 +23,21 @@ FrameModBrowser::FrameModBrowser(const std::string& folder_){
 
   this->setTitle(folder_);
 
-  std::string gamePath = GlobalObjects::getModBrowser().get_current_directory() + "/" + folder_;
+  std::string gamePath = GlobalObjects::gGameBrowser.get_current_directory() + "/" + folder_;
   _titleId_ = GenericToolbox::Switch::Utils::lookForTidInSubFolders(gamePath);
-  _icon_ = GlobalObjects::getModBrowser().getFolderIcon(folder_);
+  _icon_ = GlobalObjects::gGameBrowser.getFolderIcon(folder_);
   if(_icon_ != nullptr){ this->setIcon(_icon_, 0x20000); }
   this->setFooterText("SimpleModManager");
 
-  if(GlobalObjects::getModBrowser().change_directory(gamePath) ){
+  if(GlobalObjects::gGameBrowser.change_directory(gamePath) ){
 
-    GlobalObjects::getModBrowser().getModManager().setGameFolderPath(gamePath);
-    GlobalObjects::getModBrowser().getModPresetHandler().readParameterFile(gamePath);
+    GlobalObjects::gGameBrowser.getModManager().setGameFolderPath(gamePath);
+    GlobalObjects::gGameBrowser.getModPresetHandler().readParameterFile(gamePath);
 
     auto* parametersTabList = new brls::List();
-    GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name();
+    GlobalObjects::gGameBrowser.getConfigHandler().get_current_config_preset_name();
     auto* presetParameter = new brls::ListItem("Config preset", "", "");
-    presetParameter->setValue(GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name());
+    presetParameter->setValue(GlobalObjects::gGameBrowser.getConfigHandler().get_current_config_preset_name());
     parametersTabList->addView(presetParameter);
 
     _tabModBrowser_ = new TabModBrowser( this );
@@ -72,7 +72,7 @@ bool FrameModBrowser::onCancel() {
   // If the sidebar was already there, the focus has not changed
   if(lastFocus == brls::Application::getCurrentFocus()){
     LogInfo("Back on games screen...");
-    GlobalObjects::getModBrowser().go_back();
+    GlobalObjects::gGameBrowser.go_back();
     brls::Application::popView(brls::ViewAnimation::SLIDE_RIGHT);
   }
   return true;

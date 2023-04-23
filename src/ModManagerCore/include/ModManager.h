@@ -6,6 +6,7 @@
 #define MODAPPLIER_MOD_MANAGER_H
 
 #include <ConfigHandler.h>
+#include "Selector.h"
 
 #include <utility>
 #include <vector>
@@ -23,51 +24,68 @@ struct ModEntry{
 };
 
 
-class ModBrowser;
+class GameBrowser;
 
 class ModManager {
 
 public:
-  explicit ModManager(ModBrowser* owner_);
+  explicit ModManager(GameBrowser* owner_);
 
   // setters
   void setGameFolderPath(const std::string &gameFolderPath_);
   void setIgnoredFileList(std::vector<std::string>& ignoredFileList_);
 
   // getters
-  [[nodiscard]] const std::string & getCurrentModFolderPath() const;
+  const std::vector<ModEntry> &getModList() const;
+
+  [[nodiscard]] const std::string & getGameFolderPath() const;
   [[nodiscard]] const std::vector<std::string> & getIgnoredFileList() const;
 
+  // selector related
   void updateModList();
   void dumpModStatusCache();
-  void resetModCache(const std::string &modName_);
+  void reloadModStatusCache();
   void resetAllModsCacheAndFile();
 
-  void updateModStatus(std::string& modName_);
+  // mod management
+  void resetModCache(int modIndex_);
+  void resetModCache(const std::string &modName_);
 
-  double getModApplyFraction(const std::string &modName_);
-  std::string generateStatusStr(const std::string& modName_);
+  void updateModStatus(int modIndex_);
+  void updateModStatus(const std::string& modName_);
+  void updateAllModStatus();
 
+  void applyMod(int modIndex_, bool overrideConflicts_ = false);
   void applyMod(const std::string& modName_, bool overrideConflicts_ = false);
   void applyModList(const std::vector<std::string> &modNamesList_);
+
+  void removeMod(int modIndex_);
   void removeMod(const std::string &modName_);
 
+
+
+  // terminal
+  void scanInputs(u64 kDown, u64 kHeld);
+  void printTerminal();
+  void rebuildSelectorMenu();
   void displayModFilesStatus(const std::string &modName_);
 
-  ModEntry* fetchModEntry(const std::string& modName_);
+  // utils
+  int getModIndex(const std::string& modName_);
 
+protected:
+  void displayConflictsWithOtherMods(size_t modIndex_);
 
 private:
-  ModBrowser* _owner_{nullptr};
+  GameBrowser* _owner_{nullptr};
 
   bool _ignoreCacheFiles_{true};
   std::string _gameFolderPath_{};
+  std::string _installPresetPath_{};
   std::vector<std::string> _ignoredFileList_{};
-//  std::map<std::string, std::vector<std::string>> _relative_file_path_list_cache_;
 
+  Selector _selector_;
   std::vector<ModEntry> _modList_{};
-  static ModEntry dummyModEntry;
-
 };
 
 

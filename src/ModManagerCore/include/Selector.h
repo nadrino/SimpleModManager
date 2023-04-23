@@ -6,6 +6,8 @@
 #define SMM_CORE_SELECTOR_H
 
 
+#include "GenericToolbox.Switch.h"
+
 #include <switch/types.h>
 
 #include <vector>
@@ -26,6 +28,20 @@ struct MenuLine{
     rightPrint << data;
     return *this;
   }
+  void print() const{
+    if( not leftPrint.str().empty() and not rightPrint.str().empty() ){
+      GenericToolbox::Switch::Terminal::printLeftRight( leftPrint.str(), rightPrint.str() );
+    }
+    else if( not leftPrint.str().empty() ){
+      GenericToolbox::Switch::Terminal::printLeft( leftPrint.str() );
+    }
+    else if( not rightPrint.str().empty() ){
+      GenericToolbox::Switch::Terminal::printRight( rightPrint.str() );
+    }
+  }
+  bool empty() const{
+    return leftPrint.str().empty() and leftPrint.str().empty();
+  }
 };
 
 struct MenuLineList{
@@ -45,6 +61,7 @@ struct MenuLineList{
   }
 
   void clear(){ lineList.clear(); }
+  [[nodiscard]] bool empty() const { return lineList.empty(); }
 };
 
 struct SelectorEntry{
@@ -75,6 +92,7 @@ public:
   [[nodiscard]] const std::vector<SelectorEntry> &getEntryList() const;
   MenuLineList &getHeader();
   MenuLineList &getFooter();
+  std::vector<SelectorEntry> &getEntryList();
 
   // non native getters
   const SelectorEntry& getSelectedEntry() const;
@@ -97,16 +115,15 @@ public:
   void jumpToNextPage();
   void jumpToPreviousPage();
 
+  void invalidatePageCache() const;
+  void refillPageEntryCache() const;
+
   // printout
   static void printMenu(const MenuLineList& menu_);
   static std::string askQuestion(
       const std::string& question_, const std::vector<std::string>& answers_,
       const std::vector<std::vector<std::string>>& descriptions_= {}
   );
-
-protected:
-  void invalidateCache() const;
-  void refillPageEntryCache() const;
 
 private:
   // user parameters

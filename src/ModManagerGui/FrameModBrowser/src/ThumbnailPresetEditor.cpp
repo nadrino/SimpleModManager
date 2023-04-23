@@ -20,7 +20,7 @@ void ThumbnailPresetEditor::initialize() {
 
   auto* modsList = new brls::List();
 
-  auto modFolderList = GlobalObjects::getModBrowser().getSelector().generateEntryTitleList();
+  auto modFolderList = GlobalObjects::gGameBrowser.getSelector().generateEntryTitleList();
   for( auto& modFolder : modFolderList ){
     auto* item = new brls::ListItem(modFolder, "", "");
 
@@ -72,8 +72,8 @@ void ThumbnailPresetEditor::initialize() {
 //  this->updateActionHint(brls::Key::PLUS, ""); // make the change visible
 
   if(GenericToolbox::doesElementIsInVector(_presetName_,
-                                           GlobalObjects::getModBrowser().getModPresetHandler().getPresetsList())){
-    _selectedModsList_ = GlobalObjects::getModBrowser().getModPresetHandler().getModsList(_presetName_);
+                                           GlobalObjects::gGameBrowser.getModPresetHandler().getPresetsList())){
+    _selectedModsList_ = GlobalObjects::gGameBrowser.getModPresetHandler().getModsList(_presetName_);
   }
   this->process_tags();
 
@@ -118,10 +118,10 @@ std::vector<std::string> & ThumbnailPresetEditor::getSelectedModsList() {
 
 void ThumbnailPresetEditor::save() {
 
-  auto& dataHandler = GlobalObjects::getModBrowser().getModPresetHandler().getDataHandler();
-  auto* PresetsListPtr = &GlobalObjects::getModBrowser().getModPresetHandler().getPresetsList();
+  auto& dataHandler = GlobalObjects::gGameBrowser.getModPresetHandler().getDataHandler();
+  auto* PresetsListPtr = &GlobalObjects::gGameBrowser.getModPresetHandler().getPresetsList();
 
-  auto& modsList = GlobalObjects::getModBrowser().getModPresetHandler().getModsList(_presetName_ );
+  auto& modsList = GlobalObjects::gGameBrowser.getModPresetHandler().getModsList(_presetName_ );
 
   (*dataHandlerPtr)[_presetName_].clear();
   (*dataHandlerPtr)[_presetName_].resize(0);
@@ -146,9 +146,9 @@ void ThumbnailPresetEditor::save() {
   // TODO: Check for conflicts
 //  showConflictingFiles(_presetName_);
 
-  GlobalObjects::getModBrowser().getModPresetHandler().fillSelector();
-  GlobalObjects::getModBrowser().getModPresetHandler().writeConfigFile();
-  GlobalObjects::getModBrowser().getModPresetHandler().readParameterFile();
+  GlobalObjects::gGameBrowser.getModPresetHandler().fillSelector();
+  GlobalObjects::gGameBrowser.getModPresetHandler().writeConfigFile();
+  GlobalObjects::gGameBrowser.getModPresetHandler().readParameterFile();
 
   _owner_->getTabModPresets()->setTriggerUpdateItem( true );
 
@@ -163,7 +163,7 @@ void ThumbnailPresetEditor::autoAssignPresetName() {
   _presetName_ = autoName;
   int count = 0;
   while( GenericToolbox::doesElementIsInVector(
-      _presetName_, GlobalObjects::getModBrowser().getModPresetHandler().getPresetsList())
+      _presetName_, GlobalObjects::gGameBrowser.getModPresetHandler().getPresetsList())
       ){
     _presetName_ = autoName + "-" + std::to_string(count);
     count++;

@@ -1,6 +1,6 @@
 
 
-
+#include "GameBrowser.h"
 #include <GlobalObjects.h>
 #include <Toolbox.h>
 
@@ -26,7 +26,8 @@ int main( int argc, char **argv ){
   // Initialize the default gamepad (which reads handheld mode inputs as well as the first connected controller)
   padInitializeDefault(&GlobalObjects::gPad);
 
-  GlobalObjects::getModBrowser().printConsole();
+  GameBrowser gameBrowser;
+  gameBrowser.printTerminal();
 
   // Main loop
   u64 kDown, kHeld;
@@ -38,25 +39,25 @@ int main( int argc, char **argv ){
     kDown = padGetButtonsDown( &GlobalObjects::gPad );
     kHeld = padGetButtons( &GlobalObjects::gPad );
 
+    if( kDown == 0 and kHeld == 0 ){
+      // nothing to reprocess
+      continue;
+    }
 
-    if( kDown & HidNpadButton_B ){ // back
-      if(GlobalObjects::getModBrowser().get_current_relative_depth() == 0){
+    if( kDown & HidNpadButton_B ){
+      // quit
+      if( not gameBrowser.isGameSelected() ){
         break;
       }
     }
 
-    GlobalObjects::getModBrowser().scanInputs( kDown, kHeld );
-
-    if( kDown != 0 or kHeld != 0 ){
-      // update display
-      GlobalObjects::getModBrowser().printConsole();
-    }
+    gameBrowser.scanInputs( kDown, kHeld );
+    gameBrowser.printTerminal();
 
   } // while
 
   consoleExit(nullptr);
   return EXIT_SUCCESS;
-
 }
 
 void upgradeFrom150(){

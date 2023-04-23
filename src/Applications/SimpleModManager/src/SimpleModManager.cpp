@@ -38,11 +38,11 @@ int main(int argc, char* argv[]){
 //  const auto password = config["password"].as<std::string>();
 
   int max_depth = 1; // could be a parameter in the future
-  GlobalObjects::getModBrowser().setOnlyShowFolders(true);
-  GlobalObjects::getModBrowser().set_max_relative_depth(max_depth);
-  GlobalObjects::getModBrowser().initialize();
+  GlobalObjects::gGameBrowser.setOnlyShowFolders(true);
+  GlobalObjects::gGameBrowser.set_max_relative_depth(max_depth);
+  GlobalObjects::gGameBrowser.initialize();
 
-  if(bool(std::stoi(GlobalObjects::getModBrowser().get_parameters_handler().get_parameter("use-gui")))){
+  if(bool(std::stoi(GlobalObjects::gGameBrowser.getConfigHandler().get_parameter("use-gui")))){
     runGui();
   }
   else{
@@ -91,7 +91,7 @@ void runConsole(){
   int lastVersion = std::stoi(
       GenericToolbox::joinVectorString(
           GenericToolbox::splitString(
-              GlobalObjects::getModBrowser().get_parameters_handler().get_parameter("last-program-version"),
+              GlobalObjects::gGameBrowser.getConfigHandler().get_parameter("last-program-version"),
               "."
           ),
           ""
@@ -118,7 +118,7 @@ void runConsole(){
     Selector::askQuestion("To continue, press A.", {"Ok"});
   }
 
-  GlobalObjects::getModBrowser().printConsole();
+  GlobalObjects::gGameBrowser.printTerminal();
 
   // Main loop
   while(appletMainLoop())
@@ -130,13 +130,13 @@ void runConsole(){
     u64 kDown = padGetButtonsDown(&GlobalObjects::gPad);
     u64 kHeld = padGetButtons(&GlobalObjects::gPad);
 
-    if( (kDown & HidNpadButton_B and GlobalObjects::getModBrowser().get_current_relative_depth() == 0)
+    if( (kDown & HidNpadButton_B and GlobalObjects::gGameBrowser.get_current_relative_depth() == 0)
         or GlobalObjects::is_quit_now_triggered()
         ){ // back
       break;
     }
 
-    GlobalObjects::getModBrowser().scanInputs(kDown, kHeld);
+    GlobalObjects::gGameBrowser.scanInputs(kDown, kHeld);
 
   } // while
 

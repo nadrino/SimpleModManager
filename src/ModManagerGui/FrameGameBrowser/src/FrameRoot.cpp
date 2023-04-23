@@ -9,6 +9,7 @@
 #include <TabGeneralSettings.h>
 
 #include <GlobalObjects.h>
+#include "Toolbox.h"
 
 #include "GenericToolbox.h"
 #include "Logger.h"
@@ -22,7 +23,7 @@ FrameRoot::FrameRoot() {
   LogWarning << "Build root frame..." << std::endl;
 
   this->setTitle("SimpleModManager");
-  this->setFooterText(GlobalObjects::_version_str_);
+  this->setFooterText( "v" + Toolbox::getAppVersion() );
   this->setIcon("romfs:/images/icon.jpg");
   this->addTab("Game Browser", new TabGames());
   this->addSeparator();
