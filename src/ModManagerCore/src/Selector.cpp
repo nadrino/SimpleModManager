@@ -293,7 +293,7 @@ std::string Selector::askQuestion(const std::string& question_, const std::vecto
   padInitializeAny(&pad);
 
   u64 kDown = 1;
-  while(appletMainLoop()){
+  while( appletMainLoop() ){
 
     // printout
     if( kDown != 0 ) { sel.printTerminal(); }
@@ -320,6 +320,9 @@ std::string Selector::askQuestion(const std::string& question_, const std::vecto
 
   }
   consoleClear();
+
+  appletMainLoop();
+
   return answer;
 }
 

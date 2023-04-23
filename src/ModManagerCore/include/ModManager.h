@@ -26,6 +26,13 @@ struct ModEntry{
   std::map<std::string, ApplyCache> applyCache;
 };
 
+ENUM_EXPANDER(
+    ResultModAction, 0,
+    Success,
+    Fail,
+    Abort
+);
+
 
 class GameBrowser;
 
@@ -35,6 +42,8 @@ public:
   explicit ModManager(GameBrowser* owner_);
 
   // setters
+  void setAllowAbort(bool allowAbort);
+
   void setGameFolderPath(const std::string &gameFolderPath_);
   void setIgnoredFileList(std::vector<std::string>& ignoredFileList_);
 
@@ -54,13 +63,13 @@ public:
   void resetModCache(int modIndex_);
   void resetModCache(const std::string &modName_);
 
-  void updateModStatus(int modIndex_);
-  void updateModStatus(const std::string& modName_);
-  void updateAllModStatus();
+  ResultModAction updateModStatus(int modIndex_);
+  ResultModAction updateModStatus(const std::string& modName_);
+  ResultModAction updateAllModStatus();
 
-  void applyMod(int modIndex_, bool overrideConflicts_ = false);
-  void applyMod(const std::string& modName_, bool overrideConflicts_ = false);
-  void applyModList(const std::vector<std::string> &modNamesList_);
+  ResultModAction applyMod(int modIndex_, bool overrideConflicts_ = false);
+  ResultModAction applyMod(const std::string& modName_, bool overrideConflicts_ = false);
+  ResultModAction applyModList(const std::vector<std::string> &modNamesList_);
 
   void removeMod(int modIndex_);
   void removeMod(const std::string &modName_);
@@ -83,6 +92,7 @@ private:
   GameBrowser* _owner_{nullptr};
 
   bool _ignoreCacheFiles_{true};
+  bool _allowAbort_{true};
   std::string _gameFolderPath_{};
   std::vector<std::string> _ignoredFileList_{};
 

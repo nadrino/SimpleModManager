@@ -17,6 +17,9 @@
 ModManager::ModManager(GameBrowser* owner_) : _owner_(owner_) {}
 
 // setters
+void ModManager::setAllowAbort(bool allowAbort) {
+  _allowAbort_ = allowAbort;
+}
 void ModManager::setGameFolderPath(const std::string &gameFolderPath_) {
   _gameFolderPath_ = gameFolderPath_;
   this->updateModList();
@@ -117,10 +120,10 @@ void ModManager::resetModCache(const std::string &modName_){
   this->resetModCache( this->getModIndex(modName_) );
 }
 
-void ModManager::updateModStatus(int modIndex_){
-  if( modIndex_ < 0 or modIndex_ >= int( _modList_.size() ) ) return;
+ResultModAction ModManager::updateModStatus(int modIndex_){
+  if( modIndex_ < 0 or modIndex_ >= int( _modList_.size() ) ) return Fail;
   auto* modPtr = &_modList_[modIndex_];
-  if( modPtr == nullptr ) return;
+  if( modPtr == nullptr ) return Fail;
 
   GenericToolbox::Switch::Terminal::printLeft("Checking : " + modPtr->modName, GenericToolbox::ColorCodes::magentaBackground);
   consoleUpdate(nullptr);
@@ -128,10 +131,21 @@ void ModManager::updateModStatus(int modIndex_){
   std::string modFolderPath = _gameFolderPath_ + "/" + modPtr->modName;
   auto filesList = GenericToolbox::getListOfFilesInSubFolders( modFolderPath );
 
+
+  PadState pad;
+  padInitializeAny(&pad);
+
   size_t nSameFiles{0};
   size_t nIgnoredFiles{0};
   size_t iFile{0};
   for( auto& file : filesList ){
+
+    if( _allowAbort_ ){
+      padUpdate( &pad );
+      auto kDown = padGetButtonsDown( &pad );
+      if( kDown & HidNpadButton_B ) return Abort;
+    }
+
     if( _ignoreCacheFiles_ and GenericToolbox::doesStringStartsWithSubstring(GenericToolbox::getFileNameFromFilePath(file), ".") ) {
       nIgnoredFiles++; continue;
     }
@@ -169,20 +183,25 @@ void ModManager::updateModStatus(int modIndex_){
 
   // immediately save
   this->dumpModStatusCache();
+
+  return Success;
 }
-void ModManager::updateModStatus(const std::string& modName_){
-  this->updateModStatus( this->getModIndex(modName_) );
+ResultModAction ModManager::updateModStatus(const std::string& modName_){
+  return this->updateModStatus( this->getModIndex(modName_) );
 }
-void ModManager::updateAllModStatus(){
+ResultModAction ModManager::updateAllModStatus(){
   _selector_.clearTags();
 
   PadState pad;
   padInitializeAny(&pad);
 
   for(size_t iMod = 0 ; iMod < _selector_.getEntryList().size() ; iMod++ ){
-    padUpdate( &pad );
-    u64 kDown = padGetButtonsDown(&pad);
-    if(kDown & HidNpadButton_B) break;
+
+    if( _allowAbort_ ){
+      padUpdate( &pad );
+      u64 kDown = padGetButtonsDown(&pad);
+      if(kDown & HidNpadButton_B) return Abort;
+    }
 
     _selector_.setTag(iMod, "Checking...");
     printTerminal();
@@ -191,14 +210,17 @@ void ModManager::updateAllModStatus(){
     ss << _selector_.getEntryList()[iMod].title << "...";
     GenericToolbox::Switch::Terminal::printLeft(ss.str(), GenericToolbox::ColorCodes::magentaBackground);
     consoleUpdate(nullptr);
-    this->updateModStatus( _selector_.getEntryList()[iMod].title );
+    auto result = this->updateModStatus( _selector_.getEntryList()[iMod].title );
+    if( result == Abort ) return result;
   }
+
+  return Success;
 }
 
-void ModManager::applyMod(int modIndex_, bool overrideConflicts_){
-  if( modIndex_ < 0 or modIndex_ >= int( _modList_.size() ) ) return;
+ResultModAction ModManager::applyMod(int modIndex_, bool overrideConflicts_){
+  if( modIndex_ < 0 or modIndex_ >= int( _modList_.size() ) ) return Fail;
   auto* modPtr = &_modList_[modIndex_];
-  if( modPtr == nullptr ) return;
+  if( modPtr == nullptr ) return Fail;
 
   GenericToolbox::Switch::Terminal::printLeft("Applying : " + modPtr->modName + "...", GenericToolbox::ColorCodes::greenBackground);
   consoleUpdate(nullptr);
@@ -223,8 +245,19 @@ void ModManager::applyMod(int modIndex_, bool overrideConflicts_){
   std::string onConflictAction{};
   if( overrideConflicts_ ){ onConflictAction = "Yes to all"; }
 
+  PadState pad;
+  padInitializeAny(&pad);
+
+  this->resetModCache( modPtr->modName );
+
   size_t iFile{0};
   for( auto& file : filesList ){
+
+    if( _allowAbort_ ){
+      padUpdate( &pad );
+      auto kDown = padGetButtonsDown(&pad);
+      if( kDown & HidNpadButton_B ){ return Abort; }
+    }
 
     std::string srcFilePath{modFolderPath}; srcFilePath += "/" + file;
     std::string fileSize = GenericToolbox::parseSizeUnits(double(GenericToolbox::getFileSize(srcFilePath)));
@@ -263,13 +296,12 @@ void ModManager::applyMod(int modIndex_, bool overrideConflicts_){
 
   }
 
-  this->resetModCache( modPtr->modName );
+  return Success;
 }
-void ModManager::applyMod(const std::string& modName_, bool overrideConflicts_) {
-  this->applyMod( this->getModIndex(modName_), overrideConflicts_ );
+ResultModAction ModManager::applyMod(const std::string& modName_, bool overrideConflicts_) {
+  return this->applyMod( this->getModIndex(modName_), overrideConflicts_ );
 }
-void ModManager::applyModList(const std::vector<std::string> &modNamesList_){
-
+ResultModAction ModManager::applyModList(const std::vector<std::string> &modNamesList_){
   // checking for overwritten files in advance
   std::vector<std::string> appliedFileList;
   std::vector<std::vector<std::string>> ignoredFileListPerMod(modNamesList_.size());
@@ -290,10 +322,14 @@ void ModManager::applyModList(const std::vector<std::string> &modNamesList_){
   // applying mods with ignored files
   for( size_t iMod = 0 ; iMod < modNamesList_.size() ; iMod++ ){
     _ignoredFileList_ = ignoredFileListPerMod[iMod];
-    this->applyMod( modNamesList_[iMod], true );
+
+    auto result = this->applyMod( modNamesList_[iMod], true );
+    if( result == Abort ){ return result; }
+
     _ignoredFileList_.clear();
   }
 
+  return Success;
 }
 
 void ModManager::removeMod(int modIndex_) {
@@ -425,7 +461,6 @@ void ModManager::scanInputs(u64 kDown, u64 kHeld){
         _owner_->getConfigHandler().getConfig().setSelectedPreset( selectedPreset );
       }
     }
-
   }
   else if( kDown & HidNpadButton_Minus ){
     // Enter the mods preset menu a mods preset
