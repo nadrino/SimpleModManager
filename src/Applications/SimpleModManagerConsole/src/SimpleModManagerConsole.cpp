@@ -24,10 +24,7 @@ int main( int argc, char **argv ){
   padConfigureInput(1, HidNpadStyleSet_NpadStandard);
 
   GameBrowser gameBrowser;
-  gameBrowser.init();
   gameBrowser.printTerminal();
-
-  GenericToolbox::Switch::Terminal::makePause("init pad...");
 
   // Initialize the default gamepad (which reads handheld mode inputs as well as the first connected controller)
   PadState mainPad;
@@ -36,18 +33,12 @@ int main( int argc, char **argv ){
   // Main loop
   u64 kDown, kHeld;
   while( appletMainLoop() ) {
-    GenericToolbox::Switch::Terminal::makePause("starting loop");
-
     //Scan all the inputs. This should be done once for each frame
     padUpdate( &mainPad );
-
-    GenericToolbox::Switch::Terminal::makePause("pad updated");
 
     //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
     kDown = padGetButtonsDown( &mainPad );
     kHeld = padGetButtons( &mainPad );
-
-    GenericToolbox::Switch::Terminal::makePause(GET_VAR_NAME_VALUE(kDown));
 
     if( kDown == 0 and kHeld == 0 ){
       // nothing to reprocess
@@ -61,9 +52,7 @@ int main( int argc, char **argv ){
       }
     }
 
-    GenericToolbox::Switch::Terminal::makePause( "re-scan inputs gBrowser" );
     gameBrowser.scanInputs( kDown, kHeld );
-    GenericToolbox::Switch::Terminal::makePause( "print term?" );
     gameBrowser.printTerminal();
 
   } // while

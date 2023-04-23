@@ -19,6 +19,10 @@ LoggerInit([]{
   Logger::setUserHeaderStr("[GuiModManager]");
 });
 
+
+const GameBrowser &GuiModManager::getGameBrowser() const { return _gameBrowser_; }
+GameBrowser &GuiModManager::getGameBrowser(){ return _gameBrowser_; }
+
 // static
 void GuiModManager::applyMod(const std::string &modName_, bool force_) {
 
@@ -489,4 +493,5 @@ void GuiModManager::setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDi
 bool GuiModManager::isTriggerUpdateModsDisplayedStatus() const {
   return _triggerUpdateModsDisplayedStatus_;
 }
+
 

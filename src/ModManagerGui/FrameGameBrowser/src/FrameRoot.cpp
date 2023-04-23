@@ -45,3 +45,7 @@ bool FrameRoot::onCancel() {
 
   return onCancel;
 }
+
+const GameBrowser &FrameRoot::getGameBrowser() const {
+  return _gameBrowser_;
+}

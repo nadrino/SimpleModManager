@@ -5,6 +5,7 @@
 #include <TabGames.h>
 #include <GlobalObjects.h>
 #include <FrameModBrowser.h>
+#include "FrameRoot.h"
 
 #include "Logger.h"
 #include "GenericToolbox.Switch.h"
@@ -15,10 +16,10 @@ LoggerInit([]{
   Logger::setUserHeaderStr("[TabGames]");
 });
 
-TabGames::TabGames() {
+TabGames::TabGames(FrameRoot* frameRoot_) : _frameRoot_(frameRoot_) {
   LogWarning << "Building game tab..." << std::endl;
 
-  auto gameFolderList = GlobalObjects::gGameBrowser.getSelector().generateEntryTitleList();
+  auto gameFolderList = _frameRoot_->getGameBrowser().getSelector().getEntryList();
 
   if( gameFolderList.empty() ){
     LogInfo << "No game found." << std::endl;
@@ -26,11 +27,12 @@ TabGames::TabGames() {
     std::stringstream ssTitle;
     std::stringstream ssSubTitle;
 
-    ssTitle << "No game folders have been found in " << GlobalObjects::gGameBrowser.get_base_folder();
+    auto baseFolder = _frameRoot_->getGameBrowser().getConfigHandler().getConfig().baseFolder;
+    ssTitle << "No game folders have been found in " << baseFolder;
 
-    ssSubTitle << "- To add mods, you need to copy them such as: " << GlobalObjects::gGameBrowser.get_base_folder();
-    ssSubTitle << "<name-of-the-game>/<name-of-the-mod>/<mods-files-and-folders>." << std::endl;
-    ssSubTitle << "- You can also change this folder (" + GlobalObjects::gGameBrowser.get_base_folder();
+    ssSubTitle << "- To add mods, you need to copy them such as: ";
+    ssSubTitle << baseFolder << "/<name-of-the-game>/<name-of-the-mod>/<mods-files-and-folders>." << std::endl;
+    ssSubTitle << "- You can also change this folder (" + baseFolder;
     ssSubTitle << ") by editing the config file in /config/SimpleModManager/parameters.ini";
 
     _gameList_.emplace_back();
@@ -44,7 +46,7 @@ TabGames::TabGames() {
     int iGame{-1};
     for( auto& gameFolder : gameFolderList ){
       LogScopeIndent;
-      LogInfo << "Adding game folder: \"" << gameFolder << "\"" << std::endl;
+      LogInfo << "Adding game folder: \"" << gameFolder.title << "\"" << std::endl;
 
       iGame++;
 

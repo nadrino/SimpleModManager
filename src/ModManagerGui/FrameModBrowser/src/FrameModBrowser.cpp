@@ -23,7 +23,7 @@ FrameModBrowser::FrameModBrowser(const std::string& folder_){
 
   this->setTitle(folder_);
 
-  std::string gamePath = GlobalObjects::gGameBrowser.get_current_directory() + "/" + folder_;
+  std::string gamePath = _modManager_.getGameBrowser().getConfigHandler().getConfig().get_current_directory() + "/" + folder_;
   _titleId_ = GenericToolbox::Switch::Utils::lookForTidInSubFolders(gamePath);
   _icon_ = GlobalObjects::gGameBrowser.getFolderIcon(folder_);
   if(_icon_ != nullptr){ this->setIcon(_icon_, 0x20000); }

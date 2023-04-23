@@ -11,14 +11,15 @@
 
 
 struct GameItem;
-
+class FrameRoot;
 
 class TabGames : public brls::List {
 
 public:
-  TabGames();
+  TabGames(FrameRoot* frameRoot_);
 
 private:
+  FrameRoot* _frameRoot_{};
   std::vector<GameItem> _gameList_;
 
 };

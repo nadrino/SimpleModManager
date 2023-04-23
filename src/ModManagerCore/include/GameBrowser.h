@@ -18,9 +18,7 @@
 class GameBrowser{
 
 public:
-  GameBrowser() = default;
-
-  void init();
+  GameBrowser();
 
   // getters
   bool isGameSelected() const;
@@ -40,6 +38,9 @@ public:
 
   // utils -> move to gui lib??
   uint8_t* getFolderIcon(const std::string& gameFolder_);
+
+protected:
+  void init();
 
 private:
   bool _isGameSelected_{false};

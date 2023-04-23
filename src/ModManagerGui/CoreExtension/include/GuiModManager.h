@@ -8,6 +8,8 @@
 #include <PopupLoadingView.h>
 #include <PopupLoadingBox.h>
 
+#include "GameBrowser.h"
+
 #include <borealis.hpp>
 
 #include <string>
@@ -31,6 +33,9 @@ public:
 
   [[nodiscard]] bool isTriggerUpdateModsDisplayedStatus() const;
 
+  const GameBrowser &getGameBrowser() const;
+  GameBrowser &getGameBrowser();
+
   void startApplyModThread(const std::string& modName_);
   void startRemoveModThread(const std::string& modName_);
   void startCheckAllModsThread();
@@ -46,7 +51,8 @@ protected:
 
 
 private:
-  PopupLoadingBox _loadingBox_;
+  GameBrowser _gameBrowser_{};
+  PopupLoadingBox _loadingBox_{};
   std::future<bool> _asyncResponse_{};
 
   bool _triggerUpdateModsDisplayedStatus_{false};

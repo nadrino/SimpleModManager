@@ -16,18 +16,7 @@
 #include <cstring>
 
 
-using namespace GenericToolbox;
-
-
-void GameBrowser::init(){
-  auto gameList = GenericToolbox::getListOfSubFoldersInFolder( _configHandler_.getConfig().baseFolder );
-
-  _selector_.getEntryList().reserve( gameList.size() );
-  for( auto& game : gameList ){
-    _selector_.getEntryList().emplace_back();
-    _selector_.getEntryList().back().title = game;
-  }
-}
+GameBrowser::GameBrowser(){ this->init(); }
 
 // getters
 bool GameBrowser::isGameSelected() const {
@@ -117,24 +106,22 @@ void GameBrowser::printTerminal(){
 
   // print on screen
   _selector_.printTerminal();
-
-  GenericToolbox::Switch::Terminal::makePause("printTerminal() done");
 }
 void GameBrowser::rebuildSelectorMenu(){
   _selector_.clearMenu();
 
   _selector_.getHeader() >> "SimpleModManager v" >> Toolbox::getAppVersion() << std::endl;
-  _selector_.getHeader() << ColorCodes::redBackground << "Current Folder : ";
+  _selector_.getHeader() << GenericToolbox::ColorCodes::redBackground << "Current Folder : ";
   _selector_.getHeader() << _configHandler_.getConfig().baseFolder << std::endl;
-  _selector_.getHeader() << repeatString("*", Switch::Hardware::getTerminalWidth()) << std::endl;
+  _selector_.getHeader() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
 
-  _selector_.getFooter() << repeatString("*", Switch::Hardware::getTerminalWidth()) << std::endl;
+  _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
   _selector_.getFooter() << "  Page (" << _selector_.getCursorPage() + 1 << "/" << _selector_.getNbPages() << ")" << std::endl;
-  _selector_.getFooter() << repeatString("*", Switch::Hardware::getTerminalWidth()) << std::endl;
-  _selector_.getFooter() << "Configuration preset : " << ColorCodes::greenBackground;
+  _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+  _selector_.getFooter() << "Configuration preset : " << GenericToolbox::ColorCodes::greenBackground;
   _selector_.getFooter() << _configHandler_.getConfig().getCurrentPresetName() << std::endl;
   _selector_.getFooter() << "install-mods-base-folder = " + _configHandler_.getConfig().getCurrentPreset().installBaseFolder << std::endl;
-  _selector_.getFooter() << repeatString("*", Switch::Hardware::getTerminalWidth()) << std::endl;
+  _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
   _selector_.getFooter() << " A : Select folder" >> "Y : Change config preset " << std::endl;
   _selector_.getFooter() << " B : Quit" >> "ZL/ZR : Switch back to the GUI " << std::endl;
 
@@ -145,7 +132,17 @@ void GameBrowser::rebuildSelectorMenu(){
 uint8_t* GameBrowser::getFolderIcon(const std::string& gameFolder_){
   if( _isGameSelected_ ){ return nullptr; }
   std::string game_folder_path = _configHandler_.getConfig().baseFolder + "/" + gameFolder_;
-  uint8_t* icon = Switch::Utils::getFolderIconFromTitleId(Switch::Utils::lookForTidInSubFolders(game_folder_path));
+  uint8_t* icon = GenericToolbox::Switch::Utils::getFolderIconFromTitleId(GenericToolbox::Switch::Utils::lookForTidInSubFolders(game_folder_path));
   return icon;
 }
 
+// protected
+void GameBrowser::init(){
+  auto gameList = GenericToolbox::getListOfSubFoldersInFolder( _configHandler_.getConfig().baseFolder );
+
+  _selector_.getEntryList().reserve( gameList.size() );
+  for( auto& game : gameList ){
+    _selector_.getEntryList().emplace_back();
+    _selector_.getEntryList().back().title = game;
+  }
+}
