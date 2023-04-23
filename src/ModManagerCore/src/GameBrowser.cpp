@@ -84,6 +84,7 @@ void GameBrowser::scanInputs(u64 kDown, u64 kHeld){
     if(answer == "Yes") {
       _configHandler_.getConfig().useGui = true;
       _configHandler_.dumpConfigToFile();
+      // TODO QUIT?
 //      GlobalObjects::set_quit_now_triggered(true);
     }
   }

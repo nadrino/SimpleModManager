@@ -23,7 +23,7 @@ public:
 
   ModsPresetHandler() = default;
 
-  void setModFolder(const std::string &gameFolder);
+  void setModFolder(const std::string &gameFolder_);
 
   [[nodiscard]] const std::vector<PresetData> &getPresetList() const;
 

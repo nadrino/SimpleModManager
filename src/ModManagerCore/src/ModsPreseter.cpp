@@ -17,8 +17,8 @@
 #include "sstream"
 
 
-void ModsPresetHandler::setModFolder(const std::string &gameFolder) {
-  _gameFolder_ = gameFolder;
+void ModsPresetHandler::setModFolder(const std::string &gameFolder_) {
+  _gameFolder_ = gameFolder_;
   this->readConfigFile();
 }
 
@@ -321,15 +321,17 @@ void ModsPresetHandler::readConfigFile() {
     if( lineElements.size() != 2 ) continue;
 
     // clean up for extra spaces characters
-    for(auto &element : lineElements){ GenericToolbox::trimString(element, " "); }
+    for(auto &element : lineElements){ GenericToolbox::trimInputString(element, " "); }
 
     if( lineElements[0] == "preset" ){
       _presetList_.emplace_back();
       _presetList_.back().name = lineElements[1];
     }
     else {
+      // cleaning possible garbage
+      if( _presetList_.empty() ) continue;
       // element 0 is "mod7" for example. Irrelevant here
-      _presetList_.back().modList.emplace_back(lineElements[1] );
+      _presetList_.back().modList.emplace_back( lineElements[1] );
     }
   }
 
