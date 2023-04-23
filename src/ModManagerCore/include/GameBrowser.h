@@ -20,6 +20,8 @@ class GameBrowser{
 public:
   GameBrowser() = default;
 
+  void init();
+
   // getters
   bool isGameSelected() const;
   const ConfigHandler &getConfigHandler() const;

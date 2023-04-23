@@ -48,14 +48,17 @@ struct MenuLineList{
   std::vector<MenuLine> lineList;
 
   template<typename T> MenuLineList &operator<<(const T &data){
+    if( lineList.empty() ) lineList.emplace_back();
     lineList.back().leftPrint << data;
     return *this;
   }
   template<typename T> MenuLineList &operator>>(const T &data){
+    if( lineList.empty() ) lineList.emplace_back();
     lineList.back().rightPrint << data;
     return *this;
   }
   MenuLineList &operator<<(std::ostream &(*f)(std::ostream &)){
+    // next line with std::endl
     lineList.emplace_back();
     return *this;
   }

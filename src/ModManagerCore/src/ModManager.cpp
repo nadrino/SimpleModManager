@@ -459,7 +459,7 @@ void ModManager::printTerminal(){
 }
 void ModManager::rebuildSelectorMenu(){
   _selector_.clearMenu();
-  _selector_.getHeader() >> "SimpleModManager v" << Toolbox::getAppVersion() << std::endl;
+  _selector_.getHeader() >> "SimpleModManager v" >> Toolbox::getAppVersion() << std::endl;
   _selector_.getHeader() << GenericToolbox::ColorCodes::redBackground << "Current Folder : " << _owner_->getConfigHandler().getConfig().baseFolder << std::endl;
   _selector_.getHeader() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
 

@@ -17,7 +17,7 @@ void ConfigHolder::setSelectedPresetIndex(int selectedPresetIndex_){
   selectedPresetIndex = selectedPresetIndex_;
 }
 std::string ConfigHolder::getCurrentPresetName() const{
-  if( presetList.empty() or selectedPresetIndex >= presetList.size() ){ return {}; }
+  if( presetList.empty() or selectedPresetIndex >= int( presetList.size() ) ){ return {}; }
   return presetList[selectedPresetIndex].name;
 }
 

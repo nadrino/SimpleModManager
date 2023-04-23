@@ -18,8 +18,16 @@
 
 using namespace GenericToolbox;
 
-// setters
 
+void GameBrowser::init(){
+  auto gameList = GenericToolbox::getListOfSubFoldersInFolder( _configHandler_.getConfig().baseFolder );
+
+  _selector_.getEntryList().reserve( gameList.size() );
+  for( auto& game : gameList ){
+    _selector_.getEntryList().emplace_back();
+    _selector_.getEntryList().back().title = game;
+  }
+}
 
 // getters
 bool GameBrowser::isGameSelected() const {
@@ -44,6 +52,7 @@ ModsPresetHandler &GameBrowser::getModPresetHandler(){
 // Browse
 void GameBrowser::selectGame(const std::string &gameName_) {
   _modManager_.setGameFolderPath( _configHandler_.getConfig().baseFolder + "/" + gameName_ );
+  _modPresetHandler_.setModFolder( _configHandler_.getConfig().baseFolder + "/" + gameName_ );
 
   _isGameSelected_ = true;
 }
@@ -72,9 +81,7 @@ void GameBrowser::scanInputs(u64 kDown, u64 kHeld){
 
 
   if     ( kDown & HidNpadButton_A ){ // select folder / apply mod
-    std::string gameFolder = _configHandler_.getConfig().baseFolder + "/" + _selector_.getSelectedEntryTitle();
-    _modManager_.setGameFolderPath( gameFolder );
-    _modPresetHandler_.setModFolder( gameFolder );
+    this->selectGame( _configHandler_.getConfig().baseFolder + "/" + _selector_.getSelectedEntryTitle() );
   }
   else if( kDown & HidNpadButton_Y ){ // switch between config preset
     _configHandler_.selectNextPreset();
@@ -110,33 +117,26 @@ void GameBrowser::printTerminal(){
 
   // print on screen
   _selector_.printTerminal();
+
+  GenericToolbox::Switch::Terminal::makePause("printTerminal() done");
 }
 void GameBrowser::rebuildSelectorMenu(){
   _selector_.clearMenu();
-  _selector_.getHeader() >> "SimpleModManager v" + Toolbox::getAppVersion() << std::endl;
-  _selector_.getHeader() << ColorCodes::redBackground << "Current Folder : " << _configHandler_.getConfig().baseFolder << std::endl;
+
+  _selector_.getHeader() >> "SimpleModManager v" >> Toolbox::getAppVersion() << std::endl;
+  _selector_.getHeader() << ColorCodes::redBackground << "Current Folder : ";
+  _selector_.getHeader() << _configHandler_.getConfig().baseFolder << std::endl;
   _selector_.getHeader() << repeatString("*", Switch::Hardware::getTerminalWidth()) << std::endl;
 
   _selector_.getFooter() << repeatString("*", Switch::Hardware::getTerminalWidth()) << std::endl;
   _selector_.getFooter() << "  Page (" << _selector_.getCursorPage() + 1 << "/" << _selector_.getNbPages() << ")" << std::endl;
   _selector_.getFooter() << repeatString("*", Switch::Hardware::getTerminalWidth()) << std::endl;
-  if( _isGameSelected_ ){
-    _selector_.getFooter() << "Mod preset : " << _modPresetHandler_.getSelectedModPresetName() << std::endl;
-  }
   _selector_.getFooter() << "Configuration preset : " << ColorCodes::greenBackground;
   _selector_.getFooter() << _configHandler_.getConfig().getCurrentPresetName() << std::endl;
   _selector_.getFooter() << "install-mods-base-folder = " + _configHandler_.getConfig().getCurrentPreset().installBaseFolder << std::endl;
   _selector_.getFooter() << repeatString("*", Switch::Hardware::getTerminalWidth()) << std::endl;
-  if( _isGameSelected_ ){
-    _selector_.getFooter() << " ZL : Rescan all mods" >> "ZR : Disable all mods " << std::endl;
-    _selector_.getFooter() << " A/X : Apply/Disable mod" >> "L/R : Previous/Next preset " << std::endl;
-    _selector_.getFooter() << " -/+ : Select/Apply mod preset" >> "Y : Mod options " << std::endl;
-    _selector_.getFooter() << " B : Go back" << std::endl;
-  }
-  else{
-    _selector_.getFooter() << " A : Select folder" >> "Y : Change config preset " << std::endl;
-    _selector_.getFooter() << " B : Quit" >> "ZL/ZR : Switch back to the GUI " << std::endl;
-  }
+  _selector_.getFooter() << " A : Select folder" >> "Y : Change config preset " << std::endl;
+  _selector_.getFooter() << " B : Quit" >> "ZL/ZR : Switch back to the GUI " << std::endl;
 
   _selector_.invalidatePageCache();
   _selector_.refillPageEntryCache();
