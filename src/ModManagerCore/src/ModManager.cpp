@@ -41,7 +41,6 @@ const std::vector<std::string> & ModManager::getIgnoredFileList() const {
 }
 
 void ModManager::updateModList() {
-
   // list folders
   auto folderList = GenericToolbox::getListOfSubFoldersInFolder(_gameFolderPath_);
   _modList_.clear(); _modList_.reserve( folderList.size() );
@@ -172,9 +171,13 @@ void ModManager::updateModStatus(const std::string& modName_){
 }
 void ModManager::updateAllModStatus(){
   _selector_.clearTags();
+
+  PadState pad;
+  padInitializeAny(&pad);
+
   for(size_t iMod = 0 ; iMod < _selector_.getEntryList().size() ; iMod++ ){
-    padUpdate(&GlobalObjects::gPad);;
-    u64 kDown = padGetButtonsDown(&GlobalObjects::gPad);
+    padUpdate( &pad );
+    u64 kDown = padGetButtonsDown(&pad);
     if(kDown & HidNpadButton_B) break;
 
     _selector_.setTag(iMod, "Checking...");
@@ -340,6 +343,8 @@ void ModManager::removeMod(const std::string &modName_) {
 // terminal
 void ModManager::scanInputs(u64 kDown, u64 kHeld){
 
+  _selector_.scanInputs( kDown, kHeld );
+
   if     ( kDown & HidNpadButton_A ){
     // Apply mod
     this->applyMod( int( _selector_.getCursorPosition() )  );
@@ -445,6 +450,7 @@ void ModManager::scanInputs(u64 kDown, u64 kHeld){
 
 }
 void ModManager::printTerminal(){
+
   // first build?
   if( _selector_.getFooter().empty() ){
     // -> page numbering
@@ -539,12 +545,15 @@ void ModManager::displayModFilesStatus(const std::string &modName_){
       consoleUpdate(nullptr);
     }
 
+    PadState pad;
+    padInitializeAny(&pad);
+
     //Scan all the inputs. This should be done once for each frame
-    padUpdate(&GlobalObjects::gPad);;
+    padUpdate(&pad);;
 
     //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
-    kDown = padGetButtonsDown(&GlobalObjects::gPad);
-    kHeld = padGetButtons(&GlobalObjects::gPad);
+    kDown = padGetButtonsDown(&pad);
+    kHeld = padGetButtons(&pad);
 
     if (kDown & HidNpadButton_B) {
       break; // break in order to return to hbmenu
@@ -637,12 +646,15 @@ void ModManager::displayConflictsWithOtherMods(size_t modIndex_){
       consoleUpdate(nullptr);
     }
 
+    PadState pad;
+    padInitializeAny(&pad);
+
     //Scan all the inputs. This should be done once for each frame
-    padUpdate(&GlobalObjects::gPad);
+    padUpdate(&pad);
 
     //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
-    kDown = padGetButtonsDown(&GlobalObjects::gPad);
-    kHeld = padGetButtons(&GlobalObjects::gPad);
+    kDown = padGetButtonsDown(&pad);
+    kHeld = padGetButtons(&pad);
 
     if (kDown & HidNpadButton_B) {
       break; // break in order to return to hbmenu

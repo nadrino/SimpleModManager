@@ -152,22 +152,22 @@ void Selector::scanInputs( u64 kDown, u64 kHeld ){
   if( kDown == 0 and kHeld == 0 ){ return; }
 
   if( kDown & HidNpadButton_AnyDown or
-      ( kHeld & HidNpadButton_AnyDown and _holdingTiks_ > 15 and _holdingTiks_ % 3 == 0 )
+    ( kHeld & HidNpadButton_AnyDown and _holdingTiks_ > holdTickThreashold and _holdingTiks_ % repeatTick == 0 )
   ){
     this->selectNextEntry();
   }
   else if( kDown & HidNpadButton_AnyUp or
-      ( kHeld & HidNpadButton_AnyUp and _holdingTiks_ > 15 and _holdingTiks_ % 3 == 0 )
+    ( kHeld & HidNpadButton_AnyUp and _holdingTiks_ > holdTickThreashold and _holdingTiks_ % repeatTick == 0 )
   ){
     this->selectPrevious();
   }
   else if( kDown & HidNpadButton_AnyLeft or
-    ( kHeld & HidNpadButton_AnyLeft and _holdingTiks_ > 15 and _holdingTiks_ % 3 == 0 )
+    ( kHeld & HidNpadButton_AnyLeft and _holdingTiks_ > holdTickThreashold and _holdingTiks_ % repeatTick == 0 )
   ){
     this->jumpToPreviousPage();
   }
   else if( kDown & HidNpadButton_AnyRight or
-    ( kHeld & HidNpadButton_AnyRight and _holdingTiks_ > 15 and _holdingTiks_ % 3 == 0 )
+    ( kHeld & HidNpadButton_AnyRight and _holdingTiks_ > holdTickThreashold and _holdingTiks_ % repeatTick == 0 )
   ){
     this->jumpToNextPage();
   }
@@ -229,7 +229,7 @@ void Selector::refillPageEntryCache() const {
   _pageEntryCache_.clear();
   _pageEntryCache_.emplace_back();
 
-  long nLinesLeft{long(this->getNbMenuLines())};
+  long nLinesLeft{GenericToolbox::Switch::Hardware::getTerminalHeight()};
   for( size_t iEntry = 0 ; iEntry < _entryList_.size() ; iEntry++ ){
 
     // count how many lines would be left if the entry got printed
@@ -287,7 +287,8 @@ std::string Selector::askQuestion(const std::string& question_, const std::vecto
   sel.getFooter() << GenericToolbox::repeatString("*", Hardware::getTerminalWidth()) << std::endl;
   sel.getFooter() << " A: Select" >> "B: back";
 
-
+  PadState pad;
+  padInitializeAny(&pad);
 
   u64 kDown = 1;
   while(appletMainLoop()){
@@ -296,10 +297,10 @@ std::string Selector::askQuestion(const std::string& question_, const std::vecto
     if( kDown != 0 ) { sel.printTerminal(); }
 
     //Scan all the inputs. This should be done once for each frame
-    padUpdate( &GlobalObjects::gPad );
+    padUpdate( &pad );
 
     //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
-    kDown = padGetButtonsDown(&GlobalObjects::gPad);
+    kDown = padGetButtonsDown(&pad);
 
     if     (kDown & HidNpadButton_AnyDown){
       sel.selectNextEntry();

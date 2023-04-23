@@ -144,6 +144,9 @@ private:
   u64 _previousKheld_{0};
   u64 _holdingTiks_{0};
 
+  static const u64 holdTickThreashold{20};
+  static const u64 repeatTick{5};
+
   // dummies
   static const SelectorEntry _dummyEntry_;
 

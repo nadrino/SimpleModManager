@@ -82,18 +82,13 @@ void ConfigHandler::loadConfig(const std::string &configFilePath_) {
       config.presetList.emplace_back();
       config.presetList.back().name = elements[1];
     }
-    else{
-      // preset parameter:
-      for( auto& preset : config.presetList ){
-
-        if( elements[0] == preset.name + "-install-mods-base-folder" ){
-          preset.installBaseFolder = elements[1];
-          break;
-        }
-
+    else if( elements[0] == "install-mods-base-folder" ){
+      if( config.presetList.empty() ){
+        config.presetList.emplace_back();
+        config.presetList.back().name = "default";
       }
+      config.presetList.back().installBaseFolder = elements[1];
     }
-
 
   } // lines
 

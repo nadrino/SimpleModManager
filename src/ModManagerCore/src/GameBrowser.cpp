@@ -70,7 +70,7 @@ void GameBrowser::scanInputs(u64 kDown, u64 kHeld){
 
 
   if     ( kDown & HidNpadButton_A ){ // select folder / apply mod
-    this->selectGame( _configHandler_.getConfig().baseFolder + "/" + _selector_.getSelectedEntryTitle() );
+    this->selectGame( _selector_.getSelectedEntryTitle() );
   }
   else if( kDown & HidNpadButton_Y ){ // switch between config preset
     _configHandler_.selectNextPreset();
@@ -119,7 +119,7 @@ void GameBrowser::rebuildSelectorMenu(){
   _selector_.getFooter() << "  Page (" << _selector_.getCursorPage() + 1 << "/" << _selector_.getNbPages() << ")" << std::endl;
   _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
   _selector_.getFooter() << "Configuration preset : " << GenericToolbox::ColorCodes::greenBackground;
-  _selector_.getFooter() << _configHandler_.getConfig().getCurrentPresetName() << std::endl;
+  _selector_.getFooter() << _configHandler_.getConfig().getCurrentPresetName() << GenericToolbox::ColorCodes::resetColor << std::endl;
   _selector_.getFooter() << "install-mods-base-folder = " + _configHandler_.getConfig().getCurrentPreset().installBaseFolder << std::endl;
   _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
   _selector_.getFooter() << " A : Select folder" >> "Y : Change config preset " << std::endl;
@@ -140,9 +140,24 @@ uint8_t* GameBrowser::getFolderIcon(const std::string& gameFolder_){
 void GameBrowser::init(){
   auto gameList = GenericToolbox::getListOfSubFoldersInFolder( _configHandler_.getConfig().baseFolder );
 
-  _selector_.getEntryList().reserve( gameList.size() );
+  std::vector<size_t> nGameMod;
+  nGameMod.reserve( gameList.size() );
   for( auto& game : gameList ){
+    nGameMod.emplace_back(
+        GenericToolbox::getListOfSubFoldersInFolder(
+            _configHandler_.getConfig().baseFolder + "/" + game
+            ).size()
+        );
+  }
+
+  auto ordering = GenericToolbox::getSortPermutation(nGameMod, [](size_t a_, size_t b_){ return a_ > b_; });
+  GenericToolbox::applyPermutation(gameList, ordering);
+  GenericToolbox::applyPermutation(nGameMod, ordering);
+
+  _selector_.getEntryList().reserve( gameList.size() );
+  for( size_t iGame = 0 ; iGame < gameList.size() ; iGame++ ){
     _selector_.getEntryList().emplace_back();
-    _selector_.getEntryList().back().title = game;
+    _selector_.getEntryList().back().title = gameList[iGame];
+    _selector_.getEntryList().back().tag = "(" + std::to_string(nGameMod[iGame]) + " mods)";
   }
 }

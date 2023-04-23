@@ -23,7 +23,7 @@ public:
 
   ModsPresetHandler() = default;
 
-  void setModFolder(const std::string &modFolder);
+  void setModFolder(const std::string &gameFolder);
 
   [[nodiscard]] const std::vector<PresetData> &getPresetList() const;
 
@@ -38,7 +38,7 @@ public:
   [[nodiscard]] std::vector<std::string> generatePresetNameList() const;
 
   // non native getters
-  [[nodiscard]] const std::string& getSelectedModPresetName() const;
+  std::string getSelectedModPresetName() const;
   [[nodiscard]] const std::vector<std::string>& getSelectedPresetModList() const;
 
 
@@ -48,7 +48,7 @@ protected:
   void fillSelector();
 
 private:
-  std::string _modFolder_{};
+  std::string _gameFolder_{};
 
   std::vector<PresetData> _presetList_{};
 

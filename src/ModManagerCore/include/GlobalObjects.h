@@ -14,8 +14,6 @@
 
 namespace GlobalObjects {
 
-  extern PadState gPad;
-
 };
 
 #endif //SIMPLEMODMANAGER_GLOBALOBJECTS_H

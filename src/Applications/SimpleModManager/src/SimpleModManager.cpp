@@ -86,7 +86,7 @@ void runConsole(){
   padConfigureInput(1, HidNpadStyleSet_NpadStandard);
 
   // Initialize the default gamepad (which reads handheld mode inputs as well as the first connected controller)
-  padInitializeDefault(&GlobalObjects::gPad);
+  padInitializeDefault(&pad);
 
   int lastVersion = std::stoi(
       GenericToolbox::joinVectorString(
@@ -124,11 +124,11 @@ void runConsole(){
   while(appletMainLoop())
   {
     //Scan all the inputs. This should be done once for each frame
-    padUpdate(&GlobalObjects::gPad);
+    padUpdate(&pad);
 
     //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
-    u64 kDown = padGetButtonsDown(&GlobalObjects::gPad);
-    u64 kHeld = padGetButtons(&GlobalObjects::gPad);
+    u64 kDown = padGetButtonsDown(&pad);
+    u64 kHeld = padGetButtons(&pad);
 
     if( (kDown & HidNpadButton_B and GlobalObjects::gGameBrowser.get_current_relative_depth() == 0)
         or GlobalObjects::is_quit_now_triggered()

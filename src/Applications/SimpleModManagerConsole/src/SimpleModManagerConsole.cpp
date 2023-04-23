@@ -1,15 +1,11 @@
 
 
 #include "GameBrowser.h"
-#include <GlobalObjects.h>
 #include <Toolbox.h>
 
 #include "GenericToolbox.Switch.h"
 
 #include <switch.h>
-
-
-using namespace GenericToolbox::Switch;
 
 
 void upgradeFrom150();
@@ -20,6 +16,9 @@ int main( int argc, char **argv ){
 
   consoleInit(nullptr);
 
+  // legacy
+  upgradeFrom150();
+
   // Configure our supported input layout: a single player with standard controller styles
   padConfigureInput(1, HidNpadStyleSet_NpadStandard);
 
@@ -27,18 +26,18 @@ int main( int argc, char **argv ){
   gameBrowser.printTerminal();
 
   // Initialize the default gamepad (which reads handheld mode inputs as well as the first connected controller)
-  PadState mainPad;
-  padInitializeAny( &mainPad );
+  PadState pad;
+  padInitializeAny( &pad );
 
   // Main loop
   u64 kDown, kHeld;
   while( appletMainLoop() ) {
     //Scan all the inputs. This should be done once for each frame
-    padUpdate( &mainPad );
+    padUpdate( &pad );
 
     //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
-    kDown = padGetButtonsDown( &mainPad );
-    kHeld = padGetButtons( &mainPad );
+    kDown = padGetButtonsDown( &pad );
+    kHeld = padGetButtons( &pad );
 
     if( kDown == 0 and kHeld == 0 ){
       // nothing to reprocess
@@ -82,17 +81,17 @@ void upgradeFrom150(){
     // delete the old config file
     GenericToolbox::deleteFile( oldPath );
 
-    Terminal::printLeft("");
-    Terminal::printLeft("Welcome in SimpleModManager v" + Toolbox::getAppVersion(), GenericToolbox::ColorCodes::greenBackground);
-    Terminal::printLeft("");
-    Terminal::printLeft("");
-    Terminal::printLeft("");
-    Terminal::printLeft("");
-    Terminal::printLeft(" > Looks like you've been running on a version <= " + Toolbox::getAppVersion());
-    Terminal::printLeft(" > Now parameters.ini is read from : " + p.getConfig().configFilePath);
-    Terminal::printLeft(" > The old file has been moved to this location.");
-    Terminal::printLeft("");
-    Terminal::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft("Welcome in SimpleModManager v" + Toolbox::getAppVersion(), GenericToolbox::ColorCodes::greenBackground);
+    GenericToolbox::Switch::Terminal::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft(" > Looks like you've been running on a version <= " + Toolbox::getAppVersion());
+    GenericToolbox::Switch::Terminal::printLeft(" > Now parameters.ini is read from : " + p.getConfig().configFilePath);
+    GenericToolbox::Switch::Terminal::printLeft(" > The old file has been moved to this location.");
+    GenericToolbox::Switch::Terminal::printLeft("");
+    GenericToolbox::Switch::Terminal::printLeft("");
 
     Selector::askQuestion("Confirm by pressing A.", {"Ok"});
   }

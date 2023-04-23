@@ -9,8 +9,4 @@
 
 namespace GlobalObjects{
 
-  static bool _quit_now_triggered_ = false;
-
-  PadState gPad{};
-
 }

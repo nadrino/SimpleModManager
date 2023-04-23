@@ -17,8 +17,8 @@
 #include "sstream"
 
 
-void ModsPresetHandler::setModFolder(const std::string &modFolder) {
-  _modFolder_ = modFolder;
+void ModsPresetHandler::setModFolder(const std::string &gameFolder) {
+  _gameFolder_ = gameFolder;
   this->readConfigFile();
 }
 
@@ -49,12 +49,15 @@ void ModsPresetHandler::selectModPreset() {
     consoleUpdate(nullptr);
   };
 
+  PadState pad;
+  padInitializeAny(&pad);
+
   drawSelectorPage();
   while(appletMainLoop()){
 
-    padUpdate(&GlobalObjects::gPad);;
-    u64 kDown = padGetButtonsDown(&GlobalObjects::gPad);
-    u64 kHeld = padGetButtons(&GlobalObjects::gPad);
+    padUpdate(&pad);;
+    u64 kDown = padGetButtonsDown(&pad);
+    u64 kHeld = padGetButtons(&pad);
     _selector_.scanInputs(kDown, kHeld);
     if(kDown & HidNpadButton_B){
       break;
@@ -101,7 +104,7 @@ void ModsPresetHandler::editPreset( size_t entryIndex_ ) {
 
   auto& preset = _presetList_[entryIndex_];
 
-  std::vector<std::string> modsList = GenericToolbox::getListOfFilesInSubFolders(_modFolder_);
+  std::vector<std::string> modsList = GenericToolbox::getListOfFilesInSubFolders(_gameFolder_);
   std::sort( modsList.begin(), modsList.end() );
   Selector sel;
   sel.setEntryList(modsList);
@@ -142,13 +145,15 @@ void ModsPresetHandler::editPreset( size_t entryIndex_ ) {
     consoleUpdate(nullptr);
   };
 
+  PadState pad;
+  padInitializeAny(&pad);
 
   printSelector();
   while(appletMainLoop()){
 
-    padUpdate(&GlobalObjects::gPad);;
-    u64 kDown = padGetButtonsDown(&GlobalObjects::gPad);
-    u64 kHeld = padGetButtons(&GlobalObjects::gPad);
+    padUpdate(&pad);
+    u64 kDown = padGetButtonsDown(&pad);
+    u64 kHeld = padGetButtons(&pad);
     sel.scanInputs(kDown, kHeld);
     if(kDown & HidNpadButton_A){
       preset.modList.emplace_back(sel.getSelectedEntryTitle() );
@@ -197,10 +202,10 @@ void ModsPresetHandler::showConflictingFiles( size_t entryIndex_ ) {
     GenericToolbox::Switch::Terminal::printLeft(" > Getting files for the mod: " + mod, GenericToolbox::ColorCodes::magentaBackground);
     consoleUpdate(nullptr);
 
-    auto filesList = GenericToolbox::getListOfFilesInSubFolders( _modFolder_ + "/" + mod );
+    auto filesList = GenericToolbox::getListOfFilesInSubFolders(_gameFolder_ + "/" + mod );
     for( auto& file: filesList ){
       std::stringstream ss;
-      ss << _modFolder_ << "/" << mod << "/" << file;
+      ss << _gameFolder_ << "/" << mod << "/" << file;
       installedFileList[file].finalFileSize = GenericToolbox::getFileSize( ss.str() );
       installedFileList[file].fromModList.emplace_back( mod );
     }
@@ -259,18 +264,19 @@ void ModsPresetHandler::showConflictingFiles( size_t entryIndex_ ) {
 
   printSelector();
 
-
+  PadState pad;
+  padInitializeAny(&pad);
 
   // Main loop
   u64 kDown{0}, kHeld{0};
   while(appletMainLoop()) {
 
     //Scan all the inputs. This should be done once for each frame
-    padUpdate(&GlobalObjects::gPad);
+    padUpdate(&pad);
 
     //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
-    kDown = padGetButtonsDown(&GlobalObjects::gPad);
-    kHeld = padGetButtons(&GlobalObjects::gPad);
+    kDown = padGetButtonsDown(&pad);
+    kHeld = padGetButtons(&pad);
 
     if (kDown & HidNpadButton_A) {
       break; // break in order to return to hbmenu
@@ -294,7 +300,8 @@ std::vector<std::string> ModsPresetHandler::generatePresetNameList() const{
   return out;
 }
 
-const std::string& ModsPresetHandler::getSelectedModPresetName() const {
+std::string ModsPresetHandler::getSelectedModPresetName() const {
+  if( _presetList_.empty() ) return {};
   return _presetList_[_selector_.getCursorPosition()].name;
 }
 const std::vector<std::string>& ModsPresetHandler::getSelectedPresetModList() const{
@@ -305,7 +312,7 @@ void ModsPresetHandler::readConfigFile() {
   _presetList_.clear();
 
   // check if file exist
-  auto lines = GenericToolbox::dumpFileAsVectorString( _modFolder_ + "/mod_presets.conf", true );
+  auto lines = GenericToolbox::dumpFileAsVectorString(_gameFolder_ + "/mod_presets.conf", true );
 
   for( auto &line : lines ){
     if(line[0] == '#') continue;
@@ -351,7 +358,7 @@ void ModsPresetHandler::writeConfigFile() {
   }
 
   std::string data = ss.str();
-  GenericToolbox::dumpStringInFile(_modFolder_ + "/mod_presets.conf", data);
+  GenericToolbox::dumpStringInFile(_gameFolder_ + "/mod_presets.conf", data);
 
 }
 void ModsPresetHandler::fillSelector(){
