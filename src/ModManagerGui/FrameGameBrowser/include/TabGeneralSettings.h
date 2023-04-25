@@ -19,7 +19,7 @@ public:
 
   void rebuildLayout();
 
-  brls::ListItem* itemCurrentInstallPreset{nullptr};
+  brls::ListItem* itemInstallLocationPreset{nullptr};
 
   [[nodiscard]] const ConfigHolder& getConfig() const;
   ConfigHolder& getConfig();

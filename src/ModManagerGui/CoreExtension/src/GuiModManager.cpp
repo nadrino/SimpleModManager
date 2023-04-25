@@ -74,9 +74,6 @@ void GuiModManager::applyMod(const std::string &modName_, bool force_) {
 
 }
 void GuiModManager::getModStatus(const std::string &modName_, bool useCache_) {
-
-  LogDebug << __METHOD_NAME__ << " -> " << GET_VAR_NAME_VALUE(useCache_) << std::endl;
-
   // (XX/XX) Files Applied
   // ACTIVE
   // INACTIVE
@@ -90,7 +87,8 @@ void GuiModManager::getModStatus(const std::string &modName_, bool useCache_) {
 
   // cached?
   std::string configPresetName{_gameBrowser_.getConfigHandler().getConfig().getCurrentPresetName()};
-  if(useCache_ and GenericToolbox::doesKeyIsInMap(configPresetName, modManager.getModList()[modIndex].applyCache ) ){
+  if( useCache_ and GenericToolbox::doesKeyIsInMap(configPresetName, modManager.getModList()[modIndex].applyCache ) ){
+    LogDebug << configPresetName << " CACHED: " << modManager.getModList()[modIndex].applyCache[configPresetName].statusStr << std::endl;
     return;
   }
 
@@ -126,8 +124,7 @@ void GuiModManager::getModStatus(const std::string &modName_, bool useCache_) {
   else if( cacheEntry.applyFraction == 1 ) cacheEntry.statusStr = "ACTIVE";
   else cacheEntry.statusStr = "PARTIAL (" + std::to_string(sameFileCount) + "/" + std::to_string(totalFileCount) + ")";
 
-  LogTrace << "UPDATED TO " << cacheEntry.statusStr << std::endl;
-
+  LogDebug << modName_ << " -> " << cacheEntry.statusStr << std::endl;
   modManager.dumpModStatusCache();
 }
 void GuiModManager::removeMod(const std::string &modName_){

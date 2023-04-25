@@ -21,41 +21,44 @@ TabGeneralSettings::TabGeneralSettings(FrameRoot* owner_) : _owner_(owner_) {
 
 void TabGeneralSettings::rebuildLayout() {
 
-  itemCurrentInstallPreset = new brls::ListItem(
-    "\uE255 Current Install Preset:",
+  itemInstallLocationPreset = new brls::ListItem(
+    "\uE255 Install location:",
     "Specify from which base folder mods will be installed.\n"\
     "- If you are using Atmosphere, mods have to be installed in /atmosphere/. "\
     "This corresponds to the \"default\" preset. You need to take this path into account in your mod tree structure.\n"\
     "- If you want to set a specific install folder for a given game, please refer to its Option tab and go to \"Attribute a config preset\".",
     ""
   );
-  itemCurrentInstallPreset->setValue( this->getConfig().getCurrentPresetName() );
-  itemCurrentInstallPreset->getClickEvent()->subscribe([this](View* view) {
+  itemInstallLocationPreset->setValue(this->getConfig().getCurrentPresetName() );
+  itemInstallLocationPreset->getClickEvent()->subscribe([this](View* view) {
     brls::ValueSelectedEvent::Callback valueCallback = [this](int result) {
-      if (result == -1)
+      if (result == -1) {
         return;
+      }
 
       this->getConfig().setSelectedPresetIndex( result );
+      _owner_->getGuiModManager().getGameBrowser().getConfigHandler().dumpConfigToFile();
       LogInfo << "Selected: " << this->getConfig().getCurrentPreset().name << " -> " << this->getConfig().getCurrentPreset().installBaseFolder << std::endl;
-      this->itemCurrentInstallPreset->setValue( this->getConfig().getCurrentPresetName() );
-//       this->valueEvent.fire(result); // not now
+      this->itemInstallLocationPreset->setValue(this->getConfig().getCurrentPresetName() );
     };
+
     std::vector<std::string> presetNameList;
     presetNameList.reserve( this->getConfig().presetList.size() );
     for( auto& preset : this->getConfig().presetList ){
-      presetNameList.emplace_back( preset.name + " -> " + " \uE090 \"" + preset.installBaseFolder + "\"" );
+      presetNameList.emplace_back( preset.name + " \uE090 \"" + preset.installBaseFolder + "\"" );
     }
+
     brls::Dropdown::open(
-      "Current Install Preset:",
+      "Current install preset:",
       presetNameList,
       valueCallback,
       this->getConfig().selectedPresetIndex
     );
   });
-  this->addView(itemCurrentInstallPreset);
+  this->addView(itemInstallLocationPreset);
 
   auto* itemStoredModsBaseFolder = new brls::ListItem(
-    "\uE431 Stored Mods Location:",
+    "\uE431 Stored mods location:",
     "This is the place where SimpleModManager will look for your mods. From this folder, the tree structure must look like this:\n"\
     "./<name-of-the-game-or-category>/<mod-name>/<mod-tree-structure>.",
     "");

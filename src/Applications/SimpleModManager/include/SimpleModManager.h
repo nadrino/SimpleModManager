@@ -6,7 +6,6 @@
 #define SIMPLEMODMANAGER_SIMPLEMODMANAGER_H
 
 void runGui();
-void runConsole();
 
 
 #endif //SIMPLEMODMANAGER_SIMPLEMODMANAGER_H
