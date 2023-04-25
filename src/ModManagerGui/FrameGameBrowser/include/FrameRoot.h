@@ -5,7 +5,7 @@
 #ifndef SIMPLEMODMANAGER_FRAMEROOT_H
 #define SIMPLEMODMANAGER_FRAMEROOT_H
 
-#include "GameBrowser.h"
+#include "GuiModManager.h"
 
 #include <borealis.hpp>
 
@@ -16,11 +16,11 @@ public:
 
   bool onCancel() override;
 
-  const GameBrowser &getGameBrowser() const;
-  GameBrowser &getGameBrowser();
+  const GuiModManager &getGuiModManager() const;
+  GuiModManager &getGuiModManager();
 
 private:
-  GameBrowser _gameBrowser_{};
+  GuiModManager _guiModManager_{};
 
 };
 

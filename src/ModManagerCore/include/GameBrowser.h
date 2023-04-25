@@ -20,9 +20,12 @@ class GameBrowser{
 public:
   GameBrowser();
 
+  void setIsGameSelected(bool isGameSelected);
+
   // getters
   bool isGameSelected() const;
   const ConfigHandler &getConfigHandler() const;
+  const Selector &getSelector() const;
   Selector &getSelector();
   ModManager &getModManager();
   ModsPresetHandler &getModPresetHandler();

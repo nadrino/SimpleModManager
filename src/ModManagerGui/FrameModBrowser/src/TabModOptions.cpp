@@ -21,11 +21,12 @@ void TabModOptions::buildFolderInstallPresetItem() {
   );
   _itemFolderInstallPreset_->setValue(_inheritedTitle_);
 
+
   // Find the current selection
-  std::string folderConfigFilePath = GlobalObjects::gGameBrowser.get_current_directory() + "/this_folder_config.txt";
-  if(GenericToolbox::doesPathIsFile(folderConfigFilePath)){
-    _preSelection_ = 1 + GlobalObjects::gGameBrowser.getConfigHandler().get_current_config_preset_id();
-    _itemFolderInstallPreset_->setValue(GlobalObjects::gGameBrowser.getConfigHandler().get_current_config_preset_name());
+  std::string folderConfigFilePath = this->getModManager().getGameFolderPath() + "/this_folder_config.txt";
+  if( GenericToolbox::doesPathIsFile(folderConfigFilePath) ){
+    _preSelection_ = 1 + this->getModManager().getConfig().selectedPresetIndex;
+    _itemFolderInstallPreset_->setValue( this->getModManager().getConfig().getCurrentPresetName() );
   }
 
   // On click : show scrolling up menu
@@ -33,9 +34,9 @@ void TabModOptions::buildFolderInstallPresetItem() {
 
     // build the choice list
     std::vector<std::string> config_presets_list;
-    config_presets_list.emplace_back(this->_inheritedTitle_);
-    for(const auto& preset_name: GlobalObjects::gGameBrowser.getConfigHandler().get_presets_list()){
-      config_presets_list.emplace_back(preset_name);
+    config_presets_list.emplace_back(_inheritedTitle_);
+    for( auto& preset: this->getModManager().getConfig().presetList ){
+      config_presets_list.emplace_back( preset.name );
     }
 
     // function that will set the config preset from the Dropdown menu selection (int result)
@@ -50,29 +51,23 @@ void TabModOptions::buildFolderInstallPresetItem() {
       this->_preSelection_ = result;
 
       // overwriting
-      std::string this_folder_config_file_path =
-          GlobalObjects::gGameBrowser.get_current_directory() + "/this_folder_config.txt";
-      GenericToolbox::deleteFile(this_folder_config_file_path);
+      std::string thisFolderConfigFilePath = this->getModManager().getGameFolderPath() + "/this_folder_config.txt";
+      GenericToolbox::deleteFile(thisFolderConfigFilePath);
       if(result > 0){
+        this->getModManager().getConfig().setSelectedPresetIndex(result - 1);
         // then a preset has been specified
-        GenericToolbox::dumpStringInFile(this_folder_config_file_path,
-                                         GlobalObjects::gGameBrowser.getConfigHandler().get_presets_list()[result - 1]
+        GenericToolbox::dumpStringInFile(
+            thisFolderConfigFilePath,
+            this->getModManager().getConfig().getCurrentPresetName()
         );
-        GlobalObjects::gGameBrowser.change_config_preset(
-            GlobalObjects::gGameBrowser.getConfigHandler().get_presets_list()[result - 1]
-        );
-        this->_itemFolderInstallPreset_->setValue(GlobalObjects::gGameBrowser.getConfigHandler().get_current_config_preset_name());
+        _itemFolderInstallPreset_->setValue( this->getModManager().getConfig().getCurrentPresetName() );
       }
       else{
         // restore the config preset from the main menu
-        GlobalObjects::gGameBrowser.change_config_preset(
-            GlobalObjects::gGameBrowser.get_main_config_preset()
-        );
-        this->_itemFolderInstallPreset_->setValue(_inheritedTitle_);
+        _itemFolderInstallPreset_->setValue(_inheritedTitle_);
       }
 
-      GlobalObjects::gGameBrowser.getModManager().resetAllModsCacheAndFile();
-
+      this->getModManager().reloadModStatusCache();
     }; // Callback sequence
 
     brls::Dropdown::open(
@@ -182,6 +177,13 @@ void TabModOptions::initialize() {
 void TabModOptions::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
                          brls::FrameContext *ctx) {
   ScrollView::draw(vg, x, y, width, height, style, ctx);
+}
+
+const ModManager &TabModOptions::getModManager() const {
+  return _owner_->getModManager().getGameBrowser().getModManager();
+}
+ModManager &TabModOptions::getModManager() {
+  return _owner_->getModManager().getGameBrowser().getModManager();
 }
 
 

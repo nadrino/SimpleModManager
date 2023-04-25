@@ -7,6 +7,7 @@
 
 
 #include <GuiModManager.h>
+#include "ModManager.h"
 
 #include <borealis.hpp>
 
@@ -26,6 +27,7 @@ public:
 
   void draw(NVGcontext* vg, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* ctx) override;
 
+  [[nodiscard]] const ModManager& getModManager() const;
 
 private:
   FrameModBrowser* _owner_{nullptr};
@@ -38,7 +40,7 @@ private:
 
 
 struct ModItem{
-  std::string title{};
+  ModEntry mod;
 
   // memory is handled by brls -> could be lost in the wild but handy to keep somewhere
   brls::ListItem* item{nullptr}; // deleted in BoxLayout::~BoxLayout()

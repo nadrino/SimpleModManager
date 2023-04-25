@@ -29,6 +29,9 @@ void ModManager::setIgnoredFileList(std::vector<std::string>& ignoredFileList_){
 }
 
 // getters
+const Selector &ModManager::getSelector() const {
+  return _selector_;
+}
 const std::vector<ModEntry> &ModManager::getModList() const {
   return _modList_;
 }
@@ -37,6 +40,13 @@ const std::string & ModManager::getGameFolderPath() const {
 }
 const std::vector<std::string> & ModManager::getIgnoredFileList() const {
   return _ignoredFileList_;
+}
+
+const ConfigHolder& ModManager::getConfig() const{
+  return _owner_->getConfigHandler().getConfig();
+}
+ConfigHolder& ModManager::getConfig(){
+  return _owner_->getConfigHandler().getConfig();
 }
 
 void ModManager::updateModList() {
@@ -707,6 +717,7 @@ void ModManager::displayConflictsWithOtherMods(size_t modIndex_){
 int ModManager::getModIndex(const std::string& modName_){
   return GenericToolbox::findElementIndex(modName_, _modList_, [](const ModEntry& mod_){ return mod_.modName; } );
 }
+
 
 
 

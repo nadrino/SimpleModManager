@@ -25,10 +25,10 @@ FrameRoot::FrameRoot() {
   this->setTitle("SimpleModManager");
   this->setFooterText( "v" + Toolbox::getAppVersion() );
   this->setIcon("romfs:/images/icon.jpg");
-  this->addTab("Game Browser", new TabGames());
+  this->addTab( "Game Browser", new TabGames(this) );
   this->addSeparator();
-  this->addTab("Settings", new TabGeneralSettings());
-  this->addTab("About", new TabAbout());
+  this->addTab( "Settings", new TabGeneralSettings(this) );
+  this->addTab( "About", new TabAbout() );
 
   LogInfo << "Root frame built." << std::endl;
 }
@@ -46,6 +46,9 @@ bool FrameRoot::onCancel() {
   return onCancel;
 }
 
-const GameBrowser &FrameRoot::getGameBrowser() const {
-  return _gameBrowser_;
+const GuiModManager &FrameRoot::getGuiModManager() const {
+  return _guiModManager_;
+}
+GuiModManager &FrameRoot::getGuiModManager() {
+  return _guiModManager_;
 }

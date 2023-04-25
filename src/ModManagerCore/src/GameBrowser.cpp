@@ -18,12 +18,19 @@
 
 GameBrowser::GameBrowser(){ this->init(); }
 
+void GameBrowser::setIsGameSelected(bool isGameSelected) {
+  _isGameSelected_ = isGameSelected;
+}
+
 // getters
 bool GameBrowser::isGameSelected() const {
   return _isGameSelected_;
 }
 const ConfigHandler &GameBrowser::getConfigHandler() const {
   return _configHandler_;
+}
+const Selector &GameBrowser::getSelector() const{
+  return _selector_;
 }
 Selector &GameBrowser::getSelector(){
   return _selector_;
@@ -165,3 +172,4 @@ void GameBrowser::init(){
     _selector_.getEntryList().back().tag = "(" + std::to_string(nGameMod[iGame]) + " mods)";
   }
 }
+

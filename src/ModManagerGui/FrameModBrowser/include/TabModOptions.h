@@ -7,6 +7,8 @@
 
 #include <TabModBrowser.h>
 
+#include "ModManager.h"
+
 #include <borealis.hpp>
 
 
@@ -16,6 +18,9 @@ class TabModOptions : public brls::List {
 
 public:
   explicit TabModOptions(FrameModBrowser* owner_);
+
+  [[nodiscard]] const ModManager& getModManager() const;
+  ModManager& getModManager();
 
   void initialize();
 

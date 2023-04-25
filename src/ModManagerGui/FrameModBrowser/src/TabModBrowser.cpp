@@ -22,39 +22,39 @@ LoggerInit([]{
 TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
 
   // Fetch the available mods
-  auto modFoldersList = GlobalObjects::gGameBrowser.getSelector().generateEntryTitleList();
+  auto modList = this->getModManager().getModList();
 
-  if( modFoldersList.empty() ){
+  if( modList.empty() ){
     LogInfo << "No mod found." << std::endl;
 
     _modList_.emplace_back();
     _modList_.back().item = new brls::ListItem(
-        "No mods have been found in " + GlobalObjects::gGameBrowser.get_current_directory(),
+        "No mods have been found in " + this->getModManager().getGameFolderPath(),
         "There you need to put your mods such as: ./<name-of-the-mod>/<file-structure-in-installed-directory>"
     );
     _modList_.back().item->show( [](){}, false );
   }
   else{
-    LogInfo << "Adding " << modFoldersList.size() << " mods..." << std::endl;
+    LogInfo << "Adding " << modList.size() << " mods..." << std::endl;
 
-    _modList_.reserve(modFoldersList.size());
-    for (const auto& selectedMod : modFoldersList) {
+    _modList_.reserve( modList.size());
+    for (const auto& mod : modList) {
       LogScopeIndent;
-      LogInfo << "Adding mod: \"" << selectedMod << "\"" << std::endl;
+      LogInfo << "Adding mod: \"" << mod.modName << "\"" << std::endl;
 
       // memory allocation
-      auto* item = new brls::ListItem(selectedMod, "", "");
+      auto* item = new brls::ListItem(mod.modName, "", "");
 
       // initialization
-      item->getClickEvent()->subscribe([&, selectedMod](View* view) {
-        auto* dialog = new brls::Dialog("Do you want to install \"" + selectedMod + "\" ?");
+      item->getClickEvent()->subscribe([&, mod](View* view) {
+        auto* dialog = new brls::Dialog("Do you want to install \"" + mod.modName + "\" ?");
 
-        dialog->addButton("Yes", [&, selectedMod, dialog](brls::View* view) {
+        dialog->addButton("Yes", [&, mod, dialog](brls::View* view) {
           // first, close the dialog box before the apply mod thread starts
           dialog->close();
 
           // starts the async routine
-          _owner_->getModManager().startApplyModThread( selectedMod );
+          _owner_->getModManager().startApplyModThread( mod.modName );
         });
         dialog->addButton("No", [dialog](brls::View* view) { dialog->close(); });
 
@@ -65,15 +65,15 @@ TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
       });
       item->updateActionHint(brls::Key::A, "Apply");
 
-      item->registerAction("Disable", brls::Key::X, [&, selectedMod]{
-        auto* dialog = new brls::Dialog("Do you want to disable \"" + selectedMod + "\" ?");
+      item->registerAction("Disable", brls::Key::X, [&, mod]{
+        auto* dialog = new brls::Dialog("Do you want to disable \"" + mod.modName + "\" ?");
 
-        dialog->addButton("Yes", [&, dialog, selectedMod](brls::View* view) {
+        dialog->addButton("Yes", [&, dialog, mod](brls::View* view) {
           // first, close the dialog box before the async routine starts
           dialog->close();
 
           // starts the async routine
-          _owner_->getModManager().startRemoveModThread( selectedMod );
+          _owner_->getModManager().startRemoveModThread( mod.modName );
         });
         dialog->addButton("No", [dialog](brls::View* view) { dialog->close(); });
 
@@ -82,12 +82,9 @@ TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
         return true;
       });
 
-      item->setValue("Unchecked");
-      item->setValueActiveColor(nvgRGB(80, 80, 80));
-
       // create the holding struct
       _modList_.emplace_back();
-      _modList_.back().title = selectedMod;
+      _modList_.back().mod = mod;
       _modList_.back().item = item;
     }
   }
@@ -123,28 +120,22 @@ void TabModBrowser::draw(NVGcontext *vg, int x, int y, unsigned int width, unsig
 void TabModBrowser::updateDisplayedModsStatus(){
   LogDebug << __METHOD_NAME__ << std::endl;
 
-  auto* modManager = &GlobalObjects::gGameBrowser.getModManager();
+  LogReturnIf( _modList_.size() == 1 and _modList_[0].mod.modName.empty(), "No mod in this folder. Nothing to update." );
 
-  LogReturnIf( _modList_.size() == 1 and _modList_[0].title.empty(), "No mod in this folder. Nothing to update." );
+  auto currentPreset = this->getModManager().getConfig().getCurrentPresetName();
 
   for( auto& modItem : _modList_ ){
-    if(modManager->getModsStatusCache()[
-          modManager->getParametersHandlerPtr()->get_current_config_preset_name() + ": " + modItem.title
-        ] == modItem.item->getValue()){
-      continue;
-    }
 
     // processing tag
-    std::string modRefStr = modManager->getParametersHandlerPtr()->get_current_config_preset_name() + ": " + modItem.title;
-    modItem.item->setValue( modManager->getModsStatusCache()[modRefStr] );
+    modItem.item->setValue( modItem.mod.applyCache[currentPreset].statusStr );
 
     NVGcolor color;
     // processing color
-    if     ( GlobalObjects::gGameBrowser.getModManager().getModsStatusCacheFraction()[modRefStr] == 0 ){
+    if     ( modItem.mod.applyCache[currentPreset].applyFraction == 0 ){
       // inactive color
       color = nvgRGB(80, 80, 80);
     }
-    else if( GlobalObjects::gGameBrowser.getModManager().getModsStatusCacheFraction()[modRefStr] == 1 ){
+    else if( modItem.mod.applyCache[currentPreset].applyFraction == 1 ){
       // applied color
       color = nvgRGB(88, 195, 169);
     }
@@ -161,3 +152,6 @@ void TabModBrowser::updateDisplayedModsStatus(){
 
 }
 
+const ModManager& TabModBrowser::getModManager() const{
+  return _owner_->getGameBrowser()->getModManager();
+}

@@ -50,7 +50,9 @@ protected:
 
 
 private:
+  // core
   GameBrowser _gameBrowser_{};
+
   PopupLoadingBox _loadingBox_{};
   std::future<bool> _asyncResponse_{};
 

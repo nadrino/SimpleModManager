@@ -43,15 +43,18 @@ public:
 
   // setters
   void setAllowAbort(bool allowAbort);
-
   void setGameFolderPath(const std::string &gameFolderPath_);
   void setIgnoredFileList(std::vector<std::string>& ignoredFileList_);
 
   // getters
+  const Selector &getSelector() const;
   const std::vector<ModEntry> &getModList() const;
-
   [[nodiscard]] const std::string & getGameFolderPath() const;
   [[nodiscard]] const std::vector<std::string> & getIgnoredFileList() const;
+
+  // shortcuts
+  const ConfigHolder& getConfig() const;
+  ConfigHolder& getConfig();
 
   // selector related
   void updateModList();

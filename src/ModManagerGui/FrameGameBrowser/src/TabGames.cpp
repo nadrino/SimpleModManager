@@ -6,6 +6,7 @@
 #include <GlobalObjects.h>
 #include <FrameModBrowser.h>
 #include "FrameRoot.h"
+#include "ModManagerUtils.h"
 
 #include "Logger.h"
 #include "GenericToolbox.Switch.h"
@@ -16,18 +17,18 @@ LoggerInit([]{
   Logger::setUserHeaderStr("[TabGames]");
 });
 
-TabGames::TabGames(FrameRoot* frameRoot_) : _frameRoot_(frameRoot_) {
+TabGames::TabGames(FrameRoot* owner_) : _owner_(owner_) {
   LogWarning << "Building game tab..." << std::endl;
 
-  auto gameFolderList = _frameRoot_->getGameBrowser().getSelector().getEntryList();
+  auto gameList = this->getGameSelector().getEntryList();
 
-  if( gameFolderList.empty() ){
+  if( gameList.empty() ){
     LogInfo << "No game found." << std::endl;
 
     std::stringstream ssTitle;
     std::stringstream ssSubTitle;
 
-    auto baseFolder = _frameRoot_->getGameBrowser().getConfigHandler().getConfig().baseFolder;
+    auto baseFolder = this->getConfig().baseFolder;
     ssTitle << "No game folders have been found in " << baseFolder;
 
     ssSubTitle << "- To add mods, you need to copy them such as: ";
@@ -40,39 +41,39 @@ TabGames::TabGames(FrameRoot* frameRoot_) : _frameRoot_(frameRoot_) {
     _gameList_.back().item->show([](){}, false);
   }
   else{
-    LogInfo << "Adding " << gameFolderList.size() << " game folders..." << std::endl;
+    LogInfo << "Adding " << gameList.size() << " game folders..." << std::endl;
 
-    _gameList_.reserve( gameFolderList.size() );
+    _gameList_.reserve( gameList.size() );
     int iGame{-1};
-    for( auto& gameFolder : gameFolderList ){
+    for( auto& gameEntry : gameList ){
       LogScopeIndent;
-      LogInfo << "Adding game folder: \"" << gameFolder.title << "\"" << std::endl;
+      LogInfo << "Adding game folder: \"" << gameEntry.title << "\"" << std::endl;
 
       iGame++;
 
       int nMods = int( GenericToolbox::getListOfSubFoldersInFolder(
-          GlobalObjects::gGameBrowser.get_current_directory() + "/" + gameFolder
+          this->getConfig().baseFolder + "/" + gameEntry.title
       ).size() );
 
       // memory allocation
-      auto* item = new brls::ListItem(gameFolder, "", std::to_string(nMods) + " mod(s) available.");
-      item->setValue(GlobalObjects::gGameBrowser.getSelector().getTag(iGame));
+      auto* item = new brls::ListItem(gameEntry.title, "", std::to_string(nMods) + " mod(s) available.");
+//      item->setValue( _owner_->getGameBrowser().getSelector().getTag(iGame));
 
-      // TODO: should be moved to a utils library
-      auto* icon = GlobalObjects::gGameBrowser.getFolderIcon( gameFolder );
+      auto* icon = ModManagerUtils::getFolderIcon( this->getConfig().baseFolder + "/" + gameEntry.title );
       if(icon != nullptr){ item->setThumbnail(icon, 0x20000); }
-      item->getClickEvent()->subscribe([gameFolder](View* view) {
-        LogWarning << "Opening \"" << gameFolder << "\"" << std::endl;
-        auto* mods_browser = new FrameModBrowser(gameFolder);
-        brls::Application::pushView(mods_browser, brls::ViewAnimation::SLIDE_LEFT);
-        mods_browser->registerAction("", brls::Key::PLUS, []{return true;}, true);
-        mods_browser->updateActionHint(brls::Key::PLUS, ""); // make the change visible
+      item->getClickEvent()->subscribe([&, gameEntry](View* view) {
+        LogWarning << "Opening \"" << gameEntry.title << "\"" << std::endl;
+        getGameBrowser().selectGame( gameEntry.title );
+        auto* modsBrowser = new FrameModBrowser( &getGameBrowser() );
+        brls::Application::pushView(modsBrowser, brls::ViewAnimation::SLIDE_LEFT);
+        modsBrowser->registerAction("", brls::Key::PLUS, []{return true;}, true);
+        modsBrowser->updateActionHint(brls::Key::PLUS, ""); // make the change visible
       });
       item->updateActionHint(brls::Key::A, "Open");
 
 
       _gameList_.emplace_back();
-      _gameList_.back().title = gameFolder;
+      _gameList_.back().title = gameEntry.title;
       _gameList_.back().item = item;
       _gameList_.back().nMods = nMods;
 
@@ -91,4 +92,24 @@ TabGames::TabGames(FrameRoot* frameRoot_) : _frameRoot_(frameRoot_) {
   for( auto& game : _gameList_ ){ this->addView( game.item ); }
 
   LogInfo << "Game tab build." << std::endl;
+}
+
+const GameBrowser& TabGames::getGameBrowser() const{
+  return _owner_->getGuiModManager().getGameBrowser();
+}
+const Selector& TabGames::getGameSelector() const{
+  return getGameBrowser().getSelector();
+}
+const ConfigHolder& TabGames::getConfig() const{
+  return getGameBrowser().getConfigHandler().getConfig();
+}
+
+GameBrowser& TabGames::getGameBrowser(){
+  return _owner_->getGuiModManager().getGameBrowser();
+}
+Selector& TabGames::getGameSelector(){
+  return getGameBrowser().getSelector();
+}
+ConfigHolder& TabGames::getConfig(){
+  return getGameBrowser().getConfigHandler().getConfig();
 }

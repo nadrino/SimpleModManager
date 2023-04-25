@@ -19,25 +19,28 @@ LoggerInit([]{
   Logger::setUserHeaderStr("[FrameModBrowser]");
 });
 
-FrameModBrowser::FrameModBrowser(const std::string& folder_){
 
-  this->setTitle(folder_);
+FrameModBrowser::FrameModBrowser(GameBrowser* gameBrowser_) : _gameBrowser_(gameBrowser_) {
 
-  std::string gamePath = _modManager_.getGameBrowser().getConfigHandler().getConfig().get_current_directory() + "/" + folder_;
-  _titleId_ = GenericToolbox::Switch::Utils::lookForTidInSubFolders(gamePath);
-  _icon_ = GlobalObjects::gGameBrowser.getFolderIcon(folder_);
+  // fetch game title
+  this->setTitle( _gameBrowser_->getSelector().getSelectedEntryTitle() );
+
+  std::string gamePath = _gameBrowser_->getModManager().getGameFolderPath();
+
+
+  _titleId_ = GenericToolbox::Switch::Utils::lookForTidInSubFolders( gamePath );
+  _icon_ = _gameBrowser_->getFolderIcon( _gameBrowser_->getSelector().getSelectedEntryTitle() );
   if(_icon_ != nullptr){ this->setIcon(_icon_, 0x20000); }
+
   this->setFooterText("SimpleModManager");
 
-  if(GlobalObjects::gGameBrowser.change_directory(gamePath) ){
 
-    GlobalObjects::gGameBrowser.getModManager().setGameFolderPath(gamePath);
-    GlobalObjects::gGameBrowser.getModPresetHandler().readParameterFile(gamePath);
+  if( not _gameBrowser_->getModManager().getModList().empty() ){
 
     auto* parametersTabList = new brls::List();
-    GlobalObjects::gGameBrowser.getConfigHandler().get_current_config_preset_name();
+
     auto* presetParameter = new brls::ListItem("Config preset", "", "");
-    presetParameter->setValue(GlobalObjects::gGameBrowser.getConfigHandler().get_current_config_preset_name());
+    presetParameter->setValue( _gameBrowser_->getConfigHandler().getConfig().getCurrentPresetName() );
     parametersTabList->addView(presetParameter);
 
     _tabModBrowser_ = new TabModBrowser( this );
@@ -72,7 +75,6 @@ bool FrameModBrowser::onCancel() {
   // If the sidebar was already there, the focus has not changed
   if(lastFocus == brls::Application::getCurrentFocus()){
     LogInfo("Back on games screen...");
-    GlobalObjects::gGameBrowser.go_back();
     brls::Application::popView(brls::ViewAnimation::SLIDE_RIGHT);
   }
   return true;
