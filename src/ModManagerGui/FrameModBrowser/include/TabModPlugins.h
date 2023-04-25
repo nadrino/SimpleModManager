@@ -3,13 +3,14 @@
 
 #include <borealis.hpp>
 
+
+class FrameModBrowser;
+
 class TabModPlugins : public brls::List
 {
 
 public:
-	TabModPlugins();
-
-	std::map<std::string, brls::ListItem *> &getModsListItems();
+	explicit TabModPlugins(FrameModBrowser* owner_);
 
 	void draw(NVGcontext *vg, int x, int y, unsigned width, unsigned height, brls::Style *style, brls::FrameContext *ctx) override;
 
@@ -21,9 +22,12 @@ public:
 	std::string base64_decode(const std::string &in);
 
 private:
-	brls::Dialog *dialog;
+  FrameModBrowser* _owner_;
+
+  brls::Dialog *dialog;
 	std::map<std::string, brls::ListItem *> _modsListItems_;
 	int frameCounter;
+
 };
 extern std::map<std::string, brls::Image *> cached_thumbs;
 

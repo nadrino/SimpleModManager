@@ -2,29 +2,19 @@
 // Created by Nadrino on 04/09/2019.
 //
 
-#include "GlobalObjects.h"
 #include <Toolbox.h>
 #include <version_config.h>
-#include <Selector.h>
 
 #include "GenericToolbox.Switch.h"
 
 #include <switch.h>
-#include <zlib.h>
 
-#include <cstring>
 #include <cmath>
 #include <sys/stat.h>
-#include <dirent.h>
 #include <iostream>
-#include <fstream>
-#include <functional>
-#include <iomanip> // stringstream
 #include <sstream>
-#include <filesystem> // cpp 17 functions -> does not work
-#include <exception>
-#include <chrono>
-#include <unistd.h>
+#include "string"
+
 
 namespace Toolbox{
 
@@ -60,7 +50,7 @@ namespace Toolbox{
   }
 
   //! External function
-  std::string get_app_version(){
+  std::string getAppVersion(){
     std::stringstream ss;
     ss << get_version_major() << "." << get_version_minor() << "." << get_version_micro() << get_version_tag();
     return ss.str();

@@ -5,6 +5,8 @@
 #ifndef SIMPLEMODMANAGER_FRAMEROOT_H
 #define SIMPLEMODMANAGER_FRAMEROOT_H
 
+#include "GuiModManager.h"
+
 #include <borealis.hpp>
 
 class FrameRoot : public brls::TabFrame {
@@ -13,6 +15,12 @@ public:
   FrameRoot();
 
   bool onCancel() override;
+
+  const GuiModManager &getGuiModManager() const;
+  GuiModManager &getGuiModManager();
+
+private:
+  GuiModManager _guiModManager_{};
 
 };
 

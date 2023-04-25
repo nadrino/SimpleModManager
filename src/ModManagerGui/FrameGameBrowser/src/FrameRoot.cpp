@@ -9,6 +9,7 @@
 #include <TabGeneralSettings.h>
 
 #include <GlobalObjects.h>
+#include "Toolbox.h"
 
 #include "GenericToolbox.h"
 #include "Logger.h"
@@ -22,12 +23,12 @@ FrameRoot::FrameRoot() {
   LogWarning << "Build root frame..." << std::endl;
 
   this->setTitle("SimpleModManager");
-  this->setFooterText(GlobalObjects::_version_str_);
+  this->setFooterText( "v" + Toolbox::getAppVersion() );
   this->setIcon("romfs:/images/icon.jpg");
-  this->addTab("Game Browser", new TabGames());
+  this->addTab( "Game Browser", new TabGames(this) );
   this->addSeparator();
-  this->addTab("Settings", new TabGeneralSettings());
-  this->addTab("About", new TabAbout());
+  this->addTab( "Settings", new TabGeneralSettings(this) );
+  this->addTab( "About", new TabAbout() );
 
   LogInfo << "Root frame built." << std::endl;
 }
@@ -43,4 +44,11 @@ bool FrameRoot::onCancel() {
   if( lastFocus == brls::Application::getCurrentFocus() ){ brls::Application::quit(); }
 
   return onCancel;
+}
+
+const GuiModManager &FrameRoot::getGuiModManager() const {
+  return _guiModManager_;
+}
+GuiModManager &FrameRoot::getGuiModManager() {
+  return _guiModManager_;
 }

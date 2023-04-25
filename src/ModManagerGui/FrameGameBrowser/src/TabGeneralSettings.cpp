@@ -4,6 +4,7 @@
 
 #include <TabGeneralSettings.h>
 #include <GlobalObjects.h>
+#include "FrameRoot.h"
 
 #include "GenericToolbox.h"
 #include "Logger.h"
@@ -12,7 +13,7 @@ LoggerInit([]{
   Logger::setUserHeaderStr("[TabGeneralSettings]");
 });
 
-TabGeneralSettings::TabGeneralSettings() {
+TabGeneralSettings::TabGeneralSettings(FrameRoot* owner_) : _owner_(owner_) {
   LogWarning << "Building general settings tab..." << std::endl;
   this->rebuildLayout();
   LogInfo << "General settings tab build." << std::endl;
@@ -20,63 +21,61 @@ TabGeneralSettings::TabGeneralSettings() {
 
 void TabGeneralSettings::rebuildLayout() {
 
-  itemCurrentInstallPreset = new brls::ListItem(
-    "\uE255 Current Install Preset:",
+  itemInstallLocationPreset = new brls::ListItem(
+    "\uE255 Install location:",
     "Specify from which base folder mods will be installed.\n"\
     "- If you are using Atmosphere, mods have to be installed in /atmosphere/. "\
     "This corresponds to the \"default\" preset. You need to take this path into account in your mod tree structure.\n"\
     "- If you want to set a specific install folder for a given game, please refer to its Option tab and go to \"Attribute a config preset\".",
     ""
   );
-  itemCurrentInstallPreset->setValue(GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name());
-  itemCurrentInstallPreset->getClickEvent()->subscribe([this](View* view) {
+  itemInstallLocationPreset->setValue(this->getConfig().getCurrentPresetName() );
+  itemInstallLocationPreset->getClickEvent()->subscribe([this](View* view) {
     brls::ValueSelectedEvent::Callback valueCallback = [this](int result) {
-      if (result == -1)
+      if (result == -1) {
         return;
+      }
 
-      GlobalObjects::getModBrowser().change_config_preset(GlobalObjects::getModBrowser().get_parameters_handler().get_presets_list()[result]);
-      LogDebug("Selected : %s -> %s",
-               GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name().c_str(),
-               GlobalObjects::getModBrowser().getModManager().get_install_mods_base_folder().c_str());
-      this->itemCurrentInstallPreset->setValue(GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name());
-//       this->valueEvent.fire(result); // not now
+      this->getConfig().setSelectedPresetIndex( result );
+      _owner_->getGuiModManager().getGameBrowser().getConfigHandler().dumpConfigToFile();
+      LogInfo << "Selected: " << this->getConfig().getCurrentPreset().name << " -> " << this->getConfig().getCurrentPreset().installBaseFolder << std::endl;
+      this->itemInstallLocationPreset->setValue(this->getConfig().getCurrentPresetName() );
     };
-    auto presets_list_labels = GlobalObjects::getModBrowser().get_parameters_handler().get_presets_list();
-    for(auto& preset_label : presets_list_labels){
-      auto install_folder = GlobalObjects::getModBrowser().get_parameters_handler().get_parameter(preset_label + "-install-mods-base-folder");
-      preset_label += " \uE090 \"" + install_folder + "\"";
+
+    std::vector<std::string> presetNameList;
+    presetNameList.reserve( this->getConfig().presetList.size() );
+    for( auto& preset : this->getConfig().presetList ){
+      presetNameList.emplace_back( preset.name + " \uE090 \"" + preset.installBaseFolder + "\"" );
     }
+
     brls::Dropdown::open(
-      "Current Install Preset:",
-      presets_list_labels,
+      "Current install preset:",
+      presetNameList,
       valueCallback,
-      GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_id()
+      this->getConfig().selectedPresetIndex
     );
   });
-  this->addView(itemCurrentInstallPreset);
-
-  GlobalObjects::getModBrowser().get_parameters_handler().get_presets_list();
+  this->addView(itemInstallLocationPreset);
 
   auto* itemStoredModsBaseFolder = new brls::ListItem(
-    "\uE431 Stored Mods Location:",
+    "\uE431 Stored mods location:",
     "This is the place where SimpleModManager will look for your mods. From this folder, the tree structure must look like this:\n"\
     "./<name-of-the-game-or-category>/<mod-name>/<mod-tree-structure>.",
     "");
-  itemStoredModsBaseFolder->setValue(GlobalObjects::getModBrowser().get_parameters_handler().get_parameter("stored-mods-base-folder"));
+  itemStoredModsBaseFolder->setValue( this->getConfig().baseFolder );
   this->addView(itemStoredModsBaseFolder);
 
   auto* itemUseUI = new brls::ListItem("\uE072 Disable the GUI", "If you want to go back on the old UI, select this option.");
 
   itemUseUI->updateActionHint(brls::Key::B, "Back");
-  itemUseUI->registerAction("Select", brls::Key::A, [](){
+  itemUseUI->registerAction("Select", brls::Key::A, [&](){
 
     auto* dialog = new brls::Dialog("Do you want to disable this GUI and switch back to the console-style UI ?");
 
-    dialog->addButton("Yes", [](brls::View* view) {
-      GlobalObjects::getModBrowser().get_parameters_handler().set_parameter("use-gui", "0");
+    dialog->addButton("Yes", [&](brls::View* view) {
+      this->getConfig().useGui = false;
+      _owner_->getGuiModManager().getGameBrowser().getConfigHandler().dumpConfigToFile();
       brls::Application::quit();
-//      GlobalObjects::setTriggerSwitchUI(true);
-//      GlobalObjects::disable_cout_redirection();
     });
     dialog->addButton("No", [dialog](brls::View* view) {
       dialog->close();
@@ -89,5 +88,11 @@ void TabGeneralSettings::rebuildLayout() {
   });
   this->addView(itemUseUI);
 
+}
 
+const ConfigHolder& TabGeneralSettings::getConfig() const{
+  return _owner_->getGuiModManager().getGameBrowser().getConfigHandler().getConfig();
+}
+ConfigHolder& TabGeneralSettings::getConfig(){
+  return _owner_->getGuiModManager().getGameBrowser().getConfigHandler().getConfig();
 }

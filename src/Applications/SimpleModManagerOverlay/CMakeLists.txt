@@ -16,9 +16,14 @@ set( SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/SimpleModManagerOverlay.cpp )
 
 
 add_executable( ${OVL_APP}.elf ${SRC_FILES} )
+target_include_directories( ${OVL_APP}.elf PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${SUBMODULES_DIR}/libtesla/include
+    )
 
 target_link_libraries( ${OVL_APP}.elf
-    ModManagerOverlay
+#    ModManagerOverlay
+#    ModManagerCore
     switch::libnx
     -L/opt/devkitpro/portlibs/switch/lib
     ${ZLIB_LIBRARIES}

@@ -37,7 +37,7 @@ TabAbout::TabAbout() {
   leftBox->setWidth(500);
   leftBox->setParent(table);
 
-  leftBox->addView(new brls::Header("Version " + Toolbox::get_app_version() + " - What's new ?"));
+  leftBox->addView(new brls::Header("Version " + Toolbox::getAppVersion() + " - What's new ?"));
   auto *changelog = new brls::Label(
     brls::LabelStyle::DESCRIPTION,
     " - Updating dependencies & IO operations\n - Stability improvements\n",

@@ -5,20 +5,33 @@
 #ifndef SIMPLEMODMANAGER_TABGAMES_H
 #define SIMPLEMODMANAGER_TABGAMES_H
 
+
+#include "ConfigHandler.h"
+#include "Selector.h"
+#include "GameBrowser.h"
+
 #include <borealis.hpp>
 
 #include "vector"
 
 
 struct GameItem;
-
+class FrameRoot;
 
 class TabGames : public brls::List {
 
 public:
-  TabGames();
+  explicit TabGames(FrameRoot* owner_);
+
+  // non native getters
+  [[nodiscard]] const GameBrowser& getGameBrowser() const;
+  [[nodiscard]] const ConfigHolder& getConfig() const;
+
+  GameBrowser& getGameBrowser();
+  ConfigHolder& getConfig();
 
 private:
+  FrameRoot* _owner_{};
   std::vector<GameItem> _gameList_;
 
 };

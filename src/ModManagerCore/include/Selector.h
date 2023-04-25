@@ -2,79 +2,160 @@
 // Created by Nadrino on 12/09/2019.
 //
 
-#ifndef MODAPPLIER_SELECTOR_H
-#define MODAPPLIER_SELECTOR_H
+#ifndef SMM_CORE_SELECTOR_H
+#define SMM_CORE_SELECTOR_H
+
+
+#include "GenericToolbox.Switch.h"
 
 #include <switch/types.h>
 
 #include <vector>
 #include <string>
+#include "map"
+#include "sstream"
+
+
+struct MenuLine{
+  std::stringstream leftPrint{};
+  std::stringstream rightPrint{};
+
+  template<typename T> MenuLine &operator<<(const T &data){
+    leftPrint << data;
+    return *this;
+  }
+  template<typename T> MenuLine &operator>>(const T &data){
+    rightPrint << data;
+    return *this;
+  }
+  void print() const{
+    if( not leftPrint.str().empty() and not rightPrint.str().empty() ){
+      GenericToolbox::Switch::Terminal::printLeftRight( leftPrint.str(), rightPrint.str() );
+    }
+    else if( not leftPrint.str().empty() ){
+      GenericToolbox::Switch::Terminal::printLeft( leftPrint.str() );
+    }
+    else if( not rightPrint.str().empty() ){
+      GenericToolbox::Switch::Terminal::printRight( rightPrint.str() );
+    }
+  }
+  bool empty() const{
+    return leftPrint.str().empty() and leftPrint.str().empty();
+  }
+};
+
+struct MenuLineList{
+  std::vector<MenuLine> lineList;
+
+  template<typename T> MenuLineList &operator<<(const T &data){
+    if( lineList.empty() ) lineList.emplace_back();
+    lineList.back().leftPrint << data;
+    return *this;
+  }
+  template<typename T> MenuLineList &operator>>(const T &data){
+    if( lineList.empty() ) lineList.emplace_back();
+    lineList.back().rightPrint << data;
+    return *this;
+  }
+  MenuLineList &operator<<(std::ostream &(*f)(std::ostream &)){
+    // next line with std::endl
+    lineList.emplace_back();
+    return *this;
+  }
+
+  void clear(){ lineList.clear(); }
+  [[nodiscard]] bool empty() const { return lineList.empty(); }
+  size_t size() const {
+    if( this->empty() ) return 0;
+    if( lineList.back().empty() ) return lineList.size() - 1; // last line won't be printed
+    return lineList.size();
+  }
+};
+
+struct SelectorEntry{
+  std::string title{};
+  std::string tag{};
+  std::vector<std::string> description{};
+
+  [[nodiscard]] size_t getNbPrintLines() const { return 1 + description.size(); }
+};
+
 
 class Selector {
 
 public:
-  static std::string ask_question(const std::string& question_, const std::vector<std::string>& answers_,
-                                         const std::vector<std::vector<std::string>>& descriptions_={});
+  Selector() = default;
+  explicit Selector(const std::vector<std::string>& entryTitleList_){ this->setEntryList(entryTitleList_); }
 
-public:
+  // non native setters
+  void setEntryList(const std::vector<std::string>& entryTitleList_);
+  void setTag(size_t entryIndex_, const std::string &tag_);
+  void setTagList(const std::vector<std::string>& tagList_);
+  void setDescriptionList(const std::vector<std::vector<std::string>> &descriptionList_);
+  void clearTags();
+  void clearDescriptions();
 
-  Selector();
-  ~Selector();
+  // native getters
+  size_t getCursorPosition() const;
+  [[nodiscard]] const std::vector<SelectorEntry> &getEntryList() const;
+  MenuLineList &getHeader();
+  MenuLineList &getFooter();
+  std::vector<SelectorEntry> &getEntryList();
 
-  void initialize();
-  void reset();
+  // non native getters
+  const SelectorEntry& getSelectedEntry() const;
+  const std::string& getSelectedEntryTitle() const;
+  size_t getNbMenuLines() const;
+  size_t getCursorPage() const;
+  size_t getNbPages() const;
+  bool isSelectedEntry(const SelectorEntry& entry_) const;
 
-  void set_default_cursor_position(int default_cursor_position_);
-  void set_cursor_position(int cursor_position_);
-  void set_selection_list(std::vector<std::string> selection_list_);
-  void set_cursor_marker(std::string cursor_marker_);
-  void set_max_items_per_page(int max_items_per_page_);
+  // io
+  void printTerminal() const;
+  void scanInputs(u64 kDown, u64 kHeld);
+  void clearMenu();
 
-  void set_tag(int entry_, std::string tag_);
-  void set_tags_list(std::vector<std::string>& tags_list_);
-  void set_description(int entry_, std::vector<std::string> description_lines_);
-  void set_description_list(std::vector<std::vector<std::string>> descriptions_list_);
+  // cursor moving
+  void moveCursorPosition(long cursorPosition_);
+  void jumpToPage(long pageIndex_);
+  void selectNextEntry();
+  void selectPrevious();
+  void jumpToNextPage();
+  void jumpToPreviousPage();
 
-  int get_nb_pages();
-  int get_current_page();
-  int get_cursor_position();
-  int get_selected_entry();
-  int get_entry(std::string entry_name_);
-  std::string get_tag(int entry_);
-  std::vector<std::string> & getSelectionList();
+  void invalidatePageCache() const;
+  void refillPageEntryCache() const;
 
-  void print_selector();
-  void scan_inputs(u64 kDown, u64 kHeld);
-  void reset_cursor_position();
-  void reset_page();
-  void reset_tags_list();
-  void reset_description_list();
-  void process_page_numbering();
-
-  void increment_cursor_position();
-  void decrement_cursor_position();
-  void next_page();
-  void previous_page();
-  std::string get_selected_string();
+  // printout
+  static void printMenu(const MenuLineList& menu_);
+  static std::string askQuestion(
+      const std::string& question_, const std::vector<std::string>& answers_,
+      const std::vector<std::vector<std::string>>& descriptions_= {}
+  );
 
 private:
+  // user parameters
+  std::string _cursorMarker_{">"};
 
-  int _default_cursor_position_;
-  int _cursor_position_;
-  int _current_page_;
-  int _max_items_per_page_;
-  int _nb_pages_;
-  std::string _cursor_marker_;
-  std::vector<std::string> _selection_list_;
-  std::vector<std::string> _tags_list_;
-  std::vector<std::vector<std::string>> _descriptions_list_;
-  std::vector<std::vector<int>> _item_list_for_each_page_;
+  // selector data
+  size_t _cursorPosition_{0};
+  MenuLineList _header_{};
+  MenuLineList _footer_{};
+  std::vector<SelectorEntry> _entryList_{};
 
-  u64 _previous_kHeld_;
-  u64 _holding_tiks_;
+  // caches
+  mutable bool _isPageEntryCacheValid_{false};
+  mutable std::vector<std::vector<size_t>> _pageEntryCache_{}; // _entryPageMap_[iPage][iEntry] = entryIndex;
+  u64 _previousKheld_{0};
+  u64 _holdingTiks_{0};
 
+  static const u64 holdTickThreashold{2};
+  static const u64 repeatTick{1};
+
+  // dummies
+  static const SelectorEntry _dummyEntry_;
 
 };
 
 
-#endif //MODAPPLIER_SELECTOR_H
+#endif //SMM_CORE_SELECTOR_H

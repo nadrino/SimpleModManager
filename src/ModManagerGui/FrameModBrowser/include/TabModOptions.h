@@ -7,6 +7,8 @@
 
 #include <TabModBrowser.h>
 
+#include "ModManager.h"
+
 #include <borealis.hpp>
 
 
@@ -16,6 +18,9 @@ class TabModOptions : public brls::List {
 
 public:
   explicit TabModOptions(FrameModBrowser* owner_);
+
+  [[nodiscard]] const ModManager& getModManager() const;
+  ModManager& getModManager();
 
   void initialize();
 
@@ -29,14 +34,8 @@ public:
 private:
   FrameModBrowser* _owner_{nullptr};
 
-  // FolderInstallPreset
-  bool doUpdateModsStatus{false};
-  int frameSkipCount{0};
-  int _preSelection_{0};
-  std::string _inheritedTitle_{"Inherited from the main menu"};
-
   // memory handled by brls
-  brls::ListItem* _itemFolderInstallPreset_{nullptr};
+  brls::ListItem* _itemConfigPreset_{nullptr};
   brls::ListItem* _itemResetModsCache_{nullptr};
   brls::ListItem* _itemDisableAllMods_{nullptr};
   brls::ListItem* _itemGameIdentification_{nullptr};

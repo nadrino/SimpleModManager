@@ -16,18 +16,24 @@ class TabModPresets : public brls::List {
 public:
   explicit TabModPresets(FrameModBrowser* owner_);
 
-  void assignButtons(brls::ListItem *item, bool isPreset_);
-  void updatePresetItems();
+  void setTriggerUpdateItem(bool triggerUpdateItem);
 
-  [[nodiscard]] int getNbFreeSlots() const;
+  void draw(NVGcontext *vg, int x, int y, unsigned width, unsigned height, brls::Style *style, brls::FrameContext *ctx) override;
+
+  void assignButtons(brls::ListItem *item, bool isPreset_);
+
+
+protected:
+  void updatePresetItems();
 
 private:
   FrameModBrowser* _owner_{nullptr};
 
-  int _maxNbPresetsSlots_;
-  int _nbFreeSlots_;
-  std::vector<brls::ListItem*> _itemList_;
-  brls::ListItem* _itemNewCreatePreset_;
+  bool _triggerUpdateItem_{true};
+  int _nbFreeSlots_{0};
+  int _maxNbPresetsSlots_{20};
+  std::vector<brls::ListItem*> _itemList_{};
+  brls::ListItem* _itemNewCreatePreset_{nullptr};
 
 };
 

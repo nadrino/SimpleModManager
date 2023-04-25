@@ -9,7 +9,7 @@
 #include <TabModPresets.h>
 #include <TabModOptions.h>
 
-#include <GlobalObjects.h>
+#include "GuiUtils.h"
 
 #include "GenericToolbox.Switch.h"
 #include "Logger.h"
@@ -19,31 +19,34 @@ LoggerInit([]{
   Logger::setUserHeaderStr("[FrameModBrowser]");
 });
 
-FrameModBrowser::FrameModBrowser(const std::string& folder_){
 
-  this->setTitle(folder_);
+FrameModBrowser::FrameModBrowser(GuiModManager* guiModManagerPtr_) : _guiModManagerPtr_(guiModManagerPtr_) {
 
-  std::string gamePath = GlobalObjects::getModBrowser().get_current_directory() + "/" + folder_;
-  _titleId_ = GenericToolbox::Switch::Utils::lookForTidInSubFolders(gamePath);
-  _icon_ = GlobalObjects::getModBrowser().getFolderIcon(folder_);
+  // fetch game title
+  this->setTitle( getGameBrowser().getModManager().getGameName() );
+
+  std::string gamePath = getGameBrowser().getModManager().getGameFolderPath();
+
+
+  _titleId_ = GenericToolbox::Switch::Utils::lookForTidInSubFolders( gamePath );
+  _icon_ = ModManagerUtils::getFolderIcon( getGameBrowser().getModManager().getGameFolderPath() );
   if(_icon_ != nullptr){ this->setIcon(_icon_, 0x20000); }
+
   this->setFooterText("SimpleModManager");
 
-  if(GlobalObjects::getModBrowser().change_directory(gamePath) ){
 
-    GlobalObjects::getModBrowser().getModManager().set_current_mods_folder(gamePath);
-    GlobalObjects::getModBrowser().get_mods_preseter().read_parameter_file(gamePath);
+  if( not getGameBrowser().getModManager().getModList().empty() ){
 
     auto* parametersTabList = new brls::List();
-    GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name();
+
     auto* presetParameter = new brls::ListItem("Config preset", "", "");
-    presetParameter->setValue(GlobalObjects::getModBrowser().get_parameters_handler().get_current_config_preset_name());
+    presetParameter->setValue( getGameBrowser().getConfigHandler().getConfig().getCurrentPresetName() );
     parametersTabList->addView(presetParameter);
 
     _tabModBrowser_ = new TabModBrowser( this );
     _tabModPresets_ = new TabModPresets( this );
     _tabModOptions_ = new TabModOptions( this );
-    _tabModPlugins_ = new TabModPlugins();
+    _tabModPlugins_ = new TabModPlugins( this );
 
     _tabModOptions_->initialize();
 
@@ -72,7 +75,6 @@ bool FrameModBrowser::onCancel() {
   // If the sidebar was already there, the focus has not changed
   if(lastFocus == brls::Application::getCurrentFocus()){
     LogInfo("Back on games screen...");
-    GlobalObjects::getModBrowser().go_back();
     brls::Application::popView(brls::ViewAnimation::SLIDE_RIGHT);
   }
   return true;
@@ -84,7 +86,4 @@ uint8_t *FrameModBrowser::getIcon() {
 }
 std::string FrameModBrowser::getTitleId() {
   return _titleId_;
-}
-GuiModManager &FrameModBrowser::getModManager() {
-  return _modManager_;
 }

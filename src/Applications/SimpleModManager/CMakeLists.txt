@@ -22,8 +22,8 @@ target_include_directories( ${GUI_APP}.elf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/in
 target_link_libraries(
     ${GUI_APP}.elf PUBLIC
     CoreExtension
-    GameBrowser
-    ModBrowser
+    FrameGameBrowser
+    FrameModBrowser
     Borealis
     switch::libnx
     -L/opt/devkitpro/portlibs/switch/lib

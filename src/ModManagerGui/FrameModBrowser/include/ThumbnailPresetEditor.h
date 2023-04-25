@@ -27,7 +27,7 @@ public:
 
   void draw(NVGcontext* vg, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* ctx) override;
 
-  void setPresetName(const std::string &presetName);
+  void setPresetName(const std::string &presetName_);
   std::vector<std::string> & getSelectedModsList();
 
 private:
