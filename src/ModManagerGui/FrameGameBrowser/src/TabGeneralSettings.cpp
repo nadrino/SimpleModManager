@@ -74,9 +74,8 @@ void TabGeneralSettings::rebuildLayout() {
 
     dialog->addButton("Yes", [&](brls::View* view) {
       this->getConfig().useGui = false;
+      _owner_->getGuiModManager().getGameBrowser().getConfigHandler().dumpConfigToFile();
       brls::Application::quit();
-//      GlobalObjects::setTriggerSwitchUI(true);
-//      GlobalObjects::disable_cout_redirection();
     });
     dialog->addButton("No", [dialog](brls::View* view) {
       dialog->close();
@@ -88,7 +87,6 @@ void TabGeneralSettings::rebuildLayout() {
     return true;
   });
   this->addView(itemUseUI);
-
 
 }
 

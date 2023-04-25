@@ -5,8 +5,11 @@
 #ifndef SIMPLEMODMANAGER_CONFIGHANDLER_H
 #define SIMPLEMODMANAGER_CONFIGHANDLER_H
 
+#include "GenericToolbox.h"
+
 #include <string>
 #include <vector>
+#include "sstream"
 #include <map>
 
 struct PresetConfig{
@@ -32,13 +35,23 @@ struct ConfigHolder{
   void setSelectedPreset(const std::string& preset_);
   [[nodiscard]] std::string getCurrentPresetName() const;
   [[nodiscard]] const PresetConfig& getCurrentPreset() const { return presetList[selectedPresetIndex]; }
+
+  [[nodiscard]] std::string getSummary() const {
+    std::stringstream ss;
+    ss << GET_VAR_NAME_VALUE(useGui) << std::endl;
+    ss << GET_VAR_NAME_VALUE(baseFolder) << std::endl;
+    ss << GET_VAR_NAME_VALUE(selectedPresetIndex) << std::endl;
+    ss << GET_VAR_NAME_VALUE(lastSmmVersion) << std::endl;
+    ss << GET_VAR_NAME_VALUE(configFilePath) << std::endl;
+    ss << GenericToolbox::iterableToString(presetList, [](const PresetConfig& p){ return p.name + " -> " + p.installBaseFolder; });
+    return ss.str();
+  }
 };
 
 class ConfigHandler {
 
 public:
   ConfigHandler(){ this->loadConfig(); }
-  ~ConfigHandler(){ this->dumpConfigToFile(); }
 
   // getters
   [[nodiscard]] const ConfigHolder &getConfig() const;
