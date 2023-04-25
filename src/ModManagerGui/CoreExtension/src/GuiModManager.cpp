@@ -27,8 +27,10 @@ GameBrowser &GuiModManager::getGameBrowser(){ return _gameBrowser_; }
 void GuiModManager::applyMod(const std::string &modName_, bool force_) {
 
   std::string modPath = _gameBrowser_.getModManager().getGameFolderPath() + "/" + modName_;
+  LogDebug << GET_VAR_NAME_VALUE(modPath) << std::endl;
 
   std::vector<std::string> modFilesList = GenericToolbox::getListOfFilesInSubFolders(modPath);
+  LogDebug << GenericToolbox::parseVectorAsString(modFilesList) << std::endl;
 
   // deleting ignored entries
   for(int i_mod = int(modFilesList.size()) - 1 ; i_mod >= 0 ; i_mod--){
@@ -42,6 +44,8 @@ void GuiModManager::applyMod(const std::string &modName_, bool force_) {
   if(force_) replace_option = "Yes to all";
   bool is_conflict;
   std::stringstream ss_files_list;
+
+  LogDebug << GenericToolbox::parseVectorAsString(modFilesList) << std::endl;
 
   for(size_t iFile = 0 ; iFile < modFilesList.size() ; iFile++){
 
@@ -57,7 +61,7 @@ void GuiModManager::applyMod(const std::string &modName_, bool force_) {
     GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::applyMod:current_file"] = GenericToolbox::getFileNameFromFilePath(modFilesList[iFile]) + " (" + fileSizeStr + ")";
     GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::applyMod"] = double(iFile + 1) / double(modFilesList.size());
 
-    std::string installPath{};
+    std::string installPath{_gameBrowser_.getConfigHandler().getConfig().getCurrentPreset().installBaseFolder};
     installPath += "/" + modFilesList[iFile];
     GenericToolbox::removeRepeatedCharInsideInputStr(installPath, "/");
     GenericToolbox::doesPathIsFile(installPath) ? is_conflict = true : is_conflict = false;
@@ -69,7 +73,10 @@ void GuiModManager::applyMod(const std::string &modName_, bool force_) {
   _gameBrowser_.getModManager().resetModCache(modName_);
 
 }
-std::string GuiModManager::getModStatus(const std::string &modName_, bool useCache_) {
+void GuiModManager::getModStatus(const std::string &modName_, bool useCache_) {
+
+  LogDebug << __METHOD_NAME__ << " -> " << GET_VAR_NAME_VALUE(useCache_) << std::endl;
+
   // (XX/XX) Files Applied
   // ACTIVE
   // INACTIVE
@@ -79,12 +86,12 @@ std::string GuiModManager::getModStatus(const std::string &modName_, bool useCac
   int modIndex = modManager.getModIndex( modName_ );
 
   // entry valid?
-  if( modIndex == -1 ){ return "INVALID MOD"; }
+  if( modIndex == -1 ){ return; }
 
   // cached?
   std::string configPresetName{_gameBrowser_.getConfigHandler().getConfig().getCurrentPresetName()};
   if(useCache_ and GenericToolbox::doesKeyIsInMap(configPresetName, modManager.getModList()[modIndex].applyCache ) ){
-    return modManager.getModList()[modIndex].applyCache[configPresetName].statusStr;
+    return;
   }
 
   // recheck?
@@ -119,35 +126,31 @@ std::string GuiModManager::getModStatus(const std::string &modName_, bool useCac
   else if( cacheEntry.applyFraction == 1 ) cacheEntry.statusStr = "ACTIVE";
   else cacheEntry.statusStr = "PARTIAL (" + std::to_string(sameFileCount) + "/" + std::to_string(totalFileCount) + ")";
 
-  modManager.dumpModStatusCache();
+  LogTrace << "UPDATED TO " << cacheEntry.statusStr << std::endl;
 
-  return cacheEntry.statusStr;
+  modManager.dumpModStatusCache();
 }
 void GuiModManager::removeMod(const std::string &modName_){
+  LogDebug << __METHOD_NAME__ << std::endl;
 
-  auto* mod_manager = &_gameBrowser_.getModManager();
+  std::string modPath = _gameBrowser_.getModManager().getGameFolderPath() + "/" + modName_;
+  auto fileList = GenericToolbox::getListOfFilesInSubFolders(modPath);
 
-  std::string absolute_mod_folder_path = mod_manager->getGameFolderPath() + "/" + modName_;
-
-  std::vector<std::string> relative_file_path_list;
-
-  relative_file_path_list = GenericToolbox::getListOfFilesInSubFolders(absolute_mod_folder_path);
-
-  int i_file=0;
+  int iFile=0;
   Toolbox::reset_last_displayed_value();
-  for(auto &relative_file_path : relative_file_path_list){
+  for(auto &file : fileList){
 
-    std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path;
+    std::string absolute_file_path = modPath + "/" + file;
     GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::removeMod:current_file"] =
-                                 GenericToolbox::getFileNameFromFilePath(relative_file_path)
-                                 + " (" + GenericToolbox::parseSizeUnits(double(GenericToolbox::getFileSize(absolute_file_path))) + ")";
-    GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::removeMod"] = (i_file + 1.) / double(relative_file_path_list.size());
+        GenericToolbox::getFileNameFromFilePath(file) + " (" +
+        GenericToolbox::parseSizeUnits(double(GenericToolbox::getFileSize(absolute_file_path))) + ")";
+    GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::removeMod"] = (iFile + 1.) / double(fileList.size());
 
-    i_file++;
+    iFile++;
     absolute_file_path = GenericToolbox::removeRepeatedCharacters(absolute_file_path, "/");
     std::string file_size = GenericToolbox::parseSizeUnits(double(GenericToolbox::getFileSize(absolute_file_path)));
 
-    std::string installed_file_path = mod_manager->getConfig().getCurrentPreset().installBaseFolder + "/" + relative_file_path;
+    std::string installed_file_path = _gameBrowser_.getModManager().getConfig().getCurrentPreset().installBaseFolder + "/" + file;
     installed_file_path = GenericToolbox::removeRepeatedCharacters(installed_file_path, "/");
     // Check if the installed mod belongs to the selected mod
     if( GenericToolbox::Switch::IO::doFilesAreIdentical( absolute_file_path, installed_file_path ) ){
@@ -174,13 +177,13 @@ void GuiModManager::removeMod(const std::string &modName_){
       }
     }
   }
-  mod_manager->resetModCache(modName_);
+
+  _gameBrowser_.getModManager().resetModCache(modName_);
 
 }
 void GuiModManager::removeAllMods(bool force_) {
 
-  auto mods_list = _gameBrowser_.getSelector().getEntryList();
-
+  auto modList = _gameBrowser_.getModManager().getModList();
   std::string answer;
 
   if(not force_){
@@ -194,11 +197,11 @@ void GuiModManager::removeAllMods(bool force_) {
   }
 
   if(answer == "Yes") {
-    for( int i_mod = 0 ; i_mod < int(mods_list.size()) ; i_mod++ ){
+    for( int i_mod = 0 ; i_mod < int(modList.size()) ; i_mod++ ){
       GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::removeAllMods:current_mod"] =
-        mods_list[i_mod].title + " (" + std::to_string(i_mod+1) + "/" + std::to_string(mods_list.size()) + ")";
-      GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::removeAllMods"] =  (i_mod + 1.) / double(mods_list.size());
-      GuiModManager::removeMod(mods_list[i_mod].title);
+          modList[i_mod].modName + " (" + std::to_string(i_mod+1) + "/" + std::to_string(modList.size()) + ")";
+      GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::removeAllMods"] =  (i_mod + 1.) / double(modList.size());
+      GuiModManager::removeMod( modList[i_mod].modName );
     }
   }
 
@@ -233,7 +236,7 @@ void GuiModManager::applyModsList(std::vector<std::string>& modsList_){
   }
 
 }
-void GuiModManager::checkAllMods() {
+void GuiModManager::checkAllMods(bool useCache_) {
 
   auto modList = _gameBrowser_.getModManager().getModList();
   for(int i_mod = 0 ; i_mod < int(modList.size()) ; i_mod++){
@@ -243,32 +246,11 @@ void GuiModManager::checkAllMods() {
     GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::checkAllMods"] = (i_mod + 1.) / double(modList.size());
 
     // IU update
-    std::string result = GuiModManager::getModStatus(modList[i_mod].modName); // actual mod check is here
-    // TODO: Change this to a boolean that triggers in the draw loop ?
-//    if(GuiGlobals::getCurrentTabModBrowserPtr()){
-//      GuiGlobals::getCurrentTabModBrowserPtr()->getModsListItems()[mods_list[i_mod]]->setValue(result);
-//      NVGcolor color;
-//      if(GlobalObjects::get_mod_browser().get_mod_manager().get_mod_status_fraction(mods_list[i_mod]) == 0){
-//        color.a = 255./255.; color.r = 80./255.; color.g = 80./255.; color.b = 80./255.;
-//        GuiGlobals::getCurrentTabModBrowserPtr()->getModsListItems()[mods_list[i_mod]]->setValueActiveColor(
-//          color
-//          );
-//      }
-//      else if(GlobalObjects::get_mod_browser().get_mod_manager().get_mod_status_fraction(mods_list[i_mod]) == 1){
-//        color.a = 255./255.; color.r = 43./255.; color.g = 81./255.; color.b = 226./255.;
-//        GuiGlobals::getCurrentTabModBrowserPtr()->getModsListItems()[mods_list[i_mod]]->setValueActiveColor(
-//          color
-//        );
-//      }
-//      else{
-//        GuiGlobals::getCurrentTabModBrowserPtr()->getModsListItems()[mods_list[i_mod]]->setValueActiveColor(
-//          {43, 81, 226, 255}
-//        );
-//      }
-//    }
-
+    GuiModManager::getModStatus(modList[i_mod].modName, useCache_); // actual mod check is here
+    _triggerUpdateModsDisplayedStatus_ = true;
   }
 
+  _triggerUpdateModsDisplayedStatus_ = true;
 }
 
 // not static
@@ -326,7 +308,8 @@ bool GuiModManager::applyModFunction(const std::string& modName_){
     _loadingBox_.getLoadingView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
     _loadingBox_.getLoadingView()->setEnableSubLoadingBar(true);
   }
-  GuiModManager::getModStatus(modName_);
+  GuiModManager::getModStatus(modName_, false);
+  _triggerUpdateModsDisplayedStatus_ = true;
 
   _loadingBox_.getLoadingView()->reset();
   _triggerUpdateModsDisplayedStatus_ = true;
@@ -421,6 +404,7 @@ bool GuiModManager::removeModFunction(const std::string& modName_){
         &GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
   }
   GuiModManager::getModStatus(modName_);
+  _triggerUpdateModsDisplayedStatus_ = true;
 
   _loadingBox_.getLoadingView()->reset();
   _triggerUpdateModsDisplayedStatus_ = true;
@@ -443,7 +427,7 @@ bool GuiModManager::checkAllModsFunction(){
     _loadingBox_.getLoadingView()->setSubTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::generateStatusStr:current_file"]);
     _loadingBox_.getLoadingView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
   }
-  GuiModManager::checkAllMods();
+  this->checkAllMods();
   LogInfo << "Check all mods done." << std::endl;
 
   _loadingBox_.getLoadingView()->reset();

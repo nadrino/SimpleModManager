@@ -21,9 +21,9 @@ void ThumbnailPresetEditor::initialize() {
   auto* modList = new brls::List();
 
 
-  auto modFolderList = _owner_->getGameBrowser().getSelector().getEntryList();
+  auto modFolderList = _owner_->getGameBrowser().getModManager().getModList();
   for( auto& modFolder : modFolderList ){
-    auto* item = new brls::ListItem(modFolder.title, "", "");
+    auto* item = new brls::ListItem(modFolder.modName, "", "");
 
     item->getClickEvent()->subscribe([this,item](brls::View* view){
       this->getSelectedModsList().emplace_back(item->getLabel());

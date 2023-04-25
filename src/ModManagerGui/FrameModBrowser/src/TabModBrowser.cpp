@@ -27,18 +27,18 @@ TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
   if( modList.empty() ){
     LogInfo << "No mod found." << std::endl;
 
-    _modList_.emplace_back();
-    _modList_.back().item = new brls::ListItem(
+    _modItemList_.emplace_back();
+    _modItemList_.back().item = new brls::ListItem(
         "No mods have been found in " + this->getModManager().getGameFolderPath(),
         "There you need to put your mods such as: ./<name-of-the-mod>/<file-structure-in-installed-directory>"
     );
-    _modList_.back().item->show( [](){}, false );
+    _modItemList_.back().item->show([](){}, false );
   }
   else{
     LogInfo << "Adding " << modList.size() << " mods..." << std::endl;
 
-    _modList_.reserve( modList.size());
-    for (const auto& mod : modList) {
+    _modItemList_.reserve(modList.size());
+    for( auto& mod : modList ) {
       LogScopeIndent;
       LogInfo << "Adding mod: \"" << mod.modName << "\"" << std::endl;
 
@@ -83,18 +83,18 @@ TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
       });
 
       // create the holding struct
-      _modList_.emplace_back();
-      _modList_.back().mod = mod;
-      _modList_.back().item = item;
+      _modItemList_.emplace_back();
+      _modItemList_.back().modIndex = int(_modItemList_.size() ) - 1;
+      _modItemList_.back().item = item;
     }
   }
 
+  this->updateDisplayedModsStatus();
+
   // add to view
-  for( auto& modItem : _modList_ ){
+  for( auto& modItem : _modItemList_ ){
     this->addView( modItem.item );
   }
-
-  this->triggerRecheckAllMods = true;
 
 }
 
@@ -104,6 +104,7 @@ void TabModBrowser::draw(NVGcontext *vg, int x, int y, unsigned int width, unsig
   ScrollView::draw(vg, x, y, width, height, style, ctx);
 
   if( _owner_->getGuiModManager().isTriggerUpdateModsDisplayedStatus() ){
+    LogDebug << "Updating mod status display..." << std::endl;
     updateDisplayedModsStatus();
     _owner_->getGuiModManager().setTriggerUpdateModsDisplayedStatus( false );
   }
@@ -112,30 +113,33 @@ void TabModBrowser::draw(NVGcontext *vg, int x, int y, unsigned int width, unsig
     // starts the async routine
     _owner_->getGuiModManager().startCheckAllModsThread();
     _owner_->getGuiModManager().setTriggerUpdateModsDisplayedStatus( true );
+    ScrollView::draw(vg, x, y, width, height, style, ctx);
     this->triggerRecheckAllMods = false;
   }
+
 
 }
 
 void TabModBrowser::updateDisplayedModsStatus(){
   LogDebug << __METHOD_NAME__ << std::endl;
 
-  LogReturnIf( _modList_.size() == 1 and _modList_[0].mod.modName.empty(), "No mod in this folder. Nothing to update." );
+  auto& modEntryList = _owner_->getGameBrowser().getModManager().getModList();
+  LogReturnIf( modEntryList.empty(), "No mod in this folder. Nothing to update." );
 
   auto currentPreset = this->getModManager().getConfig().getCurrentPresetName();
 
-  for( auto& modItem : _modList_ ){
+  for( size_t iMod = 0 ; iMod < modEntryList.size() ; iMod++ ){
 
     // processing tag
-    modItem.item->setValue( modItem.mod.applyCache[currentPreset].statusStr );
+    _modItemList_[iMod].item->setValue( modEntryList[iMod].getStatus(currentPreset ) );
 
     NVGcolor color;
     // processing color
-    if     ( modItem.mod.applyCache[currentPreset].applyFraction == 0 ){
+    if     ( modEntryList[iMod].getCache(currentPreset)->applyFraction == 0 ){
       // inactive color
       color = nvgRGB(80, 80, 80);
     }
-    else if( modItem.mod.applyCache[currentPreset].applyFraction == 1 ){
+    else if( modEntryList[iMod].getCache(currentPreset)->applyFraction == 1 ){
       // applied color
       color = nvgRGB(88, 195, 169);
     }
@@ -147,9 +151,8 @@ void TabModBrowser::updateDisplayedModsStatus(){
           (unsigned char) (59*0.85)
       );
     }
-    modItem.item->setValueActiveColor( color );
+    _modItemList_[iMod].item->setValueActiveColor( color );
   }
-
 }
 
 const ModManager& TabModBrowser::getModManager() const{

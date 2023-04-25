@@ -20,6 +20,9 @@ ModManager::ModManager(GameBrowser* owner_) : _owner_(owner_) {}
 void ModManager::setAllowAbort(bool allowAbort) {
   _allowAbort_ = allowAbort;
 }
+void ModManager::setGameName(const std::string &gameName) {
+  _gameName_ = gameName;
+}
 void ModManager::setGameFolderPath(const std::string &gameFolderPath_) {
   _gameFolderPath_ = gameFolderPath_;
   this->updateModList();
@@ -29,17 +32,20 @@ void ModManager::setIgnoredFileList(std::vector<std::string>& ignoredFileList_){
 }
 
 // getters
-const Selector &ModManager::getSelector() const {
-  return _selector_;
-}
-const std::vector<ModEntry> &ModManager::getModList() const {
-  return _modList_;
+const std::string &ModManager::getGameName() const {
+  return _gameName_;
 }
 const std::string & ModManager::getGameFolderPath() const {
   return _gameFolderPath_;
 }
+const Selector &ModManager::getSelector() const {
+  return _selector_;
+}
 const std::vector<std::string> & ModManager::getIgnoredFileList() const {
   return _ignoredFileList_;
+}
+const std::vector<ModEntry> &ModManager::getModList() const {
+  return _modList_;
 }
 
 std::vector<ModEntry> &ModManager::getModList() {
@@ -724,6 +730,8 @@ void ModManager::displayConflictsWithOtherMods(size_t modIndex_){
 int ModManager::getModIndex(const std::string& modName_){
   return GenericToolbox::findElementIndex(modName_, _modList_, [](const ModEntry& mod_){ return mod_.modName; } );
 }
+
+
 
 
 

@@ -20,7 +20,7 @@ LoggerInit([]{
 TabGames::TabGames(FrameRoot* owner_) : _owner_(owner_) {
   LogWarning << "Building game tab..." << std::endl;
 
-  auto gameList = this->getGameSelector().getEntryList();
+  auto gameList = this->getGameBrowser().getSelector().getEntryList();
 
   if( gameList.empty() ){
     LogInfo << "No game found." << std::endl;
@@ -93,18 +93,12 @@ TabGames::TabGames(FrameRoot* owner_) : _owner_(owner_) {
 const GameBrowser& TabGames::getGameBrowser() const{
   return _owner_->getGuiModManager().getGameBrowser();
 }
-const Selector& TabGames::getGameSelector() const{
-  return getGameBrowser().getSelector();
-}
 const ConfigHolder& TabGames::getConfig() const{
   return getGameBrowser().getConfigHandler().getConfig();
 }
 
 GameBrowser& TabGames::getGameBrowser(){
   return _owner_->getGuiModManager().getGameBrowser();
-}
-Selector& TabGames::getGameSelector(){
-  return getGameBrowser().getSelector();
 }
 ConfigHolder& TabGames::getConfig(){
   return getGameBrowser().getConfigHandler().getConfig();

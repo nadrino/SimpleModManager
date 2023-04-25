@@ -23,13 +23,13 @@ LoggerInit([]{
 FrameModBrowser::FrameModBrowser(GuiModManager* guiModManagerPtr_) : _guiModManagerPtr_(guiModManagerPtr_) {
 
   // fetch game title
-  this->setTitle( getGameBrowser().getSelector().getSelectedEntryTitle() );
+  this->setTitle( getGameBrowser().getModManager().getGameName() );
 
   std::string gamePath = getGameBrowser().getModManager().getGameFolderPath();
 
 
   _titleId_ = GenericToolbox::Switch::Utils::lookForTidInSubFolders( gamePath );
-  _icon_ = ModManagerUtils::getFolderIcon( getGameBrowser().getSelector().getSelectedEntryTitle() );
+  _icon_ = ModManagerUtils::getFolderIcon( getGameBrowser().getModManager().getGameFolderPath() );
   if(_icon_ != nullptr){ this->setIcon(_icon_, 0x20000); }
 
   this->setFooterText("SimpleModManager");

@@ -24,6 +24,18 @@ struct ModEntry{
 
   std::string modName;
   std::map<std::string, ApplyCache> applyCache;
+
+  [[nodiscard]] const ApplyCache* getCache(const std::string& preset_) const {
+    if( not GenericToolbox::doesKeyIsInMap(preset_, applyCache) ){
+      return nullptr;
+    }
+    return &applyCache.at(preset_);
+  }
+  [[nodiscard]] std::string getStatus(const std::string& preset_) const {
+    auto* cache{this->getCache(preset_)};
+    if( cache == nullptr ){ return {}; }
+    return cache->statusStr;
+  }
 };
 
 ENUM_EXPANDER(
@@ -43,14 +55,16 @@ public:
 
   // setters
   void setAllowAbort(bool allowAbort);
+  void setGameName(const std::string &gameName);
   void setGameFolderPath(const std::string &gameFolderPath_);
   void setIgnoredFileList(std::vector<std::string>& ignoredFileList_);
 
   // getters
+  [[nodiscard]] const std::string &getGameName() const;
+  [[nodiscard]] const std::string &getGameFolderPath() const;
   const Selector &getSelector() const;
-  const std::vector<ModEntry> &getModList() const;
-  [[nodiscard]] const std::string & getGameFolderPath() const;
   [[nodiscard]] const std::vector<std::string> & getIgnoredFileList() const;
+  const std::vector<ModEntry> &getModList() const;
 
   std::vector<ModEntry> &getModList();
   std::vector<std::string> & getIgnoredFileList();
@@ -100,6 +114,7 @@ private:
   bool _ignoreCacheFiles_{true};
   bool _allowAbort_{true};
   std::string _gameFolderPath_{};
+  std::string _gameName_{};
   std::vector<std::string> _ignoredFileList_{};
 
   Selector _selector_;

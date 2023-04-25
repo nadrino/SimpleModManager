@@ -47,6 +47,7 @@ ModsPresetHandler &GameBrowser::getModPresetHandler(){
 
 // Browse
 void GameBrowser::selectGame(const std::string &gameName_) {
+  _modManager_.setGameName( gameName_ );
   _modManager_.setGameFolderPath( _configHandler_.getConfig().baseFolder + "/" + gameName_ );
   _modPresetHandler_.setModFolder( _configHandler_.getConfig().baseFolder + "/" + gameName_ );
 

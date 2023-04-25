@@ -38,8 +38,8 @@ public:
   void applyModsList(std::vector<std::string>& modsList_);
   void removeMod(const std::string &modName_);
   void removeAllMods(bool force_ = false);
-  void checkAllMods();
-  std::string getModStatus(const std::string &modName_, bool useCache_ = false);
+  void checkAllMods(bool useCache_ = false);
+  void getModStatus(const std::string &modName_, bool useCache_ = false);
 
 protected:
   bool applyModFunction(const std::string& modName_);

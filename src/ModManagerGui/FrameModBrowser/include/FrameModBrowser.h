@@ -30,6 +30,7 @@ public:
   TabModPresets* getTabModPresets(){ return _tabModPresets_; }
 
 
+  [[nodiscard]] const ConfigHolder& getConfig() const{ return _guiModManagerPtr_->getGameBrowser().getConfigHandler().getConfig(); }
   [[nodiscard]] const GuiModManager& getGuiModManager() const{ return *_guiModManagerPtr_; }
   [[nodiscard]] const GameBrowser& getGameBrowser() const{ return _guiModManagerPtr_->getGameBrowser(); }
 

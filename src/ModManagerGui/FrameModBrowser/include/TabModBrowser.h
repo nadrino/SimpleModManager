@@ -31,16 +31,15 @@ public:
 
 private:
   FrameModBrowser* _owner_{nullptr};
+  std::vector<ModItem> _modItemList_{};
 
   bool triggerRecheckAllMods{false};
 
-//  GuiModManager _extModManager_{};
-  std::vector<ModItem> _modList_{};
 };
 
 
 struct ModItem{
-  ModEntry mod;
+  int modIndex{-1};
 
   // memory is handled by brls -> could be lost in the wild but handy to keep somewhere
   brls::ListItem* item{nullptr}; // deleted in BoxLayout::~BoxLayout()

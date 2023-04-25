@@ -25,10 +25,8 @@ public:
 
   // non native getters
   [[nodiscard]] const GameBrowser& getGameBrowser() const;
-  [[nodiscard]] const Selector& getGameSelector() const;
   [[nodiscard]] const ConfigHolder& getConfig() const;
 
-  Selector& getGameSelector();
   GameBrowser& getGameBrowser();
   ConfigHolder& getConfig();
 

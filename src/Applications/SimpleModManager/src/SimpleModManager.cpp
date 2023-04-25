@@ -39,10 +39,12 @@ int main(int argc, char* argv[]){
 //  const auto username = config["username"].as<std::string>();
 //  const auto password = config["password"].as<std::string>();
 
-  ConfigHandler c;
+//  ConfigHandler c;
 
-  if( c.getConfig().useGui ){ runGui(); }
-  else                      { runConsole(); }
+  runGui();
+
+//  if( c.getConfig().useGui ){ runGui(); }
+//  else                      { runConsole(); }
 
   // Exit
   return EXIT_SUCCESS;
@@ -50,6 +52,7 @@ int main(int argc, char* argv[]){
 
 
 void runGui(){
+  LogInfo << "Starting GUI..." << std::endl;
   LogThrowIf(R_FAILED(nsInitialize()), "nsInitialize Failed");
 
   brls::Logger::setLogLevel(brls::LogLevel::ERROR);
@@ -68,7 +71,8 @@ void runGui(){
 }
 
 void runConsole(){
-  LogFatal.setMaxLogLevel();
+  LogInfo << "Starting Console..." << std::endl;
+  LogFatal.setMaxLogLevel(); // mute every instance of the logger
 
   auto* console = consoleInit(nullptr);
 //
