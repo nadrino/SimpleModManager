@@ -9,8 +9,6 @@
 
 #include <GameBrowserGui.h>
 
-#include <GlobalObjects.h>
-
 
 std::unique_ptr<tsl::Gui> OverlayGuiLoader::loadInitialGui() {
   // Initial Gui to load. It's possible to pass arguments to its constructor like this
@@ -19,13 +17,7 @@ std::unique_ptr<tsl::Gui> OverlayGuiLoader::loadInitialGui() {
 
 void OverlayGuiLoader::initServices() {
   // libtesla already initialized fs, hid, pl, pmdmnt, hid:sys and set:sys
-
-  GlobalObjects::gGameBrowser.set_only_show_folders(true);
-  GlobalObjects::gGameBrowser.set_max_relative_depth(1);
-  GlobalObjects::gGameBrowser.initialize();
-
   tsl::hlp::ScopeGuard dirGuard( [&]{} );
-
 }
 void OverlayGuiLoader::exitServices() {
   // Called at the end to clean up all services previously initialized
