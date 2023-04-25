@@ -32,9 +32,6 @@ public:
 private:
   FrameModBrowser* _owner_{nullptr};
   std::vector<ModItem> _modItemList_{};
-
-  bool triggerRecheckAllMods{false};
-
 };
 
 
