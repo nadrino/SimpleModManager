@@ -54,7 +54,7 @@ TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
           dialog->close();
 
           // starts the async routine
-          _owner_->getModManager().startApplyModThread( mod.modName );
+          _owner_->getGuiModManager().startApplyModThread( mod.modName );
         });
         dialog->addButton("No", [dialog](brls::View* view) { dialog->close(); });
 
@@ -73,7 +73,7 @@ TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
           dialog->close();
 
           // starts the async routine
-          _owner_->getModManager().startRemoveModThread( mod.modName );
+          _owner_->getGuiModManager().startRemoveModThread( mod.modName );
         });
         dialog->addButton("No", [dialog](brls::View* view) { dialog->close(); });
 
@@ -103,15 +103,15 @@ void TabModBrowser::draw(NVGcontext *vg, int x, int y, unsigned int width, unsig
 
   ScrollView::draw(vg, x, y, width, height, style, ctx);
 
-  if( _owner_->getModManager().isTriggerUpdateModsDisplayedStatus() ){
+  if( _owner_->getGuiModManager().isTriggerUpdateModsDisplayedStatus() ){
     updateDisplayedModsStatus();
-    _owner_->getModManager().setTriggerUpdateModsDisplayedStatus( false );
+    _owner_->getGuiModManager().setTriggerUpdateModsDisplayedStatus( false );
   }
 
   if( this->triggerRecheckAllMods ){
     // starts the async routine
-    _owner_->getModManager().startCheckAllModsThread();
-    _owner_->getModManager().setTriggerUpdateModsDisplayedStatus( true );
+    _owner_->getGuiModManager().startCheckAllModsThread();
+    _owner_->getGuiModManager().setTriggerUpdateModsDisplayedStatus( true );
     this->triggerRecheckAllMods = false;
   }
 
@@ -153,5 +153,5 @@ void TabModBrowser::updateDisplayedModsStatus(){
 }
 
 const ModManager& TabModBrowser::getModManager() const{
-  return _owner_->getGameBrowser()->getModManager();
+  return _owner_->getGameBrowser().getModManager();
 }

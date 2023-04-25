@@ -5,6 +5,8 @@
 #include <GlobalObjects.h>
 #include "TabModPlugins.h"
 
+#include "FrameModBrowser.h"
+
 #include "Logger.h"
 #include "GenericToolbox.h"
 
@@ -20,13 +22,14 @@ LoggerInit([]{
 
 
 std::map<std::string, brls::Image *> cached_thumbs;
-TabModPlugins::TabModPlugins() {
+TabModPlugins::TabModPlugins(FrameModBrowser* owner_) : _owner_(owner_) {
 
 	this->frameCounter = -1;
 
-	// Setup the list
+	// Set the list
 	auto plugin_nros_list = GenericToolbox::getListOfEntriesInFolder(
-      GlobalObjects::gGameBrowser.get_current_directory() + "/.plugins");
+    _owner_->getGuiModManager().getGameBrowser().getModManager().getGameFolderPath() + "/.plugins"
+  );
 	plugin_nros_list.erase(std::remove_if(plugin_nros_list.begin(), plugin_nros_list.end(), [this](std::string &x) {
 							   return get_extension(x) != ".smm"; // put your condition here
 						   }),
@@ -35,7 +38,7 @@ TabModPlugins::TabModPlugins() {
 	{
 		std::string selected_plugin = remove_extension(plugin_nros_list[i_nro]);
 		std::string selected_plugin_path =
-        GlobalObjects::gGameBrowser.get_current_directory() + "/.plugins/" + plugin_nros_list[i_nro];
+        _owner_->getGuiModManager().getGameBrowser().getModManager().getGameFolderPath() + "/.plugins/" + plugin_nros_list[i_nro];
 		std::string selected_plugin_author;
 		std::string selected_plugin_version;
 		LogDebug("Adding plugin: %s", selected_plugin.c_str());
@@ -109,7 +112,7 @@ TabModPlugins::TabModPlugins() {
 	{
 
 		auto *emptyListLabel = new brls::ListItem(
-        "No plugins have been found in " + GlobalObjects::gGameBrowser.get_current_directory() + "/.plugins",
+        "No plugins have been found in " + _owner_->getGuiModManager().getGameBrowser().getModManager().getGameFolderPath() + "/.plugins",
 			"There you need to put your plugins such as: ./<name-of-the-plugin>.smm");
 		emptyListLabel->show([]() {}, false);
 		this->addView(emptyListLabel);

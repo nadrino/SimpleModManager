@@ -10,6 +10,7 @@
 #include <TabModOptions.h>
 #include <TabModPresets.h>
 
+#include "GuiModManager.h"
 #include "GameBrowser.h"
 
 #include <borealis.hpp>
@@ -20,22 +21,24 @@
 class FrameModBrowser : public brls::TabFrame {
 
 public:
-  explicit FrameModBrowser(GameBrowser* gameBrowser_);
+  explicit FrameModBrowser(GuiModManager* guiModManagerPtr_);
   bool onCancel() override;
 
   uint8_t *getIcon();
   std::string getTitleId();
-  GuiModManager &getModManager();
   TabModBrowser* getTabModBrowser(){ return _tabModBrowser_; }
   TabModPresets* getTabModPresets(){ return _tabModPresets_; }
 
-  const GameBrowser* getGameBrowser() const{ return _gameBrowser_; }
-  GameBrowser* getGameBrowser(){ return _gameBrowser_; }
+
+  [[nodiscard]] const GuiModManager& getGuiModManager() const{ return *_guiModManagerPtr_; }
+  [[nodiscard]] const GameBrowser& getGameBrowser() const{ return _guiModManagerPtr_->getGameBrowser(); }
+
+  GuiModManager& getGuiModManager() { return *_guiModManagerPtr_; }
+  GameBrowser& getGameBrowser(){ return _guiModManagerPtr_->getGameBrowser(); }
 
 
 private:
-  GameBrowser* _gameBrowser_{};
-  GuiModManager _modManager_{};
+  GuiModManager* _guiModManagerPtr_{};
 
   // memory handled by brls
   TabModBrowser* _tabModBrowser_{nullptr};

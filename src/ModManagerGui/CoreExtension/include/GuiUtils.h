@@ -2,14 +2,17 @@
 // Created by Adrien Blanchet on 25/04/2023.
 //
 
-#ifndef SIMPLEMODMANAGER_MODMANAGERUTILS_H
-#define SIMPLEMODMANAGER_MODMANAGERUTILS_H
+#ifndef SIMPLEMODMANAGER_GUIUTILS_H
+#define SIMPLEMODMANAGER_GUIUTILS_H
+
+
+#include "GenericToolbox.Switch.h"
 
 #include "switch.h"
 
 namespace ModManagerUtils {
 
-  uint8_t* getFolderIcon(const std::string& gameFolder_){
+  inline uint8_t* getFolderIcon(const std::string& gameFolder_){
     return GenericToolbox::Switch::Utils::getFolderIconFromTitleId(
         GenericToolbox::Switch::Utils::lookForTidInSubFolders(gameFolder_)
         );
@@ -19,4 +22,4 @@ namespace ModManagerUtils {
 
 
 
-#endif //SIMPLEMODMANAGER_MODMANAGERUTILS_H
+#endif //SIMPLEMODMANAGER_GUIUTILS_H

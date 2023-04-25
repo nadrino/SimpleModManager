@@ -90,8 +90,8 @@ void TabGeneralSettings::rebuildLayout() {
 }
 
 const ConfigHolder& TabGeneralSettings::getConfig() const{
-  return _owner_->getGameBrowser().getConfigHandler().getConfig();
+  return _owner_->getGuiModManager().getGameBrowser().getConfigHandler().getConfig();
 }
 ConfigHolder& TabGeneralSettings::getConfig(){
-  return _owner_->getGameBrowser().getConfigHandler().getConfig();
+  return _owner_->getGuiModManager().getGameBrowser().getConfigHandler().getConfig();
 }

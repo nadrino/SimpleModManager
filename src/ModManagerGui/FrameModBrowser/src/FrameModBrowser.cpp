@@ -9,7 +9,7 @@
 #include <TabModPresets.h>
 #include <TabModOptions.h>
 
-#include <GlobalObjects.h>
+#include "GuiUtils.h"
 
 #include "GenericToolbox.Switch.h"
 #include "Logger.h"
@@ -20,33 +20,33 @@ LoggerInit([]{
 });
 
 
-FrameModBrowser::FrameModBrowser(GameBrowser* gameBrowser_) : _gameBrowser_(gameBrowser_) {
+FrameModBrowser::FrameModBrowser(GuiModManager* guiModManagerPtr_) : _guiModManagerPtr_(guiModManagerPtr_) {
 
   // fetch game title
-  this->setTitle( _gameBrowser_->getSelector().getSelectedEntryTitle() );
+  this->setTitle( getGameBrowser().getSelector().getSelectedEntryTitle() );
 
-  std::string gamePath = _gameBrowser_->getModManager().getGameFolderPath();
+  std::string gamePath = getGameBrowser().getModManager().getGameFolderPath();
 
 
   _titleId_ = GenericToolbox::Switch::Utils::lookForTidInSubFolders( gamePath );
-  _icon_ = _gameBrowser_->getFolderIcon( _gameBrowser_->getSelector().getSelectedEntryTitle() );
+  _icon_ = ModManagerUtils::getFolderIcon( getGameBrowser().getSelector().getSelectedEntryTitle() );
   if(_icon_ != nullptr){ this->setIcon(_icon_, 0x20000); }
 
   this->setFooterText("SimpleModManager");
 
 
-  if( not _gameBrowser_->getModManager().getModList().empty() ){
+  if( not getGameBrowser().getModManager().getModList().empty() ){
 
     auto* parametersTabList = new brls::List();
 
     auto* presetParameter = new brls::ListItem("Config preset", "", "");
-    presetParameter->setValue( _gameBrowser_->getConfigHandler().getConfig().getCurrentPresetName() );
+    presetParameter->setValue( getGameBrowser().getConfigHandler().getConfig().getCurrentPresetName() );
     parametersTabList->addView(presetParameter);
 
     _tabModBrowser_ = new TabModBrowser( this );
     _tabModPresets_ = new TabModPresets( this );
     _tabModOptions_ = new TabModOptions( this );
-    _tabModPlugins_ = new TabModPlugins();
+    _tabModPlugins_ = new TabModPlugins( this );
 
     _tabModOptions_->initialize();
 
@@ -86,7 +86,4 @@ uint8_t *FrameModBrowser::getIcon() {
 }
 std::string FrameModBrowser::getTitleId() {
   return _titleId_;
-}
-GuiModManager &FrameModBrowser::getModManager() {
-  return _modManager_;
 }

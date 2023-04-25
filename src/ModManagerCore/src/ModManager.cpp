@@ -42,6 +42,13 @@ const std::vector<std::string> & ModManager::getIgnoredFileList() const {
   return _ignoredFileList_;
 }
 
+std::vector<ModEntry> &ModManager::getModList() {
+  return _modList_;
+}
+std::vector<std::string> & ModManager::getIgnoredFileList() {
+  return _ignoredFileList_;
+}
+
 const ConfigHolder& ModManager::getConfig() const{
   return _owner_->getConfigHandler().getConfig();
 }

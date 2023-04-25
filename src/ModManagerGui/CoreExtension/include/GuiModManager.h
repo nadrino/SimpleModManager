@@ -39,7 +39,7 @@ public:
   void removeMod(const std::string &modName_);
   void removeAllMods(bool force_ = false);
   void checkAllMods();
-  std::string getModStatus(const std::string &modName_);
+  std::string getModStatus(const std::string &modName_, bool useCache_ = false);
 
 protected:
   bool applyModFunction(const std::string& modName_);

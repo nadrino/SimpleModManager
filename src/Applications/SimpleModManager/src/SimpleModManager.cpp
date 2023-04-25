@@ -9,6 +9,8 @@
 #include <GlobalObjects.h>
 #include <Toolbox.h>
 
+#include "ConfigHandler.h"
+
 #include "Logger.h"
 #include "GenericToolbox.Switch.h"
 
@@ -37,17 +39,10 @@ int main(int argc, char* argv[]){
 //  const auto username = config["username"].as<std::string>();
 //  const auto password = config["password"].as<std::string>();
 
-  int max_depth = 1; // could be a parameter in the future
-  GlobalObjects::gGameBrowser.setOnlyShowFolders(true);
-  GlobalObjects::gGameBrowser.set_max_relative_depth(max_depth);
-  GlobalObjects::gGameBrowser.initialize();
+  ConfigHandler c;
 
-  if(bool(std::stoi(GlobalObjects::gGameBrowser.getConfigHandler().get_parameter("use-gui")))){
-    runGui();
-  }
-  else{
-    runConsole();
-  }
+  if( c.getConfig().useGui ){ runGui(); }
+  else                      { runConsole(); }
 
   // Exit
   return EXIT_SUCCESS;
@@ -70,75 +65,72 @@ void runGui(){
   while(brls::Application::mainLoop()) { }
 
   nsExit();
-
-  if(GlobalObjects::doTriggerSwitchUI()){
-    runConsole();
-  }
-
 }
 
 void runConsole(){
   LogFatal.setMaxLogLevel();
 
   auto* console = consoleInit(nullptr);
-
-  // Configure our supported input layout: a single player with standard controller styles
-  padConfigureInput(1, HidNpadStyleSet_NpadStandard);
-
-  // Initialize the default gamepad (which reads handheld mode inputs as well as the first connected controller)
-  padInitializeDefault(&pad);
-
-  int lastVersion = std::stoi(
-      GenericToolbox::joinVectorString(
-          GenericToolbox::splitString(
-              GlobalObjects::gGameBrowser.getConfigHandler().get_parameter("last-program-version"),
-              "."
-          ),
-          ""
-      )
-  );
-  int this_version = std::stoi(
-      GenericToolbox::joinVectorString(
-          GenericToolbox::splitString(
-              Toolbox::getAppVersion()
-              , "."),
-          ""
-      )
-  );
-  if(lastVersion != this_version){
-    GenericToolbox::Switch::Terminal::printLeft("");
-    GenericToolbox::Switch::Terminal::printLeft("Welcome in SimpleModManager v" + Toolbox::getAppVersion(), GenericToolbox::ColorCodes::greenBackground);
-    GenericToolbox::Switch::Terminal::printLeft("");
-    GenericToolbox::Switch::Terminal::printLeft("");
-    GenericToolbox::Switch::Terminal::printLeft("");
-    GenericToolbox::Switch::Terminal::printLeft("");
-    GenericToolbox::Switch::Terminal::printLeft(" > The application have successfully been upgraded.");
-    GenericToolbox::Switch::Terminal::printLeft("");
-    GenericToolbox::Switch::Terminal::printLeft("");
-    Selector::askQuestion("To continue, press A.", {"Ok"});
-  }
-
-  GlobalObjects::gGameBrowser.printTerminal();
-
-  // Main loop
-  while(appletMainLoop())
-  {
-    //Scan all the inputs. This should be done once for each frame
-    padUpdate(&pad);
-
-    //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
-    u64 kDown = padGetButtonsDown(&pad);
-    u64 kHeld = padGetButtons(&pad);
-
-    if( (kDown & HidNpadButton_B and GlobalObjects::gGameBrowser.get_current_relative_depth() == 0)
-        or GlobalObjects::is_quit_now_triggered()
-        ){ // back
-      break;
-    }
-
-    GlobalObjects::gGameBrowser.scanInputs(kDown, kHeld);
-
-  } // while
+//
+//  // Configure our supported input layout: a single player with standard controller styles
+//  padConfigureInput(1, HidNpadStyleSet_NpadStandard);
+//
+//  PadState pad;
+//
+//  // Initialize the default gamepad (which reads handheld mode inputs as well as the first connected controller)
+//  padInitializeAny(&pad);
+//
+//  int lastVersion = std::stoi(
+//      GenericToolbox::joinVectorString(
+//          GenericToolbox::splitString(
+//              GlobalObjects::gGameBrowser.getConfigHandler().get_parameter("last-program-version"),
+//              "."
+//          ),
+//          ""
+//      )
+//  );
+//  int this_version = std::stoi(
+//      GenericToolbox::joinVectorString(
+//          GenericToolbox::splitString(
+//              Toolbox::getAppVersion()
+//              , "."),
+//          ""
+//      )
+//  );
+//  if(lastVersion != this_version){
+//    GenericToolbox::Switch::Terminal::printLeft("");
+//    GenericToolbox::Switch::Terminal::printLeft("Welcome in SimpleModManager v" + Toolbox::getAppVersion(), GenericToolbox::ColorCodes::greenBackground);
+//    GenericToolbox::Switch::Terminal::printLeft("");
+//    GenericToolbox::Switch::Terminal::printLeft("");
+//    GenericToolbox::Switch::Terminal::printLeft("");
+//    GenericToolbox::Switch::Terminal::printLeft("");
+//    GenericToolbox::Switch::Terminal::printLeft(" > The application have successfully been upgraded.");
+//    GenericToolbox::Switch::Terminal::printLeft("");
+//    GenericToolbox::Switch::Terminal::printLeft("");
+//    Selector::askQuestion("To continue, press A.", {"Ok"});
+//  }
+//
+//  GlobalObjects::gGameBrowser.printTerminal();
+//
+//  // Main loop
+//  while(appletMainLoop())
+//  {
+//    //Scan all the inputs. This should be done once for each frame
+//    padUpdate(&pad);
+//
+//    //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
+//    u64 kDown = padGetButtonsDown(&pad);
+//    u64 kHeld = padGetButtons(&pad);
+//
+//    if( (kDown & HidNpadButton_B and GlobalObjects::gGameBrowser.get_current_relative_depth() == 0)
+//        or GlobalObjects::is_quit_now_triggered()
+//        ){ // back
+//      break;
+//    }
+//
+//    GlobalObjects::gGameBrowser.scanInputs(kDown, kHeld);
+//
+//  } // while
 
   consoleExit(nullptr);
 

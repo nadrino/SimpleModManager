@@ -99,7 +99,7 @@ void TabModOptions::buildResetModsCacheItem() {
       dialog->close();
 
       // starts the async routine
-      _owner_->getModManager().startCheckAllModsThread();
+      _owner_->getGuiModManager().startCheckAllModsThread();
     });
     dialog->addButton("No", [dialog](brls::View* view) {
       dialog->close();
@@ -129,7 +129,7 @@ void TabModOptions::buildDisableAllMods() {
       dialog->close();
 
       // starts the async routine
-      _owner_->getModManager().startRemoveAllModsThread();
+      _owner_->getGuiModManager().startRemoveAllModsThread();
     });
     dialog->addButton("No", [dialog](brls::View* view) {
       dialog->close();
@@ -180,10 +180,10 @@ void TabModOptions::draw(NVGcontext *vg, int x, int y, unsigned int width, unsig
 }
 
 const ModManager &TabModOptions::getModManager() const {
-  return _owner_->getModManager().getGameBrowser().getModManager();
+  return _owner_->getGameBrowser().getModManager();
 }
 ModManager &TabModOptions::getModManager() {
-  return _owner_->getModManager().getGameBrowser().getModManager();
+  return _owner_->getGameBrowser().getModManager();
 }
 
 

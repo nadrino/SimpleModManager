@@ -6,8 +6,6 @@
 
 #include "FrameModBrowser.h"
 
-#include <GlobalObjects.h>
-#include <GuiModManager.h>
 #include <ThumbnailPresetEditor.h>
 
 #include <borealis.hpp>
@@ -46,7 +44,7 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
         dialog->close();
 
         // starts the async routine
-        _owner_->getModManager().startApplyModPresetThread(item->getLabel());
+        _owner_->getGuiModManager().startApplyModPresetThread(item->getLabel());
       });
       dialog->addButton("No", [dialog](brls::View* view) {
         dialog->close();
@@ -56,12 +54,12 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
       dialog->open();
       return true;
     });
-    item->registerAction("Remove", brls::Key::X, [item]{
+    item->registerAction("Remove", brls::Key::X, [&, item]{
 
       auto* dialog = new brls::Dialog("Do you want to delete the preset \"" + item->getLabel() + "\" ?");
 
-      dialog->addButton("Yes", [item, dialog](brls::View* view) {
-        GlobalObjects::gGameBrowser.getModPresetHandler().deleteModPreset(item->getLabel() );
+      dialog->addButton("Yes", [&, item, dialog](brls::View* view) {
+        _owner_->getGameBrowser().getModPresetHandler().deletePreset( item->getLabel() );
         dialog->close();
 //        _triggerUpdateItem_ = true;
       });
@@ -122,20 +120,17 @@ void TabModPresets::updatePresetItems() {
 
   this->clear();
 
-  auto presetsList = GlobalObjects::gGameBrowser.getModPresetHandler().getPresetsList();
+  auto presetList = _owner_->getGameBrowser().getModPresetHandler().getPresetList();
 
-  LogInfo << "Adding " << presetsList.size() << " presets..." << std::endl;
+  LogInfo << "Adding " << presetList.size() << " presets..." << std::endl;
 
   _itemList_.clear();
-  _itemList_.reserve( presetsList.size() );
-  for( auto& preset : presetsList ){
+  _itemList_.reserve( presetList.size() );
+  for( auto& preset : presetList ){
     LogScopeIndent;
-    LogInfo << "Adding mod preset: " << preset << std::endl;
-
-    _itemList_.emplace_back( new brls::ListItem( preset ) );
-
-    auto modsList = GlobalObjects::gGameBrowser.getModPresetHandler().getModsList(preset );
-    _itemList_.back()->setValue(std::to_string(modsList.size()) + " mods in this set" );
+    LogInfo << "Adding mod preset: " << preset.name << std::endl;
+    _itemList_.emplace_back( new brls::ListItem( preset.name ) );
+    _itemList_.back()->setValue(std::to_string(preset.modList.size()) + " mods in this set" );
 
     this->assignButtons( _itemList_.back(), true );
     this->addView( _itemList_.back() );

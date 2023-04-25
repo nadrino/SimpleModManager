@@ -52,6 +52,9 @@ public:
   [[nodiscard]] const std::string & getGameFolderPath() const;
   [[nodiscard]] const std::vector<std::string> & getIgnoredFileList() const;
 
+  std::vector<ModEntry> &getModList();
+  std::vector<std::string> & getIgnoredFileList();
+
   // shortcuts
   const ConfigHolder& getConfig() const;
   ConfigHolder& getConfig();

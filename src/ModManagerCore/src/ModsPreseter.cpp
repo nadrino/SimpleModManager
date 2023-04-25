@@ -25,6 +25,9 @@ void ModsPresetHandler::setModFolder(const std::string &gameFolder_) {
 const std::vector<PresetData> &ModsPresetHandler::getPresetList() const {
   return _presetList_;
 }
+std::vector<PresetData> &ModsPresetHandler::getPresetList() {
+  return _presetList_;
+}
 
 Selector &ModsPresetHandler::getSelector() {
   return _selector_;
@@ -96,9 +99,7 @@ void ModsPresetHandler::createNewPreset(){
   this->editPreset( presetIndex );
 }
 void ModsPresetHandler::deleteSelectedPreset(){
-  _presetList_.erase( _presetList_.begin() + long( _selector_.getCursorPosition() ) );
-  this->writeConfigFile();
-  this->readConfigFile();
+  this->deletePreset( _selector_.getCursorPosition() );
 }
 void ModsPresetHandler::editPreset( size_t entryIndex_ ) {
 
@@ -180,6 +181,11 @@ void ModsPresetHandler::editPreset( size_t entryIndex_ ) {
 
   // Check for conflicts
   this->showConflictingFiles( entryIndex_ );
+  this->writeConfigFile();
+  this->readConfigFile();
+}
+void ModsPresetHandler::deletePreset( size_t entryIndex ){
+  _presetList_.erase( _presetList_.begin() + long( entryIndex ) );
   this->writeConfigFile();
   this->readConfigFile();
 }
@@ -289,6 +295,12 @@ void ModsPresetHandler::showConflictingFiles( size_t entryIndex_ ) {
     }
   }
 
+}
+
+void ModsPresetHandler::deletePreset( const std::string& presetName_ ){
+  int index = GenericToolbox::findElementIndex( presetName_, _selector_.getEntryList(), []( const SelectorEntry& e ){ return e.title; } );
+  if( index == -1 ){ return ; }
+  this->deletePreset( index );
 }
 
 std::vector<std::string> ModsPresetHandler::generatePresetNameList() const{

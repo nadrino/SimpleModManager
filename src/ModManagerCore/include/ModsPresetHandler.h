@@ -26,6 +26,7 @@ public:
   void setModFolder(const std::string &gameFolder_);
 
   [[nodiscard]] const std::vector<PresetData> &getPresetList() const;
+  std::vector<PresetData> &getPresetList();
 
   Selector &getSelector();
 
@@ -33,7 +34,10 @@ public:
   void createNewPreset();
   void deleteSelectedPreset();
   void editPreset( size_t entryIndex_ );
+  void deletePreset( size_t entryIndex );
   void showConflictingFiles( size_t entryIndex_ );
+
+  void deletePreset( const std::string& presetName_ );
 
   [[nodiscard]] std::vector<std::string> generatePresetNameList() const;
 
@@ -41,10 +45,10 @@ public:
   std::string getSelectedModPresetName() const;
   [[nodiscard]] const std::vector<std::string>& getSelectedPresetModList() const;
 
+  void writeConfigFile();
+  void readConfigFile();
 
 protected:
-  void readConfigFile();
-  void writeConfigFile();
   void fillSelector();
 
 private:
