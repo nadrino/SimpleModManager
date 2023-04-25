@@ -23,7 +23,7 @@ target_include_directories( ${OVL_APP}.elf PUBLIC
 
 target_link_libraries( ${OVL_APP}.elf
 #    ModManagerOverlay
-#    ModManagerCore
+    ModManagerCore
     switch::libnx
     -L/opt/devkitpro/portlibs/switch/lib
     ${ZLIB_LIBRARIES}

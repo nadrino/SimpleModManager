@@ -17,8 +17,8 @@ function setup_devkitpro()
 
 function send_file(){
 
-  HOST='192.168.1.70:5000'
-  lftp -e "cd $1; put $2; bye" $HOST
+  HOST='192.168.1.75:5000'
+  lftp -e "cd $2; put $1; bye" $HOST
 
 }; export -f send_file
 

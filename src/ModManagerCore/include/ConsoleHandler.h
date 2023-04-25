@@ -5,8 +5,15 @@
 #ifndef SIMPLEMODMANAGER_CONSOLEHANDLER_H
 #define SIMPLEMODMANAGER_CONSOLEHANDLER_H
 
+#include "ConfigHandler.h"
 #include "Toolbox.h"
+#include "Selector.h"
+#include "GameBrowser.h"
 
+#include "GenericToolbox.h"
+#include "GenericToolbox.Switch.h"
+
+#include "string"
 #include "iostream"
 #include "thread"
 #include "chrono"
