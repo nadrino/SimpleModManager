@@ -41,7 +41,7 @@ void GameBrowserGui::fillItemList() {
   _list_->clear();
 
   // List Items
-  _list_->addItem(new tsl::elm::CategoryHeader("Folder : " + _gameBrowser_.getConfigHandler().getConfig().baseFolder));
+  _list_->addItem(new tsl::elm::CategoryHeader("Folder : "));
 
 //  auto mod_folders_list = GlobalObjects::gGameBrowser.getSelector().getSelectionList();
 //  for (int i_folder = 0; i_folder < int(mod_folders_list.size()); i_folder++) {

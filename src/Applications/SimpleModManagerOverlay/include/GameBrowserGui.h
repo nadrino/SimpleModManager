@@ -5,7 +5,7 @@
 #ifndef SIMPLEMODMANAGER_GAMEBROWSERGUI_H
 #define SIMPLEMODMANAGER_GAMEBROWSERGUI_H
 
-#include "GameBrowser.h"
+//#include "GameBrowser.h"
 
 #include <tesla.hpp>
 
@@ -29,7 +29,7 @@ protected:
   void fillItemList();
 
 private:
-  GameBrowser _gameBrowser_;
+//  GameBrowser _gameBrowser_;
 
   tsl::elm::OverlayFrame* _frame_{nullptr};
   tsl::elm::List* _list_{nullptr};
