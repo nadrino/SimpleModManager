@@ -5,9 +5,13 @@
 #ifndef SIMPLEMODMANAGER_GAMEBROWSERGUI_H
 #define SIMPLEMODMANAGER_GAMEBROWSERGUI_H
 
-//#include "GameBrowser.h"
+#include "GameBrowser.h"
+#include "ConfigHandler.h"
+//#include "GenericToolbox.h"
 
 #include <tesla.hpp>
+
+#include "memory"
 
 
 class GameBrowserGui : public tsl::Gui {
@@ -30,6 +34,10 @@ protected:
 
 private:
 //  GameBrowser _gameBrowser_;
+//  ConfigHandler c;
+//  std::unique_ptr<GameBrowser> _gameBrowser_{nullptr};
+//  std::unique_ptr<ConfigHolder> _h_{};
+  std::unique_ptr<ConfigHandler> _c_{};
 
   tsl::elm::OverlayFrame* _frame_{nullptr};
   tsl::elm::List* _list_{nullptr};
