@@ -16,10 +16,9 @@ class FrameModBrowser;
 class ThumbnailPresetEditor : public brls::ThumbnailFrame {
 
 public:
-  explicit ThumbnailPresetEditor(FrameModBrowser* owner_) : _owner_(owner_){  }
+  explicit ThumbnailPresetEditor(FrameModBrowser* owner_);
 
-  void initialize();
-  void process_tags();
+  void updateTags();
   void save();
   void autoAssignPresetName();
 
@@ -33,7 +32,7 @@ public:
 private:
   FrameModBrowser* _owner_{nullptr};
 
-  std::string _presetName_;
+  std::string _presetName_{"new-preset"};
   std::vector<std::string> _selectedModsList_;
   std::vector<brls::ListItem*> itemsList;
 

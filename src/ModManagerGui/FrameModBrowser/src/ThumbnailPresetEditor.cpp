@@ -12,21 +12,18 @@
 #include "sstream"
 
 
-void ThumbnailPresetEditor::initialize() {
 
-  if(_presetName_.empty()){
-    this->autoAssignPresetName();
-  }
+ThumbnailPresetEditor::ThumbnailPresetEditor(FrameModBrowser* owner_) : _owner_(owner_){
 
+  // the list that will appear
   auto* modList = new brls::List();
 
-
-  auto modFolderList = _owner_->getGameBrowser().getModManager().getModList();
-  for( auto& modFolder : modFolderList ){
+  // fill the items
+  for( auto& modFolder : _owner_->getGameBrowser().getModManager().getModList() ){
     auto* item = new brls::ListItem(modFolder.modName, "", "");
 
     item->getClickEvent()->subscribe([this,item](brls::View* view){
-      this->getSelectedModsList().emplace_back(item->getLabel());
+      _selectedModsList_.emplace_back( item->getLabel() );
 
       std::stringstream ss;
       ss << item->getValue();
@@ -47,14 +44,14 @@ void ThumbnailPresetEditor::initialize() {
         }
       }
       if(original_size > 0) this->getSelectedModsList().resize(original_size-1); // even if nothing has been selected remove one element
-      this->process_tags();
+      this->updateTags();
       return true;
     });
 
     modList->addView(item);
 
     // disable + to quit
-    item->registerAction("", brls::Key::PLUS, []{return true;}, true);
+    item->registerAction("", brls::Key::PLUS, []{ return true; }, true);
 //    item->updateActionHint(brls::Key::PLUS, ""); // make the change visible
 
     itemsList.emplace_back(item);
@@ -67,7 +64,9 @@ void ThumbnailPresetEditor::initialize() {
     return true;
   });
   this->getSidebar()->registerAction("", brls::Key::PLUS, []{return true;}, true);
-  this->getSidebar()->setTitle(_presetName_);
+
+  // make sure the default preset name is unique
+  this->autoAssignPresetName();
 
   this->registerAction("", brls::Key::PLUS, []{return true;}, true);
 //  this->updateActionHint(brls::Key::PLUS, ""); // make the change visible
@@ -77,16 +76,23 @@ void ThumbnailPresetEditor::initialize() {
   if( presetIndex != -1 ){
     _selectedModsList_ = _owner_->getGameBrowser().getModPresetHandler().getPresetList()[presetIndex].modList;
   }
-  this->process_tags();
-
+  this->updateTags();
 }
 
-void ThumbnailPresetEditor::process_tags() {
 
-  // reset
-  for(auto & item : itemsList){
-    item->setValue("");
-  }
+void ThumbnailPresetEditor::setPresetName(const std::string &presetName_) {
+  _presetName_ = presetName_;
+  this->getSidebar()->setTitle( presetName_ );
+}
+
+std::vector<std::string> & ThumbnailPresetEditor::getSelectedModsList() {
+  return _selectedModsList_;
+}
+
+void ThumbnailPresetEditor::updateTags() {
+
+  // reset tags
+  for(auto & item : itemsList){  item->setValue(""); }
 
   // set tags
   for( size_t iEntry = 0 ; iEntry < _selectedModsList_.size() ; iEntry++ ){
@@ -109,15 +115,6 @@ void ThumbnailPresetEditor::process_tags() {
   this->getSidebar()->setSubtitle( ss.str() );
 
 }
-
-void ThumbnailPresetEditor::setPresetName(const std::string &presetName_) {
-  _presetName_ = presetName_;
-}
-
-std::vector<std::string> & ThumbnailPresetEditor::getSelectedModsList() {
-  return _selectedModsList_;
-}
-
 void ThumbnailPresetEditor::save() {
 
   auto& presetList = _owner_->getGameBrowser().getModPresetHandler().getPresetList();
@@ -161,35 +158,40 @@ void ThumbnailPresetEditor::save() {
   cleanup();
 
 }
-
 void ThumbnailPresetEditor::autoAssignPresetName() {
   std::string autoName = "new-preset";
   _presetName_ = autoName;
-  int count = 0;
+  int count{0};
   while( GenericToolbox::doesElementIsInVector(
-      _presetName_, _owner_->getGameBrowser().getModPresetHandler().getPresetList(), [](const PresetData& p ){ return p.name; })
-      ){
+      _presetName_, _owner_->getGameBrowser().getModPresetHandler().getPresetList(),
+      [](const PresetData& p ){ return p.name; }
+  )){
     _presetName_ = autoName + "-" + std::to_string(count);
     count++;
   }
+  this->setPresetName( _presetName_ );
+}
+void ThumbnailPresetEditor::cleanup() {
+  itemsList.clear();
+  _selectedModsList_.clear();
 }
 
-void ThumbnailPresetEditor::draw(NVGcontext *vg, int x, int y, unsigned int width, unsigned int height, brls::Style *style,
-                                 brls::FrameContext *ctx) {
+void ThumbnailPresetEditor::draw(
+    NVGcontext *vg, int x, int y,
+    unsigned int width, unsigned int height,
+    brls::Style *style, brls::FrameContext *ctx) {
 
-  if(_selectedModsList_.empty()){
+  if     ( _selectedModsList_.empty() ){
+    // save button should be hidden if nothing is selected
     this->getSidebar()->getButton()->setState(brls::ButtonState::DISABLED);
   }
-  else if(this->getSidebar()->getButton()->getState() == brls::ButtonState::DISABLED and not _selectedModsList_.empty()){
+  else if( this->getSidebar()->getButton()->getState() == brls::ButtonState::DISABLED ){
+    // re-enable it
     this->getSidebar()->getButton()->setState(brls::ButtonState::ENABLED);
   }
 
-  AppletFrame::draw(vg, x, y, width, height, style, ctx);
+  // trigger the default draw
+  this->ThumbnailFrame::draw(vg, x, y, width, height, style, ctx);
+//  this->AppletFrame::draw(vg, x, y, width, height, style, ctx);
 }
 
-void ThumbnailPresetEditor::cleanup() {
-
-  itemsList.resize(0);
-  _selectedModsList_.resize(0);
-
-}

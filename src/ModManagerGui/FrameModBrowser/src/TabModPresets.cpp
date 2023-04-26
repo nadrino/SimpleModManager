@@ -34,7 +34,7 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
 
   if( item == nullptr ) return;
 
-  if(isPreset_){
+  if( isPreset_ ){
     item->getClickEvent()->subscribe([](brls::View* view){});
     item->registerAction("Apply", brls::Key::A, [&, item]{
       auto* dialog = new brls::Dialog("Do you want disable all mods and apply the preset \"" + item->getLabel() + "\" ?");
@@ -73,15 +73,22 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
     item->registerAction("Edit", brls::Key::Y, [&, item]{
       // open editor
       auto* editor = new ThumbnailPresetEditor( _owner_ );
-      editor->setPresetName(item->getLabel());
-      editor->initialize();
+      editor->setPresetName( item->getLabel() );
 
       auto* icon = _owner_->getIcon();
       if(icon != nullptr){
-        brls::PopupFrame::open("Preset Editor", icon, 0x20000, editor, "Please select the mods you want to install", "The mods will be applied in the same order.");
+        brls::PopupFrame::open(
+            "Edit preset", icon, 0x20000, editor,
+            "Please select the mods you want to install",
+            "The mods will be applied in the same order."
+        );
       }
       else{
-        brls::PopupFrame::open("Preset Editor", editor, "Please select the mods you want to install", "The mods will be applied in the same order.");
+        brls::PopupFrame::open(
+            "Edit preset", editor,
+            "Please select the mods you want to install",
+            "The mods will be applied in the same order."
+        );
       }
 
       return true;
@@ -97,14 +104,21 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
 
       // create new preset
       auto* editor = new ThumbnailPresetEditor( _owner_ );
-      editor->initialize();
 
       auto* icon = _owner_->getIcon();
       if(icon != nullptr){
-        brls::PopupFrame::open("Preset Editor", icon, 0x20000, editor, "Please select the mods you want to install", "The mods will be applied in the same order.");
+        brls::PopupFrame::open(
+            "New preset", icon, 0x20000, editor,
+            "Please select the mods you want to install",
+            "The mods will be applied in the same order."
+        );
       }
       else{
-        brls::PopupFrame::open("Preset Editor", editor, "Please select the mods you want to install", "The mods will be applied in the same order.");
+        brls::PopupFrame::open(
+            "New preset", editor,
+            "Please select the mods you want to install",
+            "The mods will be applied in the same order."
+        );
       }
 
       return true;
@@ -116,39 +130,44 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
 }
 
 void TabModPresets::updatePresetItems() {
+  LogInfo << "Updating displayed preset items" << std::endl;
+
   _triggerUpdateItem_ = false;
 
-  this->clear();
-
-  auto presetList = _owner_->getGameBrowser().getModPresetHandler().getPresetList();
-
-  LogInfo << "Adding " << presetList.size() << " presets..." << std::endl;
-
+  // clearing the view
+  this->clear( true );
   _itemList_.clear();
+
+  // adding presets to the list
+  auto presetList = _owner_->getGameBrowser().getModPresetHandler().getPresetList();
   _itemList_.reserve( presetList.size() );
+  LogInfo << "Adding " << presetList.size() << " presets..." << std::endl;
   for( auto& preset : presetList ){
     LogScopeIndent;
     LogInfo << "Adding mod preset: " << preset.name << std::endl;
     _itemList_.emplace_back( new brls::ListItem( preset.name ) );
-    _itemList_.back()->setValue(std::to_string(preset.modList.size()) + " mods in this set" );
+    _itemList_.back()->setValue( std::to_string(preset.modList.size()) + " mods in this set" );
 
     this->assignButtons( _itemList_.back(), true );
     this->addView( _itemList_.back() );
   }
 
+  // the new preset button has been deleted as well
   LogInfo << "(re)-Creating add button" << std::endl;
-
   _itemNewCreatePreset_ = new brls::ListItem("\uE402 Create a new mod preset");
   this->assignButtons(_itemNewCreatePreset_, false);
   this->addView(_itemNewCreatePreset_);
 
+  // focus is lost as the list has been cleared
+  brls::Application::giveFocus( this->getDefaultFocus() );
+
+  // does not work, focus is lost as
+//  if(brls::Application::getCurrentFocus() != nullptr and brls::Application::getCurrentFocus()->isCollapsed()){
+//    brls::Application::getCurrentFocus()->onFocusLost();
+//    brls::Application::giveFocus(_itemNewCreatePreset_->getDefaultFocus());
+//  }
+
   brls::Application::unblockInputs();
-
-  if(brls::Application::getCurrentFocus() != nullptr and brls::Application::getCurrentFocus()->isCollapsed()){
-    brls::Application::getCurrentFocus()->onFocusLost();
-    brls::Application::giveFocus(_itemNewCreatePreset_->getDefaultFocus());
-  }
-
   LogInfo << "Leaving update..." << std::endl;
 }
 
