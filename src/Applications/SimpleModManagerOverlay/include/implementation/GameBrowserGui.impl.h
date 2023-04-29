@@ -10,13 +10,20 @@
 
 //#include <GlobalObjects.h>
 //#include <ModBrowserGui.h>
+#include "ConfigHandler.h"
+//#include "GameBrowser.h"
 #include "Toolbox.h"
 
 
 tsl::elm::Element *GameBrowserGui::createUI() {
   // A OverlayFrame is the base element every overlay consists of. This will draw the default Title and Subtitle.
   // If you need more information in the header or want to change it's look, use a HeaderOverlayFrame.
-  _frame_ = new tsl::elm::OverlayFrame("SimpleModManager", "v" + Toolbox::getAppVersion());
+  _frame_ = new tsl::elm::OverlayFrame("SimpleModManager", "DOESPATH v" + Toolbox::getAppVersion());
+
+//  _gameBrowser_ = std::make_unique<GameBrowser>();
+//  _c_ = std::make_unique<ConfigHandler>();
+
+  GenericToolbox::doesPathIsFile("/config/SimpleModManager/parameters.ini");
 
   // A list that can contain sub elements and handles scrolling
   _list_ = new tsl::elm::List();
@@ -42,6 +49,19 @@ void GameBrowserGui::fillItemList() {
 
   // List Items
   _list_->addItem(new tsl::elm::CategoryHeader("Folder : "));
+
+
+
+  auto *clickableListItem = new tsl::elm::ListItem("TEST");
+  clickableListItem->setClickListener([](u64 keys) {
+    if (keys & HidNpadButton_A) {
+      ConfigHolder g;
+      return true;
+    }
+    return false;
+  });
+  _list_->addItem(clickableListItem);
+
 
 //  auto mod_folders_list = GlobalObjects::gGameBrowser.getSelector().getSelectionList();
 //  for (int i_folder = 0; i_folder < int(mod_folders_list.size()); i_folder++) {

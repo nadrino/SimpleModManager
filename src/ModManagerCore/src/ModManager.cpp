@@ -65,6 +65,8 @@ ConfigHolder& ModManager::getConfig(){
 void ModManager::updateModList() {
   // list folders
   auto folderList = GenericToolbox::getListOfSubFoldersInFolder(_gameFolderPath_);
+  GenericToolbox::removeEntryIf(folderList, [](const std::string& entry_){ return entry_ == ".plugins"; });
+
   _modList_.clear(); _modList_.reserve( folderList.size() );
   for( auto& folder : folderList ){ _modList_.emplace_back( folder ); }
 

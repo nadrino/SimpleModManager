@@ -30,10 +30,10 @@ private:
   FrameModBrowser* _owner_{nullptr};
 
   bool _triggerUpdateItem_{true};
-  int _nbFreeSlots_{0};
-  int _maxNbPresetsSlots_{20};
-  std::vector<brls::ListItem*> _itemList_{};
+
+  // memory handled by brls
   brls::ListItem* _itemNewCreatePreset_{nullptr};
+  std::vector<brls::ListItem*> _itemList_{};
 
 };
 

@@ -10,8 +10,9 @@
 
 #include <tesla.hpp>    // The Tesla Header
 
+#include "switch.h"
+
 
 int main(int argc, char **argv) {
   return tsl::loop<OverlayGuiLoader>(argc, argv);
-//  return tsl::loop<OverlayTest>(argc, argv);
 }
