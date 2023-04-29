@@ -32,11 +32,28 @@ void TabModPresets::draw(NVGcontext *vg, int x, int y, unsigned width, unsigned 
 
 void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
 
-  if( item == nullptr ) return;
+  if( item == nullptr ){
+    LogError << "Can't assign buttons to nullptr item" << std::endl;
+    return;
+  }
+
+  // reset
+  item->clearActions();
+//  item->getClickEvent()->subscribe([](brls::View* view){});
+//  item->registerAction("", brls::Key::A, []{ return true; });
+//  item->registerAction("", brls::Key::X, []{ return true; });
+//  item->registerAction("", brls::Key::Y, []{ return true; });
+//  item->updateActionHint(brls::Key::A, "");
+//  item->updateActionHint(brls::Key::X, "");
+//  item->updateActionHint(brls::Key::Y, "");
+//  item->setActionAvailable(brls::Key::A, false);
+//  item->setActionAvailable(brls::Key::X, false);
+//  item->setActionAvailable(brls::Key::Y, false);
+
+  auto* ownerPtr{_owner_};
 
   if( isPreset_ ){
-    item->getClickEvent()->subscribe([](brls::View* view){});
-    item->registerAction("Apply", brls::Key::A, [&, item]{
+    item->registerAction("Apply", brls::Key::A, [item, ownerPtr]{
       auto* dialog = new brls::Dialog("Do you want disable all mods and apply the preset \"" + item->getLabel() + "\" ?");
 
       dialog->addButton("Yes", [&, dialog, item](brls::View* view) {
@@ -44,7 +61,7 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
         dialog->close();
 
         // starts the async routine
-        _owner_->getGuiModManager().startApplyModPresetThread(item->getLabel());
+        ownerPtr->getGuiModManager().startApplyModPresetThread(item->getLabel());
       });
       dialog->addButton("No", [dialog](brls::View* view) {
         dialog->close();
@@ -54,14 +71,14 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
       dialog->open();
       return true;
     });
-    item->registerAction("Remove", brls::Key::X, [&, item]{
+    item->registerAction("Remove", brls::Key::X, [this, ownerPtr, item]{
 
       auto* dialog = new brls::Dialog("Do you want to delete the preset \"" + item->getLabel() + "\" ?");
 
-      dialog->addButton("Yes", [&, item, dialog](brls::View* view) {
-        _owner_->getGameBrowser().getModPresetHandler().deletePreset( item->getLabel() );
+      dialog->addButton("Yes", [this, ownerPtr, item, dialog](brls::View* view) {
+        ownerPtr->getGameBrowser().getModPresetHandler().deletePreset( item->getLabel() );
         dialog->close();
-//        _triggerUpdateItem_ = true;
+        this->setTriggerUpdateItem( true );
       });
       dialog->addButton("No", [dialog](brls::View* view) { dialog->close(); });
 
@@ -70,12 +87,11 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
       return true;
 
     });
-    item->registerAction("Edit", brls::Key::Y, [&, item]{
+    item->registerAction("Edit", brls::Key::Y, [ownerPtr, item]{
       // open editor
-      auto* editor = new ThumbnailPresetEditor( _owner_ );
-      editor->setPresetName( item->getLabel() );
+      auto* editor = new ThumbnailPresetEditor( ownerPtr, item->getLabel() );
 
-      auto* icon = _owner_->getIcon();
+      auto* icon = ownerPtr->getIcon();
       if(icon != nullptr){
         brls::PopupFrame::open(
             "Edit preset", icon, 0x20000, editor,
@@ -97,15 +113,18 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
     item->updateActionHint(brls::Key::A, "Apply");
     item->updateActionHint(brls::Key::X, "Remove");
     item->updateActionHint(brls::Key::Y, "Edit");
+
+    item->setActionAvailable(brls::Key::A, true);
+    item->setActionAvailable(brls::Key::X, true);
+    item->setActionAvailable(brls::Key::Y, true);
   }
   else {
     // new preset
-    item->getClickEvent()->subscribe([&](brls::View* view){
-
+    item->registerAction("Create", brls::Key::A, [ownerPtr]{
       // create new preset
-      auto* editor = new ThumbnailPresetEditor( _owner_ );
+      auto* editor = new ThumbnailPresetEditor( ownerPtr );
 
-      auto* icon = _owner_->getIcon();
+      auto* icon = ownerPtr->getIcon();
       if(icon != nullptr){
         brls::PopupFrame::open(
             "New preset", icon, 0x20000, editor,
@@ -125,6 +144,7 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
     });
     item->updateActionHint(brls::Key::A, "Create");
 
+    item->setActionAvailable(brls::Key::A, true);
   }
 
 }
@@ -134,32 +154,55 @@ void TabModPresets::updatePresetItems() {
 
   _triggerUpdateItem_ = false;
 
-  // clearing the view
-  this->clear( true );
-  _itemList_.clear();
-
   // adding presets to the list
   auto presetList = _owner_->getGameBrowser().getModPresetHandler().getPresetList();
-  _itemList_.reserve( presetList.size() );
-  LogInfo << "Adding " << presetList.size() << " presets..." << std::endl;
-  for( auto& preset : presetList ){
-    LogScopeIndent;
-    LogInfo << "Adding mod preset: " << preset.name << std::endl;
-    _itemList_.emplace_back( new brls::ListItem( preset.name ) );
-    _itemList_.back()->setValue( std::to_string(preset.modList.size()) + " mods in this set" );
 
-    this->assignButtons( _itemList_.back(), true );
-    this->addView( _itemList_.back() );
+  // make sure it is the right size
+  _itemList_.reserve( presetList.size() + 1 );
+
+  // keep the index out of the for loop
+  size_t iPreset = 0;
+
+  LogInfo << "Adding " << presetList.size() << " presets..." << std::endl;
+  for( ; iPreset < presetList.size() ; iPreset++ ){
+    LogScopeIndent;
+    LogInfo << "Adding mod preset: " << presetList[iPreset].name << std::endl;
+    if( iPreset+1 > _itemList_.size() ){
+      // missing slot
+      _itemList_.emplace_back( new brls::ListItem( presetList[iPreset].name ) );
+
+      // add it once
+      this->addView( _itemList_[ iPreset ] );
+    }
+    this->assignButtons( _itemList_[ iPreset ], true );
+    _itemList_[ iPreset ]->setLabel( presetList[iPreset].name );
+    _itemList_[ iPreset ]->setValue( std::to_string(presetList[iPreset].modList.size()) + " mods in this set" );
+    if( _itemList_[iPreset]->isCollapsed() ) _itemList_[iPreset]->expand();
   }
 
-  // the new preset button has been deleted as well
-  LogInfo << "(re)-Creating add button" << std::endl;
-  _itemNewCreatePreset_ = new brls::ListItem("\uE402 Create a new mod preset");
-  this->assignButtons(_itemNewCreatePreset_, false);
-  this->addView(_itemNewCreatePreset_);
+  // need one more slot for create new preset
+  if( iPreset+1 > _itemList_.size() ){
+    LogInfo << "(re)-Creating add button" << std::endl;
+    _itemList_.emplace_back( new brls::ListItem( "\uE402 Create a new mod preset" ) );
+
+    this->addView( _itemList_[ iPreset ] );
+  }
+  this->assignButtons( _itemList_[ iPreset ], false );
+  if( _itemList_[iPreset]->isCollapsed() ) _itemList_[iPreset]->expand();
+  _itemList_[ iPreset ]->setLabel( "\uE402 Create a new mod preset" );
+  _itemList_[ iPreset ]->setValue( "" );
+  iPreset++;
+
+  // hide the slots that were already created
+  for( ; iPreset < _itemList_.size() ; iPreset++ ){
+    _itemList_[iPreset]->collapse();
+  }
+
+  LogTrace << GET_VAR_NAME_VALUE(getViewsCount()) << std::endl;
+  LogTrace << GET_VAR_NAME_VALUE(_itemList_.size()) << std::endl;
 
   // focus is lost as the list has been cleared
-  brls::Application::giveFocus( this->getDefaultFocus() );
+//  brls::Application::giveFocus( this->getDefaultFocus() );
 
   // does not work, focus is lost as
 //  if(brls::Application::getCurrentFocus() != nullptr and brls::Application::getCurrentFocus()->isCollapsed()){
