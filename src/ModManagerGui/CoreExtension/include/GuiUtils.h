@@ -14,7 +14,7 @@ namespace ModManagerUtils {
 
   inline uint8_t* getFolderIcon(const std::string& gameFolder_){
     return GenericToolbox::Switch::Utils::getFolderIconFromTitleId(
-        GenericToolbox::Switch::Utils::lookForTidInSubFolders(gameFolder_)
+        GenericToolbox::Switch::Utils::lookForTidInSubFolders(gameFolder_, 4)
         );
   }
 
