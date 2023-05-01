@@ -146,7 +146,8 @@ void GameBrowser::rebuildSelectorMenu(){
 uint8_t* GameBrowser::getFolderIcon(const std::string& gameFolder_){
   if( _isGameSelected_ ){ return nullptr; }
   std::string game_folder_path = _configHandler_.getConfig().baseFolder + "/" + gameFolder_;
-  uint8_t* icon = GenericToolbox::Switch::Utils::getFolderIconFromTitleId(GenericToolbox::Switch::Utils::lookForTidInSubFolders(game_folder_path));
+  uint8_t* icon = GenericToolbox::Switch::Utils::getIconFromTitleId(
+      GenericToolbox::Switch::Utils::lookForTidInSubFolders(game_folder_path));
   return icon;
 }
 
