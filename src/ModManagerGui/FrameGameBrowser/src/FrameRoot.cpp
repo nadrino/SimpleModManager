@@ -24,7 +24,7 @@ FrameRoot::FrameRoot() {
 
   this->setTitle("SimpleModManager");
   this->setFooterText( "v" + Toolbox::getAppVersion() );
-  this->setIcon("romfs:/images/icon.jpg");
+  this->setIcon("romfs:/images/icon_corner.png");
   this->addTab( "Game Browser", new TabGames(this) );
   this->addSeparator();
   this->addTab( "Settings", new TabGeneralSettings(this) );

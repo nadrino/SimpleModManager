@@ -31,6 +31,7 @@ FrameModBrowser::FrameModBrowser(GuiModManager* guiModManagerPtr_) : _guiModMana
   _titleId_ = GenericToolbox::Switch::Utils::lookForTidInSubFolders( gamePath );
   _icon_ = ModManagerUtils::getFolderIcon( getGameBrowser().getModManager().getGameFolderPath() );
   if(_icon_ != nullptr){ this->setIcon(_icon_, 0x20000); }
+  else{ this->setIcon("romfs:/images/icon_corner.png"); }
 
   this->setFooterText("SimpleModManager");
 
