@@ -54,7 +54,7 @@ void TabModPresets::assignButtons(brls::ListItem *item, bool isPreset_) {
 
   if( isPreset_ ){
     item->registerAction("Apply", brls::Key::A, [item, ownerPtr]{
-      auto* dialog = new brls::Dialog("Do you want disable all mods and apply the preset \"" + item->getLabel() + "\" ?");
+      auto* dialog = new brls::Dialog("Do you want disable all installed mods and apply the preset \"" + item->getLabel() + "\" ?");
 
       dialog->addButton("Yes", [&, dialog, item](brls::View* view) {
         // first, close the dialog box before the apply mod thread starts

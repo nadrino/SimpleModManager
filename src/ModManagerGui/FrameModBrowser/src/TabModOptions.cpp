@@ -114,7 +114,7 @@ void TabModOptions::buildResetModsCacheItem() {
 void TabModOptions::buildDisableAllMods() {
 
   _itemDisableAllMods_ = new brls::ListItem(
-    "\uE872 Disable all mods",
+    "\uE872 Disable all installed mods",
     "This option will remove all installed mods files.\n"
               "Note: to be deleted, installed mod files need to be identical to the one present in this folder.",
     ""
@@ -122,7 +122,7 @@ void TabModOptions::buildDisableAllMods() {
 
   _itemDisableAllMods_->getClickEvent()->subscribe([this](View* view){
 
-    auto* dialog = new brls::Dialog("Do you want to disable all mods ?");
+    auto* dialog = new brls::Dialog("Do you want to disable all installed mods ?");
 
     dialog->addButton("Yes", [&, dialog](brls::View* view) {
       // first, close the dialog box before the async routine starts

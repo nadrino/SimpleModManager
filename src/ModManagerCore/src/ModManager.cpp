@@ -440,7 +440,7 @@ void ModManager::scanInputs(u64 kDown, u64 kHeld){
   else if( kDown & HidNpadButton_ZL or kDown & HidNpadButton_ZR ){ // recheck all mods
     std::vector<std::string> answers{
         {"Reset mods status cache and recheck all mods"},
-        {"Disable all mods"},
+        {"Disable all installed mods"},
         {"Attribute a config preset for this folder"}
     };
     auto answer = Selector::askQuestion( "Options for this folder:", answers );
