@@ -40,7 +40,7 @@ TabAbout::TabAbout() {
   leftBox->addView(new brls::Header("Version " + Toolbox::getAppVersion() + " - What's new ?"));
   auto *changelog = new brls::Label(
     brls::LabelStyle::DESCRIPTION,
-    " - Updating dependencies & IO operations\n - Stability improvements\n",
+    " - Fixing per game install preset\n - Stability improvements\n",
     true
   );
   changelog->setHorizontalAlign(NVG_ALIGN_LEFT);
