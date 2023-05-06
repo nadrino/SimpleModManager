@@ -111,25 +111,27 @@ void TabModBrowser::draw(NVGcontext *vg, int x, int y, unsigned int width, unsig
 }
 
 void TabModBrowser::updateDisplayedModsStatus(){
-  LogDebug << __METHOD_NAME__ << std::endl;
+  LogInfo << __METHOD_NAME__ << std::endl;
 
   auto& modEntryList = _owner_->getGameBrowser().getModManager().getModList();
   LogReturnIf( modEntryList.empty(), "No mod in this folder. Nothing to update." );
 
-  auto currentPreset = this->getModManager().getConfig().getCurrentPresetName();
+  auto currentPreset = this->getModManager().fetchCurrentPreset().name;
+  LogInfo << "Will display mod status with install preset: " << currentPreset << std::endl;
 
   for( size_t iMod = 0 ; iMod < modEntryList.size() ; iMod++ ){
 
     // processing tag
     _modItemList_[iMod].item->setValue( modEntryList[iMod].getStatus(currentPreset ) );
+    double frac = modEntryList[iMod].getStatusFraction(currentPreset);
 
     NVGcolor color;
     // processing color
-    if     ( modEntryList[iMod].getCache(currentPreset)->applyFraction == 0 ){
+    if     ( frac == 0 ){
       // inactive color
       color = nvgRGB(80, 80, 80);
     }
-    else if( modEntryList[iMod].getCache(currentPreset)->applyFraction == 1 ){
+    else if( frac == 1 ){
       // applied color
       color = nvgRGB(88, 195, 169);
     }

@@ -26,6 +26,7 @@ void ModManager::setGameName(const std::string &gameName) {
 void ModManager::setGameFolderPath(const std::string &gameFolderPath_) {
   _gameFolderPath_ = gameFolderPath_;
   this->updateModList();
+  this->reloadCustomPreset();
 }
 void ModManager::setIgnoredFileList(std::vector<std::string>& ignoredFileList_){
   _ignoredFileList_ = ignoredFileList_;
@@ -78,7 +79,7 @@ void ModManager::updateModList() {
   for( auto& mod : _modList_ ){
     _selector_.getEntryList().emplace_back();
     _selector_.getEntryList().back().title = mod.modName;
-    _selector_.getEntryList().back().tag = mod.applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].statusStr;
+    _selector_.getEntryList().back().tag = mod.applyCache[this->fetchCurrentPreset().name].statusStr;
   }
 
   _selector_.clearMenu();
@@ -87,9 +88,11 @@ void ModManager::dumpModStatusCache() {
   std::stringstream ss;
 
   for( auto& mod : _modList_ ){
-    ss << _owner_->getConfigHandler().getConfig().getCurrentPresetName() << ": " << mod.modName
-    << " = " << mod.applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].statusStr
-    << " = " << mod.applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].applyFraction << std::endl;
+    for( auto& presetCache : mod.applyCache ){
+      ss << presetCache.first << ": " << mod.modName
+      << " = " << presetCache.second.statusStr
+      << " = " << presetCache.second.applyFraction << std::endl;
+    }
   }
 
   std::string cacheFilePath = _gameFolderPath_ + "/mods_status_cache.txt";
@@ -175,7 +178,7 @@ ResultModAction ModManager::updateModStatus(int modIndex_){
       nIgnoredFiles++; continue;
     }
 
-    std::string installedPathCandidate{_owner_->getConfigHandler().getConfig().getCurrentPreset().installBaseFolder};
+    std::string installedPathCandidate{this->fetchCurrentPreset().installBaseFolder};
     installedPathCandidate += "/" + file;
 
     std::string modFilePath{modFolderPath};
@@ -193,18 +196,18 @@ ResultModAction ModManager::updateModStatus(int modIndex_){
   // (XX/XX) Files Applied
   // ACTIVE
   // INACTIVE
-  modPtr->applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].applyFraction = double(nSameFiles) / double(filesList.size() - nIgnoredFiles);
-  if     ( filesList.empty() )         { modPtr->applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].statusStr = "NO FILE"; }
-  else if( modPtr->applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].applyFraction == 0 ){ modPtr->applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].statusStr = "INACTIVE"; }
-  else if( modPtr->applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].applyFraction == 1 ){ modPtr->applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].statusStr = "ACTIVE"; }
+  modPtr->applyCache[this->fetchCurrentPreset().name].applyFraction = double(nSameFiles) / double(filesList.size() - nIgnoredFiles);
+  if     ( filesList.empty() )         { modPtr->applyCache[this->fetchCurrentPreset().name].statusStr = "NO FILE"; }
+  else if( modPtr->applyCache[this->fetchCurrentPreset().name].applyFraction == 0 ){ modPtr->applyCache[this->fetchCurrentPreset().name].statusStr = "INACTIVE"; }
+  else if( modPtr->applyCache[this->fetchCurrentPreset().name].applyFraction == 1 ){ modPtr->applyCache[this->fetchCurrentPreset().name].statusStr = "ACTIVE"; }
   else{
     std::stringstream ss;
     ss << "PARTIAL (" << nSameFiles << "/" << filesList.size() - nIgnoredFiles << ")";
-    modPtr->applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].statusStr = ss.str();
+    modPtr->applyCache[this->fetchCurrentPreset().name].statusStr = ss.str();
   }
 
   // update selector
-  _selector_.setTag(modIndex_, modPtr->applyCache[_owner_->getConfigHandler().getConfig().getCurrentPresetName()].statusStr);
+  _selector_.setTag(modIndex_, modPtr->applyCache[this->fetchCurrentPreset().name].statusStr);
 
   // immediately save
   this->dumpModStatusCache();
@@ -294,7 +297,7 @@ ResultModAction ModManager::applyMod(int modIndex_, bool overrideConflicts_){
     );
     iFile++;
 
-    std::string dstFilePath{_owner_->getConfigHandler().getConfig().getCurrentPreset().installBaseFolder};
+    std::string dstFilePath{this->fetchCurrentPreset().installBaseFolder};
     dstFilePath += "/" + file;
 
     bool installFile{false};
@@ -371,7 +374,7 @@ void ModManager::removeMod(int modIndex_) {
     std::string srcFilePath{srcFolder};
     srcFilePath += "/" + file;
 
-    std::string dstFilePath{_owner_->getConfigHandler().getConfig().getCurrentPreset().installBaseFolder};
+    std::string dstFilePath{this->fetchCurrentPreset().installBaseFolder};
     dstFilePath += "/" + file;
 
     std::string fileSize{
@@ -478,12 +481,11 @@ void ModManager::scanInputs(u64 kDown, u64 kHeld){
       );
 
       // overwriting
-
-      std::string configFilePath = _gameFolderPath_ + "/this_folder_config.txt";
-      GenericToolbox::deleteFile( configFilePath );
       if( selectedPreset != presetsList[0] ){
-        GenericToolbox::dumpStringInFile( configFilePath, selectedPreset );
-        _owner_->getConfigHandler().getConfig().setSelectedPreset( selectedPreset );
+        this->setCustomPreset( selectedPreset );
+      }
+      else{
+        this->setCustomPreset( "" );
       }
     }
   }
@@ -535,8 +537,8 @@ void ModManager::rebuildSelectorMenu(){
   _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
   _selector_.getFooter() << "Mod preset : " << _owner_->getModPresetHandler().getSelectedModPresetName() << std::endl;
   _selector_.getFooter() << "Configuration preset : " << GenericToolbox::ColorCodes::greenBackground;
-  _selector_.getFooter() << _owner_->getConfigHandler().getConfig().getCurrentPresetName() << GenericToolbox::ColorCodes::resetColor << std::endl;
-  _selector_.getFooter() << "install-mods-base-folder = " + _owner_->getConfigHandler().getConfig().getCurrentPreset().installBaseFolder << std::endl;
+  _selector_.getFooter() << fetchCurrentPreset().name << GenericToolbox::ColorCodes::resetColor << std::endl;
+  _selector_.getFooter() << "install-mods-base-folder = " + this->fetchCurrentPreset().installBaseFolder << std::endl;
   _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
   _selector_.getFooter() << " ZL : Rescan all mods" >> "ZR : Disable all mods " << std::endl;
   _selector_.getFooter() << " A/X : Apply/Disable mod" >> "L/R : Previous/Next preset " << std::endl;
@@ -573,7 +575,7 @@ void ModManager::displayModFilesStatus(const std::string &modName_){
     std::stringstream ssSrc;
     ssSrc << ssSrcFolder.str() << "/" << file;
     std::stringstream ssDst;
-    ssDst << _owner_->getConfigHandler().getConfig().getCurrentPreset().installBaseFolder << "/" << file;
+    ssDst << this->fetchCurrentPreset().installBaseFolder << "/" << file;
 
     if( GenericToolbox::Switch::IO::doFilesAreIdentical( ssDst.str(), ssSrc.str() ) ){
       selector.setTag(iFile, "-> Installed");
@@ -731,6 +733,35 @@ void ModManager::displayConflictsWithOtherMods(size_t modIndex_){
 // utils
 int ModManager::getModIndex(const std::string& modName_){
   return GenericToolbox::findElementIndex(modName_, _modList_, [](const ModEntry& mod_){ return mod_.modName; } );
+}
+
+
+void ModManager::reloadCustomPreset(){
+  std::string configFilePath = _gameFolderPath_ + "/this_folder_config.txt";
+  if( GenericToolbox::doesPathIsFile(configFilePath) ){
+    _currentPresetName_ = GenericToolbox::dumpFileAsString(configFilePath);
+  }
+  else{
+    _currentPresetName_ = "";
+  }
+}
+void ModManager::setCustomPreset(const std::string &presetName_) {
+  std::string configFilePath = _gameFolderPath_ + "/this_folder_config.txt";
+  GenericToolbox::deleteFile( configFilePath );
+  if( not presetName_.empty() ){
+    GenericToolbox::dumpStringInFile( configFilePath, presetName_ );
+  }
+  this->reloadCustomPreset();
+}
+
+const PresetConfig &ModManager::fetchCurrentPreset() const {
+  int idx = GenericToolbox::findElementIndex(_currentPresetName_, getConfig().presetList, [](const PresetConfig& p){ return p.name; });
+  if( idx != -1 ){ return getConfig().presetList[idx]; }
+  return getConfig().getCurrentPreset();
+}
+
+const std::string &ModManager::getCurrentPresetName() const {
+  return _currentPresetName_;
 }
 
 

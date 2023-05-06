@@ -20,32 +20,30 @@ TabModOptions::TabModOptions(FrameModBrowser* owner_) : _owner_(owner_) {  }
 void TabModOptions::buildFolderInstallPresetItem() {
 
   _itemConfigPreset_ = new brls::ListItem(
-    "\uE255 Attribute a config preset",
+    "\uE255 Config preset",
     "Specify from which install folder mods from this subfolder (game) will be installed.\n",
     ""
   );
 
   _itemConfigPreset_->setValue("Inherited from the main menu");
-  if( GenericToolbox::doesPathIsFile( this->getModManager().getGameFolderPath() + "/this_folder_config.txt" ) ){
-    _itemConfigPreset_->setValue( this->getModManager().getConfig().getCurrentPresetName() );
+  if( not this->getModManager().getCurrentPresetName().empty() ){
+    _itemConfigPreset_->setValue( this->getModManager().getCurrentPresetName() );
   }
 
   // On click : show scrolling up menu
   _itemConfigPreset_->getClickEvent()->subscribe([this](View* view) {
     LogInfo << "Opening config preset selector..." << std::endl;
 
-    // build the choice list
-    std::vector<std::string> menuList;
+    // build the choice list + preselection
     int preSelection{0};
+    std::vector<std::string> menuList;
     menuList.reserve( 1 + this->getModManager().getConfig().presetList.size() );
     menuList.emplace_back( "Inherited from the main menu" );
+    int iPreset{-1};
     for( auto& preset: this->getModManager().getConfig().presetList ){
+      iPreset++;
       menuList.emplace_back( preset.name + " \uE090 \"" + preset.installBaseFolder + "\"" );
-    }
-
-    std::string localConfigPreset = this->getModManager().getGameFolderPath() + "/this_folder_config.txt";
-    if( GenericToolbox::doesPathIsFile( localConfigPreset ) ){
-      preSelection = 1 + this->getModManager().getConfig().selectedPresetIndex;
+      if( preset.name == this->getModManager().getCurrentPresetName() ){ preSelection = 1 + iPreset; }
     }
 
     // function that will set the config preset from the Dropdown menu selection (int result)
@@ -56,29 +54,15 @@ void TabModOptions::buildFolderInstallPresetItem() {
         return;
       }
 
-      if( result == this->getModManager().getConfig().selectedPresetIndex + 1 ){
-        LogDebug << "Same as before. Return." << std::endl;
-        brls::Application::popView();
-        return;
-      }
-
       if( result == 0 ){
         LogDebug << "Same as config selected. Deleting file..." << std::endl;
-        GenericToolbox::deleteFile(this->getModManager().getGameFolderPath() + "/this_folder_config.txt");
-        // reload from main file
-        _owner_->getGameBrowser().getConfigHandler().loadConfig();
-        LogDebug << "RELOADED: " << this->getModManager().getConfig().getCurrentPresetName() << std::endl;
+        this->getModManager().setCustomPreset("");
         _itemConfigPreset_->setValue( "Inherited from the main menu" );
       }
       else{
         LogDebug << "Selected " << result - 1 << std::endl;
-        this->getModManager().getConfig().setSelectedPresetIndex(result - 1);
-        // then a preset has been specified
-        GenericToolbox::dumpStringInFile(
-            this->getModManager().getGameFolderPath() + "/this_folder_config.txt",
-            this->getModManager().getConfig().getCurrentPresetName()
-        );
-        _itemConfigPreset_->setValue( this->getModManager().getConfig().getCurrentPresetName() );
+        this->getModManager().setCustomPreset( this->getModManager().getConfig().presetList[result - 1].name );
+        _itemConfigPreset_->setValue( this->getModManager().getCurrentPresetName() );
       }
 
       _owner_->getGuiModManager().checkAllMods( true );

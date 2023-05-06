@@ -26,19 +26,19 @@ GameBrowser &GuiModManager::getGameBrowser(){ return _gameBrowser_; }
 // static
 void GuiModManager::applyMod(const std::string &modName_, bool force_) {
 
-  std::string modPath = _gameBrowser_.getModManager().getGameFolderPath() + "/" + modName_;
-  LogDebug << GET_VAR_NAME_VALUE(modPath) << std::endl;
+  std::string modPath = GenericToolbox::joinPath(_gameBrowser_.getModManager().getGameFolderPath(), modName_);
+  LogInfo << "Installing files in: " << modPath << std::endl;
 
   std::vector<std::string> modFilesList = GenericToolbox::getListOfFilesInSubFolders(modPath);
-  LogDebug << GenericToolbox::parseVectorAsString(modFilesList) << std::endl;
 
   // deleting ignored entries
   for(int i_mod = int(modFilesList.size()) - 1 ; i_mod >= 0 ; i_mod--){
-    if(GenericToolbox::doesElementIsInVector(modFilesList[i_mod],
-                                             _gameBrowser_.getModManager().getIgnoredFileList())){
+    if(GenericToolbox::doesElementIsInVector(
+        modFilesList[i_mod], _gameBrowser_.getModManager().getIgnoredFileList())){
       modFilesList.erase(modFilesList.begin() + i_mod);
     }
   }
+  LogInfo << modFilesList.size() << " files to be installed." << std::endl;
 
   std::string replace_option;
   if(force_) replace_option = "Yes to all";
@@ -54,16 +54,13 @@ void GuiModManager::applyMod(const std::string &modName_, bool force_) {
       continue;
     }
 
-    std::string filePath = modPath + "/" + modFilesList[iFile];
-    GenericToolbox::removeRepeatedCharacters(filePath, "/");
+    std::string filePath = GenericToolbox::joinPath(modPath, modFilesList[iFile]);
     std::string fileSizeStr = GenericToolbox::parseSizeUnits(double(GenericToolbox::getFileSize(filePath)));
 
     GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::applyMod:current_file"] = GenericToolbox::getFileNameFromFilePath(modFilesList[iFile]) + " (" + fileSizeStr + ")";
     GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::applyMod"] = double(iFile + 1) / double(modFilesList.size());
 
-    std::string installPath{_gameBrowser_.getConfigHandler().getConfig().getCurrentPreset().installBaseFolder};
-    installPath += "/" + modFilesList[iFile];
-    GenericToolbox::removeRepeatedCharInsideInputStr(installPath, "/");
+    std::string installPath = GenericToolbox::joinPath(_gameBrowser_.getModManager().fetchCurrentPreset().installBaseFolder, modFilesList[iFile] );
     GenericToolbox::doesPathIsFile(installPath) ? is_conflict = true : is_conflict = false;
     if(not is_conflict or replace_option == "Yes to all" or replace_option == "Yes"){
       GenericToolbox::Switch::IO::copyFile(filePath, installPath);
@@ -86,91 +83,80 @@ void GuiModManager::getModStatus(const std::string &modName_, bool useCache_) {
   if( modIndex == -1 ){ return; }
 
   // cached?
-  std::string configPresetName{_gameBrowser_.getConfigHandler().getConfig().getCurrentPresetName()};
+  std::string configPresetName{modManager.fetchCurrentPreset().name};
   if( useCache_ and GenericToolbox::doesKeyIsInMap(configPresetName, modManager.getModList()[modIndex].applyCache ) ){
-    LogDebug << configPresetName << " CACHED: " << modManager.getModList()[modIndex].applyCache[configPresetName].statusStr << std::endl;
+    LogDebug << configPresetName << ":" << modManager.getModList()[modIndex].modName << " CACHED: " << modManager.getModList()[modIndex].applyCache[configPresetName].statusStr << std::endl;
     return;
   }
 
   // recheck?
   auto& cacheEntry = modManager.getModList()[modIndex].applyCache[configPresetName];
-  std::string absolute_mod_folder_path = modManager.getGameFolderPath() + "/" + modName_;
+  std::string modPath = GenericToolbox::joinPath(modManager.getGameFolderPath(), modName_ );
 
   int sameFileCount = 0;
 
   GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::generateStatusStr:current_file"] = "Listing mod files...";
-  std::vector<std::string> relative_file_path_list = GenericToolbox::getListOfFilesInSubFolders(
-      absolute_mod_folder_path);
+  std::vector<std::string> modFileList = GenericToolbox::getListOfFilesInSubFolders(modPath);
 
-  int totalFileCount = int( relative_file_path_list.size() );
-  for(int i_file = 0 ; i_file < totalFileCount ; i_file++){
+  for( size_t iFile = 0 ; iFile < modFileList.size() ; iFile++ ){
 
-    std::string absolute_file_path = absolute_mod_folder_path + "/" + relative_file_path_list[i_file];
+    std::string srcFilePath = GenericToolbox::joinPath(modPath, modFileList[iFile] );
+    std::string dstFilePath = GenericToolbox::joinPath(modManager.fetchCurrentPreset().installBaseFolder, modFileList[iFile] );
 
-    GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::generateStatusStr:current_file"] = GenericToolbox::getFileNameFromFilePath(relative_file_path_list[i_file]);
-    GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::generateStatusStr"] = (i_file + 1.) / double(totalFileCount);
+    GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::generateStatusStr:current_file"] = GenericToolbox::getFileNameFromFilePath(modFileList[iFile]);
+    GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::generateStatusStr"] = (iFile + 1.) / double(modFileList.size());
 
     if(GenericToolbox::Switch::IO::doFilesAreIdentical(
-        modManager.getConfig().getCurrentPreset().installBaseFolder + "/" + relative_file_path_list[i_file],
-        absolute_file_path
+        modManager.fetchCurrentPreset().installBaseFolder + "/" + modFileList[iFile],
+        srcFilePath
     )){ sameFileCount++; }
 
   }
 
-  cacheEntry.applyFraction = double(sameFileCount) / double(totalFileCount);
+  cacheEntry.applyFraction = double(sameFileCount) / double(modFileList.size());
 
-  if     ( totalFileCount == 0           ) cacheEntry.statusStr = "NO FILE";
+  if     ( modFileList.empty()           ) cacheEntry.statusStr = "NO FILE";
   else if( cacheEntry.applyFraction == 0 ) cacheEntry.statusStr = "INACTIVE";
   else if( cacheEntry.applyFraction == 1 ) cacheEntry.statusStr = "ACTIVE";
-  else cacheEntry.statusStr = "PARTIAL (" + std::to_string(sameFileCount) + "/" + std::to_string(totalFileCount) + ")";
+  else cacheEntry.statusStr = "PARTIAL (" + GenericToolbox::joinAsString("/", sameFileCount, modFileList.size()) + ")";
 
-  LogDebug << modName_ << " -> " << cacheEntry.statusStr << std::endl;
+  LogInfo << modName_ << " -> " << cacheEntry.statusStr << std::endl;
   modManager.dumpModStatusCache();
 }
 void GuiModManager::removeMod(const std::string &modName_){
   LogDebug << __METHOD_NAME__ << std::endl;
 
-  std::string modPath = _gameBrowser_.getModManager().getGameFolderPath() + "/" + modName_;
-  auto fileList = GenericToolbox::getListOfFilesInSubFolders(modPath);
+  std::string modPath = GenericToolbox::joinPath( _gameBrowser_.getModManager().getGameFolderPath(), modName_ );
+  auto modFileList = GenericToolbox::getListOfFilesInSubFolders(modPath);
 
-  int iFile=0;
+  int iFile{0};
   Toolbox::reset_last_displayed_value();
-  for(auto &file : fileList){
+  for(auto &modFile : modFileList){
 
-    std::string absolute_file_path = modPath + "/" + file;
+    std::string srcFilePath = GenericToolbox::joinPath(modPath, modFile );
+    auto fileSize = double(GenericToolbox::getFileSize(srcFilePath));
+
     GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::removeMod:current_file"] =
-        GenericToolbox::getFileNameFromFilePath(file) + " (" +
-        GenericToolbox::parseSizeUnits(double(GenericToolbox::getFileSize(absolute_file_path))) + ")";
-    GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::removeMod"] = (iFile + 1.) / double(fileList.size());
+        GenericToolbox::getFileNameFromFilePath(modFile) + " (" + GenericToolbox::parseSizeUnits(fileSize) + ")";
+    GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::removeMod"] = (iFile++ + 1.) / double(modFileList.size());
 
-    iFile++;
-    absolute_file_path = GenericToolbox::removeRepeatedCharacters(absolute_file_path, "/");
-    std::string file_size = GenericToolbox::parseSizeUnits(double(GenericToolbox::getFileSize(absolute_file_path)));
-
-    std::string installed_file_path = _gameBrowser_.getModManager().getConfig().getCurrentPreset().installBaseFolder + "/" + file;
-    installed_file_path = GenericToolbox::removeRepeatedCharacters(installed_file_path, "/");
+    std::string dstFilePath = GenericToolbox::joinPath(_gameBrowser_.getModManager().fetchCurrentPreset().installBaseFolder, modFile );
     // Check if the installed mod belongs to the selected mod
-    if( GenericToolbox::Switch::IO::doFilesAreIdentical( absolute_file_path, installed_file_path ) ){
+    if( GenericToolbox::Switch::IO::doFilesAreIdentical(srcFilePath, dstFilePath ) ){
 
       // Remove the mod file
-      GenericToolbox::deleteFile(installed_file_path);
+      GenericToolbox::deleteFile( dstFilePath );
 
       // Delete the folder if no other files is present
-      std::string empty_folder_path_candidate = GenericToolbox::getFolderPathFromFilePath(installed_file_path);
-      while( GenericToolbox::isFolderEmpty( empty_folder_path_candidate ) ) {
+      std::string emptyFolderCandidate = GenericToolbox::getFolderPathFromFilePath( dstFilePath );
+      while( GenericToolbox::isFolderEmpty( emptyFolderCandidate ) ) {
 
-        GenericToolbox::deleteEmptyDirectory(empty_folder_path_candidate);
+        GenericToolbox::deleteEmptyDirectory( emptyFolderCandidate );
 
-        std::vector<std::string> sub_folder_list = GenericToolbox::splitString(empty_folder_path_candidate, "/");
-        if(sub_folder_list.empty()) break; // virtually impossible -> would mean everything has been deleted on the sd
+        std::vector<std::string> subFolderList = GenericToolbox::splitString(emptyFolderCandidate, "/");
+        if(subFolderList.empty()) break; // virtually impossible -> would mean everything has been deleted on the sd
         // decrement folder depth
-        empty_folder_path_candidate =
-          "/" + GenericToolbox::joinVectorString(
-            sub_folder_list,
-            "/",
-            0,
-            int(sub_folder_list.size()) - 1
-          );
+        emptyFolderCandidate = "/" + GenericToolbox::joinVectorString( subFolderList, "/", 0, int(subFolderList.size()) - 1 );
       }
     }
   }
@@ -210,7 +196,7 @@ void GuiModManager::applyModsList(std::vector<std::string>& modsList_){
   std::vector<std::string> applied_files_listing;
   std::vector<std::vector<std::string>> mods_ignored_files_list(modsList_.size());
   for(int i_mod = int(modsList_.size())-1 ; i_mod >= 0 ; i_mod--){
-    std::string modPath = _gameBrowser_.getModManager().getGameFolderPath() + "/" + modsList_[i_mod];
+    std::string modPath = GenericToolbox::joinPath( _gameBrowser_.getModManager().getGameFolderPath(), modsList_[i_mod] );
     auto fileList = GenericToolbox::getListOfFilesInSubFolders(modPath);
     for(auto& file : fileList){
       if(GenericToolbox::doesElementIsInVector(file, applied_files_listing)){

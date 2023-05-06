@@ -36,6 +36,11 @@ struct ModEntry{
     if( cache == nullptr ){ return {}; }
     return cache->statusStr;
   }
+  double getStatusFraction(const std::string& preset_) const {
+    auto* cache{this->getCache(preset_)};
+    if( cache == nullptr ){ return 0; }
+    return cache->applyFraction;
+  }
 };
 
 ENUM_EXPANDER(
@@ -105,6 +110,13 @@ public:
   // utils
   int getModIndex(const std::string& modName_);
 
+  // preset
+  void reloadCustomPreset();
+  void setCustomPreset(const std::string &presetName_);
+  const PresetConfig& fetchCurrentPreset() const;
+
+  const std::string &getCurrentPresetName() const;
+
 protected:
   void displayConflictsWithOtherMods(size_t modIndex_);
 
@@ -119,6 +131,8 @@ private:
 
   Selector _selector_;
   std::vector<ModEntry> _modList_{};
+
+  std::string _currentPresetName_{};
 };
 
 
