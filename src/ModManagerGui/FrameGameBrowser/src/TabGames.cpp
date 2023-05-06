@@ -77,11 +77,10 @@ TabGames::TabGames(FrameRoot* owner_) : _owner_(owner_) {
   }
 
   LogDebug << "Sorting games wrt nb of mods..." << std::endl;
-  std::function<bool(const GameItem& a_, const GameItem& b_)> aGoesFirst([](const GameItem& a_, const GameItem& b_){
+  GenericToolbox::sortVector(_gameList_, [](const GameItem& a_, const GameItem& b_){
     if( a_.nMods > b_.nMods ) return true;
     return false;
   });
-  GenericToolbox::sortVector(_gameList_, aGoesFirst);
   LogDebug << "Sort done." << std::endl;
 
   // add to the view
