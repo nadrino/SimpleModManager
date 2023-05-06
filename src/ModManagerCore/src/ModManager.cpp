@@ -25,8 +25,8 @@ void ModManager::setGameName(const std::string &gameName) {
 }
 void ModManager::setGameFolderPath(const std::string &gameFolderPath_) {
   _gameFolderPath_ = gameFolderPath_;
-  this->updateModList();
   this->reloadCustomPreset();
+  this->updateModList();
 }
 void ModManager::setIgnoredFileList(std::vector<std::string>& ignoredFileList_){
   _ignoredFileList_ = ignoredFileList_;
