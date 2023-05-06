@@ -9,7 +9,7 @@ set(HOMEBREW_APP "${HOMEBREW_NAME}")
 # Meta information about the app
 set(HOMEBREW_TITLE ${HOMEBREW_NAME})
 set(HOMEBREW_AUTHOR "Nadrino")
-set(HOMEBREW_ICON "${CMAKE_CURRENT_SOURCE_DIR}/assets/icon_gui.jpg")
+set(HOMEBREW_ICON "${CMAKE_CURRENT_SOURCE_DIR}/assets/icon.jpg")
 
 set( SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/SimpleModManagerConsole.cpp )
 
