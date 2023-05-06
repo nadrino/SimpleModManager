@@ -22,11 +22,6 @@ It allows to manage your mods (via LayeredFS).
 
 </details>
 
-## Showcase (YouTube)
-
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/uJiIzLvsW2Y/0.jpg)](https://www.youtube.com/watch?v=uJiIzLvsW2Y)
-
-
 
 ## How to install (manually)
 - Download the latest version in the [release page](https://github.com/nadrino/SimpleModManager/releases)
