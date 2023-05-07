@@ -20,11 +20,20 @@ LoggerInit([]{
 });
 
 
+void GuiModManager::setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDisplayedStatus) {
+  _triggerUpdateModsDisplayedStatus_ = triggerUpdateModsDisplayedStatus;
+}
+
+bool GuiModManager::isTriggerUpdateModsDisplayedStatus() const {
+  return _triggerUpdateModsDisplayedStatus_;
+}
 const GameBrowser &GuiModManager::getGameBrowser() const { return _gameBrowser_; }
 GameBrowser &GuiModManager::getGameBrowser(){ return _gameBrowser_; }
 
 // static
-void GuiModManager::applyMod(const std::string &modName_, bool force_) {
+void GuiModManager::applyMod(const std::string &modName_) {
+  LogWarning << __METHOD_NAME__ << ": " << modName_ << std::endl;
+  modApplyMonitor = ModApplyMonitor();
 
   std::string modPath = GenericToolbox::joinPath(_gameBrowser_.getModManager().getGameFolderPath(), modName_);
   LogInfo << "Installing files in: " << modPath << std::endl;
@@ -40,13 +49,6 @@ void GuiModManager::applyMod(const std::string &modName_, bool force_) {
   }
   LogInfo << modFilesList.size() << " files to be installed." << std::endl;
 
-  std::string replace_option;
-  if(force_) replace_option = "Yes to all";
-  bool is_conflict;
-  std::stringstream ss_files_list;
-
-  LogDebug << GenericToolbox::parseVectorAsString(modFilesList) << std::endl;
-
   for(size_t iFile = 0 ; iFile < modFilesList.size() ; iFile++){
 
     if(modFilesList[iFile][0] == '.'){
@@ -57,20 +59,19 @@ void GuiModManager::applyMod(const std::string &modName_, bool force_) {
     std::string filePath = GenericToolbox::joinPath(modPath, modFilesList[iFile]);
     std::string fileSizeStr = GenericToolbox::parseSizeUnits(double(GenericToolbox::getFileSize(filePath)));
 
-    GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::applyMod:current_file"] = GenericToolbox::getFileNameFromFilePath(modFilesList[iFile]) + " (" + fileSizeStr + ")";
-    GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::applyMod"] = double(iFile + 1) / double(modFilesList.size());
+    modApplyMonitor.currentFile = GenericToolbox::getFileNameFromFilePath(modFilesList[iFile]) + " (" + fileSizeStr + ")";
+    modApplyMonitor.progress = double(iFile + 1) / double(modFilesList.size());
 
     std::string installPath = GenericToolbox::joinPath(_gameBrowser_.getModManager().fetchCurrentPreset().installBaseFolder, modFilesList[iFile] );
-    GenericToolbox::doesPathIsFile(installPath) ? is_conflict = true : is_conflict = false;
-    if(not is_conflict or replace_option == "Yes to all" or replace_option == "Yes"){
-      GenericToolbox::Switch::IO::copyFile(filePath, installPath);
-    }
-
+    GenericToolbox::Switch::IO::copyFile(filePath, installPath);
   }
   _gameBrowser_.getModManager().resetModCache(modName_);
 
 }
 void GuiModManager::getModStatus(const std::string &modName_, bool useCache_) {
+  LogWarning << __METHOD_NAME__ << ": " << modName_ << ", with cache? " << useCache_ << std::endl;
+  modCheckMonitor = ModCheckMonitor();
+
   // (XX/XX) Files Applied
   // ACTIVE
   // INACTIVE
@@ -95,7 +96,7 @@ void GuiModManager::getModStatus(const std::string &modName_, bool useCache_) {
 
   int sameFileCount = 0;
 
-  GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::generateStatusStr:current_file"] = "Listing mod files...";
+  modCheckMonitor.currentFile = "Listing mod files...";
   std::vector<std::string> modFileList = GenericToolbox::getListOfFilesInSubFolders(modPath);
 
   for( size_t iFile = 0 ; iFile < modFileList.size() ; iFile++ ){
@@ -103,8 +104,8 @@ void GuiModManager::getModStatus(const std::string &modName_, bool useCache_) {
     std::string srcFilePath = GenericToolbox::joinPath(modPath, modFileList[iFile] );
     std::string dstFilePath = GenericToolbox::joinPath(modManager.fetchCurrentPreset().installBaseFolder, modFileList[iFile] );
 
-    GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::generateStatusStr:current_file"] = GenericToolbox::getFileNameFromFilePath(modFileList[iFile]);
-    GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::generateStatusStr"] = (iFile + 1.) / double(modFileList.size());
+    modCheckMonitor.currentFile = GenericToolbox::getFileNameFromFilePath(modFileList[iFile]);
+    modCheckMonitor.progress = (double(iFile) + 1.) / double(modFileList.size());
 
     if(GenericToolbox::Switch::IO::doFilesAreIdentical(
         modManager.fetchCurrentPreset().installBaseFolder + "/" + modFileList[iFile],
@@ -124,21 +125,23 @@ void GuiModManager::getModStatus(const std::string &modName_, bool useCache_) {
   modManager.dumpModStatusCache();
 }
 void GuiModManager::removeMod(const std::string &modName_){
-  LogDebug << __METHOD_NAME__ << std::endl;
+  LogWarning << __METHOD_NAME__ << ": " << modName_ << std::endl;
+  modRemoveMonitor = ModRemoveMonitor();
 
   std::string modPath = GenericToolbox::joinPath( _gameBrowser_.getModManager().getGameFolderPath(), modName_ );
   auto modFileList = GenericToolbox::getListOfFilesInSubFolders(modPath);
 
   int iFile{0};
-  Toolbox::reset_last_displayed_value();
   for(auto &modFile : modFileList){
 
-    std::string srcFilePath = GenericToolbox::joinPath(modPath, modFile );
-    auto fileSize = double(GenericToolbox::getFileSize(srcFilePath));
+    // TODO: on cancel ?
 
-    GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::removeMod:current_file"] =
-        GenericToolbox::getFileNameFromFilePath(modFile) + " (" + GenericToolbox::parseSizeUnits(fileSize) + ")";
-    GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::removeMod"] = (iFile++ + 1.) / double(modFileList.size());
+    std::string srcFilePath = GenericToolbox::joinPath( modPath, modFile );
+
+
+    modRemoveMonitor.currentFile = GenericToolbox::getFileNameFromFilePath(modFile);
+    modRemoveMonitor.currentFile += " (" + GenericToolbox::joinAsString("/", iFile+1, modFileList.size()) + ")";
+    modRemoveMonitor.progress = (iFile++ + 1.) / double(modFileList.size());
 
     std::string dstFilePath = GenericToolbox::joinPath(_gameBrowser_.getModManager().fetchCurrentPreset().installBaseFolder, modFile );
     // Check if the installed mod belongs to the selected mod
@@ -164,76 +167,75 @@ void GuiModManager::removeMod(const std::string &modName_){
   _gameBrowser_.getModManager().resetModCache(modName_);
 
 }
-void GuiModManager::removeAllMods(bool force_) {
+void GuiModManager::removeAllMods() {
+  LogWarning << __METHOD_NAME__ << std::endl;
+  modRemoveAllMonitor = ModRemoveAllMonitor();
 
   auto modList = _gameBrowser_.getModManager().getModList();
-  std::string answer;
 
-  if(not force_){
-//    answer = toolbox::ask_question(
-//      "Do you want to disable all mods ?",
-//      std::vector<std::string>({"Yes", "No"})
-//    );
-  }
-  else{
-    answer = "Yes";
-  }
+  for(int iMod = 0 ; iMod < int(modList.size()) ; iMod++ ){
+    modRemoveAllMonitor.currentMod = modList[iMod].modName + " (" + std::to_string(iMod + 1) + "/" + std::to_string(modList.size()) + ")";
+    modRemoveAllMonitor.progress = (iMod + 1.) / double(modList.size());
 
-  if(answer == "Yes") {
-    for( int i_mod = 0 ; i_mod < int(modList.size()) ; i_mod++ ){
-      GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::removeAllMods:current_mod"] =
-          modList[i_mod].modName + " (" + std::to_string(i_mod+1) + "/" + std::to_string(modList.size()) + ")";
-      GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::removeAllMods"] =  (i_mod + 1.) / double(modList.size());
-      GuiModManager::removeMod( modList[i_mod].modName );
-    }
+    this->removeMod( modList[iMod].modName );
   }
 
 }
 void GuiModManager::applyModsList(std::vector<std::string>& modsList_){
+  LogWarning << __METHOD_NAME__ << ": " << GenericToolbox::parseVectorAsString(modsList_) << std::endl;
+  modApplyListMonitor = ModApplyListMonitor();
 
+  // checking for overwritten files in advance:
 
-  // checking for overwritten files in advance
-  std::vector<std::string> applied_files_listing;
-  std::vector<std::vector<std::string>> mods_ignored_files_list(modsList_.size());
-  for(int i_mod = int(modsList_.size())-1 ; i_mod >= 0 ; i_mod--){
-    std::string modPath = GenericToolbox::joinPath( _gameBrowser_.getModManager().getGameFolderPath(), modsList_[i_mod] );
+  // All the files that will be installed are saved here
+  std::vector<std::string> appliedFileList;
+
+  // This is the filter for override files
+  std::vector<std::vector<std::string>> ignoredFileListPerMod( modsList_.size() ); // ignoredFileListPerMod[iMod][iIgnoredFile];
+
+  // looping backward as the last mods will be the ones for which their files are going to be kept
+  for( int iMod = int(modsList_.size()) - 1 ; iMod >= 0 ; iMod-- ){
+    std::string modPath = GenericToolbox::joinPath( _gameBrowser_.getModManager().getGameFolderPath(), modsList_[iMod] );
     auto fileList = GenericToolbox::getListOfFilesInSubFolders(modPath);
     for(auto& file : fileList){
-      if(GenericToolbox::doesElementIsInVector(file, applied_files_listing)){
-        mods_ignored_files_list[i_mod].emplace_back(file);
+      if( GenericToolbox::doesElementIsInVector(file, appliedFileList) ){
+        // this file will be installed by a latter mod
+        ignoredFileListPerMod[iMod].emplace_back(file);
       }
-      else {
-        applied_files_listing.emplace_back(file);
+      else{
+        // new file, add it to the list
+        appliedFileList.emplace_back(file);
       }
     }
   }
 
   // applying mods with ignored files
-  for(int i_mod = 0 ; i_mod < int(modsList_.size()) ; i_mod++){
-    GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::applyModsList:current_mod"] =
-      modsList_[i_mod] + " (" + std::to_string(i_mod+1) + "/" + std::to_string(modsList_.size()) + ")";
-    GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::applyModsList"] = (i_mod + 1.) / double(modsList_.size());
-    _gameBrowser_.getModManager().setIgnoredFileList(mods_ignored_files_list[i_mod]);
-    GuiModManager::applyMod(modsList_[i_mod], true); // normally should work without force (tested) but just in case...
+  for( size_t iMod = 0 ; iMod < modsList_.size() ; iMod++ ){
+
+    modApplyListMonitor.currentMod = modsList_[iMod];
+    modApplyListMonitor.currentMod += " (" + std::to_string(iMod + 1) + "/" + std::to_string(modsList_.size()) + ")";
+    modApplyListMonitor.progress = (double(iMod) + 1.) / double(modsList_.size());
+
+    _gameBrowser_.getModManager().setIgnoredFileList(ignoredFileListPerMod[iMod]);
+    this->applyMod( modsList_[iMod] );
     _gameBrowser_.getModManager().getIgnoredFileList().clear();
+
   }
 
 }
 void GuiModManager::checkAllMods(bool useCache_) {
+  LogWarning << __METHOD_NAME__ << ": with cache? " << useCache_ << std::endl;
+  modCheckAllMonitor = ModCheckAllMonitor();
 
   auto modList = _gameBrowser_.getModManager().getModList();
-  for(int i_mod = 0 ; i_mod < int(modList.size()) ; i_mod++){
+  for( size_t iMod = 0 ; iMod < modList.size() ; iMod++ ){
+    // progress
+    modCheckAllMonitor.currentMod = modList[iMod].modName;
+    modCheckAllMonitor.currentMod += " (" + std::to_string(iMod + 1) + "/" + std::to_string(modList.size()) + ")";
+    modCheckAllMonitor.progress = (double(iMod) + 1.) / double(modList.size());
 
-    GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::checkAllMods:current_mod"] =
-        modList[i_mod].modName + " (" + std::to_string(i_mod + 1) + "/" + std::to_string(modList.size()) + ")";
-    GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::checkAllMods"] = (i_mod + 1.) / double(modList.size());
-
-    // IU update
-    GuiModManager::getModStatus(modList[i_mod].modName, useCache_); // actual mod check is here
-    _triggerUpdateModsDisplayedStatus_ = true;
+    this->getModStatus( modList[iMod].modName, useCache_ );
   }
-
-  _triggerUpdateModsDisplayedStatus_ = true;
 }
 
 // not static
@@ -265,204 +267,160 @@ void GuiModManager::startApplyModPresetThread(const std::string &modPresetName_)
 
 bool GuiModManager::applyModFunction(const std::string& modName_){
   // push the progress bar to the view
-  _loadingBox_.pushView();
+  _loadingPopup_.pushView();
 
   LogWarning << "Applying: " << modName_ << std::endl;
-  if( _loadingBox_.getLoadingView() != nullptr ){
-    _loadingBox_.getLoadingView()->reset();
-    _loadingBox_.getLoadingView()->setHeader("Applying mod...");
-    _loadingBox_.getLoadingView()->setTitlePtr(&modName_);
-    _loadingBox_.getLoadingView()->setProgressColor(nvgRGB(0x00, 0xff, 0xc8));
-    _loadingBox_.getLoadingView()->setSubTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::applyMod:current_file"]);
-    _loadingBox_.getLoadingView()->setProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::applyMod"]);
-    _loadingBox_.getLoadingView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["copyFile"]);
-    _loadingBox_.getLoadingView()->setEnableSubLoadingBar(true);
-  }
-  GuiModManager::applyMod(modName_, true);
+  modApplyMonitor = ModApplyMonitor();
+  _loadingPopup_.getMonitorView()->setHeaderTitle("Applying mod...");
+  _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Switch::Borealis::greenNvgColor);
+  _loadingPopup_.getMonitorView()->resetMonitorAddresses();
+  _loadingPopup_.getMonitorView()->setTitlePtr( &modName_ );
+  _loadingPopup_.getMonitorView()->setSubTitlePtr( &modApplyMonitor.currentFile );
+  _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modApplyMonitor.progress );
+  _loadingPopup_.getMonitorView()->setSubProgressFractionPtr( &GenericToolbox::Switch::Utils::b.progressMap["copyFile"] );
+  this->applyMod( modName_ );
 
   LogWarning << "Checking: " << modName_ << std::endl;
-  if( _loadingBox_.getLoadingView() != nullptr ) {
-    _loadingBox_.getLoadingView()->reset();
-    _loadingBox_.getLoadingView()->setHeader("Checking the applied mod...");
-    _loadingBox_.getLoadingView()->setTitlePtr(&modName_);
-    _loadingBox_.getLoadingView()->setProgressColor(nvgRGB(0x00, 0xc8, 0xff));
-    _loadingBox_.getLoadingView()->setSubTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::generateStatusStr:current_file"]);
-    _loadingBox_.getLoadingView()->setProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::generateStatusStr"]);
-    _loadingBox_.getLoadingView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
-    _loadingBox_.getLoadingView()->setEnableSubLoadingBar(true);
-  }
-  GuiModManager::getModStatus(modName_, false);
-  _triggerUpdateModsDisplayedStatus_ = true;
+  modCheckMonitor = ModCheckMonitor();
+  _loadingPopup_.getMonitorView()->setHeaderTitle("Checking the applied mod...");
+  _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Switch::Borealis::blueNvgColor);
+  _loadingPopup_.getMonitorView()->resetMonitorAddresses();
+  _loadingPopup_.getMonitorView()->setTitlePtr(&modName_);
+  _loadingPopup_.getMonitorView()->setSubTitlePtr( &modCheckMonitor.currentFile );
+  _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modCheckMonitor.progress );
+  _loadingPopup_.getMonitorView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
+  this->getModStatus( modName_, false );
 
-  _loadingBox_.getLoadingView()->reset();
   _triggerUpdateModsDisplayedStatus_ = true;
-  _loadingBox_.popView();
+  _loadingPopup_.popView();
   brls::Application::unblockInputs();
   return true;
 }
 bool GuiModManager::applyModPresetFunction(const std::string& presetName_){
   // push the progress bar to the view
-  _loadingBox_.pushView();
+  _loadingPopup_.pushView();
 
   LogInfo << "Removing all installed mods..." << std::endl;
-  if( _loadingBox_.getLoadingView() != nullptr ){
-    _loadingBox_.getLoadingView()->reset();
-    _loadingBox_.getLoadingView()->setProgressColor(nvgRGB(0xff, 0x64, 0x64));
-    _loadingBox_.getLoadingView()->setHeader("Removing all installed mods...");
-    _loadingBox_.getLoadingView()->setTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::removeAllMods:current_mod"]);
-    _loadingBox_.getLoadingView()->setSubTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::removeMod:current_file"]);
-    _loadingBox_.getLoadingView()->setProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::removeAllMods"]);
-    _loadingBox_.getLoadingView()->setEnableSubLoadingBar(true);
-    _loadingBox_.getLoadingView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::removeMod"]);
-  }
-  GuiModManager::removeAllMods(true);
+  _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Switch::Borealis::redNvgColor);
+  _loadingPopup_.getMonitorView()->setHeaderTitle("Removing all installed mods...");
+  _loadingPopup_.getMonitorView()->resetMonitorAddresses();
+  _loadingPopup_.getMonitorView()->setTitlePtr( &modRemoveAllMonitor.currentMod );
+  _loadingPopup_.getMonitorView()->setSubTitlePtr( &modRemoveMonitor.currentFile );
+  _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modRemoveAllMonitor.progress );
+  _loadingPopup_.getMonitorView()->setSubProgressFractionPtr( &modRemoveMonitor.progress );
+  this->removeAllMods();
 
   LogInfo("Applying Mod Preset");
-  if( _loadingBox_.getLoadingView() ){
-    _loadingBox_.getLoadingView()->reset();
-    _loadingBox_.getLoadingView()->setHeader("Applying mod preset...");
-    _loadingBox_.getLoadingView()->setProgressColor(nvgRGB(0x00, 0xff, 0xc8));
-    _loadingBox_.getLoadingView()->setTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::applyModsList:current_mod"]);
-    _loadingBox_.getLoadingView()->setSubTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::applyMod:current_file"]);
-    _loadingBox_.getLoadingView()->setProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::applyMod"]);
-    _loadingBox_.getLoadingView()->setEnableSubLoadingBar(true);
-    _loadingBox_.getLoadingView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["copyFile"]);
-  }
+  _loadingPopup_.getMonitorView()->setHeaderTitle("Applying mod preset...");
+  _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Switch::Borealis::greenNvgColor);
+  _loadingPopup_.getMonitorView()->resetMonitorAddresses();
+  _loadingPopup_.getMonitorView()->setTitlePtr( &modApplyListMonitor.currentMod );
+  _loadingPopup_.getMonitorView()->setSubTitlePtr( &modApplyMonitor.currentFile );
+  _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modApplyMonitor.progress );
+  _loadingPopup_.getMonitorView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["copyFile"]);
 
   std::vector<std::string> modsList;
   for( auto& preset : _gameBrowser_.getModPresetHandler().getPresetList() ){
-    if( preset.name == presetName_ ){
-      modsList = preset.modList;
-      break;
-    }
+    if( preset.name == presetName_ ){ modsList = preset.modList; break; }
   }
   this->applyModsList(modsList);
 
   LogInfo("Checking all mods status...");
-  if( _loadingBox_.getLoadingView() ){
-    _loadingBox_.getLoadingView()->reset();
-    _loadingBox_.getLoadingView()->setProgressColor(nvgRGB(0x00, 0xc8, 0xff));
-    _loadingBox_.getLoadingView()->setHeader("Checking all mods status...");
-    _loadingBox_.getLoadingView()->setTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::checkAllMods:current_mod"]);
-    _loadingBox_.getLoadingView()->setSubTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::generateStatusStr:current_file"]);
-    _loadingBox_.getLoadingView()->setProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::generateStatusStr"]);
-    _loadingBox_.getLoadingView()->setEnableSubLoadingBar(true);
-    _loadingBox_.getLoadingView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
-  }
+  _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Switch::Borealis::blueNvgColor);
+  _loadingPopup_.getMonitorView()->setHeaderTitle("Checking all mods status...");
+
+  _loadingPopup_.getMonitorView()->resetMonitorAddresses();
+  _loadingPopup_.getMonitorView()->setTitlePtr( &modCheckAllMonitor.currentMod );
+  _loadingPopup_.getMonitorView()->setSubTitlePtr( &modCheckMonitor.currentFile );
+  _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modCheckMonitor.progress );
+  _loadingPopup_.getMonitorView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
   GuiModManager::checkAllMods();
 
-  _loadingBox_.getLoadingView()->reset();
   _triggerUpdateModsDisplayedStatus_ = true;
-  _loadingBox_.popView();
+  _loadingPopup_.popView();
   brls::Application::unblockInputs();
   return true;
 }
 bool GuiModManager::removeModFunction(const std::string& modName_){
   // push the progress bar to the view
-  _loadingBox_.pushView();
+  _loadingPopup_.pushView();
 
   LogWarning << "Removing: " << modName_ << std::endl;
-  if( _loadingBox_.getLoadingView() != nullptr ){
-    _loadingBox_.getLoadingView()->reset();
-    _loadingBox_.getLoadingView()->setHeader("Removing mod...");
-    _loadingBox_.getLoadingView()->setProgressColor(nvgRGB(0xff, 0x64, 0x64));
-    _loadingBox_.getLoadingView()->setTitlePtr(&modName_);
-    _loadingBox_.getLoadingView()->setSubTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::removeMod:current_file"]);
-    _loadingBox_.getLoadingView()->setProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::removeMod"]);
-  }
-  GuiModManager::removeMod(modName_);
+  _loadingPopup_.getMonitorView()->setHeaderTitle("Removing mod...");
+  _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Switch::Borealis::redNvgColor);
+
+  _loadingPopup_.getMonitorView()->resetMonitorAddresses();
+  _loadingPopup_.getMonitorView()->setTitlePtr(&modName_);
+  _loadingPopup_.getMonitorView()->setSubTitlePtr( &modRemoveMonitor.currentFile );
+  _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modRemoveMonitor.progress );
+  GuiModManager::removeMod( modName_ );
 
   LogWarning << "Checking: " << modName_ << std::endl;
-  if( _loadingBox_.getLoadingView() != nullptr ){
-    _loadingBox_.getLoadingView()->reset();
-    _loadingBox_.getLoadingView()->setHeader("Checking mod...");
-    _loadingBox_.getLoadingView()->setProgressColor(nvgRGB(0x00, 0xc8, 0xff));
-    _loadingBox_.getLoadingView()->setTitlePtr(&modName_);
-    _loadingBox_.getLoadingView()->setSubTitlePtr(
-        &GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::generateStatusStr:current_file"]);
-    _loadingBox_.getLoadingView()->setProgressFractionPtr(
-        &GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::generateStatusStr"]);
-    _loadingBox_.getLoadingView()->setEnableSubLoadingBar(true);
-    _loadingBox_.getLoadingView()->setSubProgressFractionPtr(
-        &GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
-  }
-  GuiModManager::getModStatus(modName_);
-  _triggerUpdateModsDisplayedStatus_ = true;
+  _loadingPopup_.getMonitorView()->setProgressColor( GenericToolbox::Switch::Borealis::blueNvgColor );
+  _loadingPopup_.getMonitorView()->setHeaderTitle("Checking mod...");
 
-  _loadingBox_.getLoadingView()->reset();
+  _loadingPopup_.getMonitorView()->resetMonitorAddresses();
+  _loadingPopup_.getMonitorView()->setTitlePtr(&modName_);
+  _loadingPopup_.getMonitorView()->setSubTitlePtr( &modCheckMonitor.currentFile );
+  _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modCheckMonitor.progress );
+  _loadingPopup_.getMonitorView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
+  GuiModManager::getModStatus(modName_);
+
   _triggerUpdateModsDisplayedStatus_ = true;
-  _loadingBox_.popView();
+  _loadingPopup_.popView();
   brls::Application::unblockInputs();
   return true;
 }
 bool GuiModManager::checkAllModsFunction(){
   // push the progress bar to the view
-  _loadingBox_.pushView();
+  _loadingPopup_.pushView();
 
   LogInfo("Checking all mods status...");
-  if( _loadingBox_.getLoadingView() != nullptr ) {
-    _loadingBox_.getLoadingView()->reset();
-    _loadingBox_.getLoadingView()->setProgressColor(nvgRGB(0x00, 0xc8, 0xff));
-    _loadingBox_.getLoadingView()->setHeader("Checking all mods status...");
-    _loadingBox_.getLoadingView()->setTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::checkAllMods:current_mod"]);
-    _loadingBox_.getLoadingView()->setProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::generateStatusStr"]);
-    _loadingBox_.getLoadingView()->setEnableSubLoadingBar(true);
-    _loadingBox_.getLoadingView()->setSubTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::generateStatusStr:current_file"]);
-    _loadingBox_.getLoadingView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
-  }
+  _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Switch::Borealis::blueNvgColor);
+  _loadingPopup_.getMonitorView()->setHeaderTitle("Checking all mods status...");
+  _loadingPopup_.getMonitorView()->resetMonitorAddresses();
+  _loadingPopup_.getMonitorView()->setTitlePtr( &modCheckAllMonitor.currentMod );
+  _loadingPopup_.getMonitorView()->setSubTitlePtr( &modCheckMonitor.currentFile );
+  _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modCheckAllMonitor.progress );
+  _loadingPopup_.getMonitorView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
   this->checkAllMods();
   LogInfo << "Check all mods done." << std::endl;
 
-  _loadingBox_.getLoadingView()->reset();
   _triggerUpdateModsDisplayedStatus_ = true;
-  _loadingBox_.popView();
+  _loadingPopup_.popView();
   brls::Application::unblockInputs();
 
   return true;
 }
 bool GuiModManager::removeAllModsFunction(){
   // push the progress bar to the view
-  _loadingBox_.pushView();
+  _loadingPopup_.pushView();
 
   LogInfo("Removing all installed mods...");
-  if( _loadingBox_.getLoadingView() != nullptr ) {
-    _loadingBox_.getLoadingView()->reset();
-    _loadingBox_.getLoadingView()->setProgressColor(nvgRGB(0xff, 0x64, 0x64));
-    _loadingBox_.getLoadingView()->setHeader("Removing all installed mods...");
-    _loadingBox_.getLoadingView()->setTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::removeAllMods:current_mod"]);
-    _loadingBox_.getLoadingView()->setSubTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::removeMod:current_file"]);
-    _loadingBox_.getLoadingView()->setProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::removeAllMods"]);
-    _loadingBox_.getLoadingView()->setEnableSubLoadingBar(true);
-    _loadingBox_.getLoadingView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::removeMod"]);
-  }
-  GuiModManager::removeAllMods(true);
+  _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Switch::Borealis::redNvgColor);
+  _loadingPopup_.getMonitorView()->setHeaderTitle("Removing all installed mods...");
+
+  _loadingPopup_.getMonitorView()->resetMonitorAddresses();
+  _loadingPopup_.getMonitorView()->setTitlePtr( &modRemoveAllMonitor.currentMod );
+  _loadingPopup_.getMonitorView()->setSubTitlePtr( &modRemoveMonitor.currentFile );
+  _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modRemoveAllMonitor.progress );
+  _loadingPopup_.getMonitorView()->setSubProgressFractionPtr( &modRemoveMonitor.progress );
+  GuiModManager::removeAllMods();
 
   LogInfo("Checking all mods status...");
-  if( _loadingBox_.getLoadingView() != nullptr ) {
-    _loadingBox_.getLoadingView()->reset();
-    _loadingBox_.getLoadingView()->setProgressColor(nvgRGB(0x00, 0xc8, 0xff));
-    _loadingBox_.getLoadingView()->setHeader("Checking all mods status...");
-    _loadingBox_.getLoadingView()->setTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::checkAllMods:current_mod"]);
-    _loadingBox_.getLoadingView()->setSubTitlePtr(&GenericToolbox::Switch::Utils::b.strMap["ext_mod_manager::generateStatusStr:current_file"]);
-    _loadingBox_.getLoadingView()->setProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["ext_mod_manager::generateStatusStr"]);
-    _loadingBox_.getLoadingView()->setEnableSubLoadingBar(true);
-    _loadingBox_.getLoadingView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
-  }
+  _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Switch::Borealis::blueNvgColor);
+  _loadingPopup_.getMonitorView()->setHeaderTitle("Checking all mods status...");
+
+  _loadingPopup_.getMonitorView()->resetMonitorAddresses();
+  _loadingPopup_.getMonitorView()->setTitlePtr( &modCheckAllMonitor.currentMod );
+  _loadingPopup_.getMonitorView()->setSubTitlePtr( &modCheckMonitor.currentFile );
+  _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modCheckMonitor.progress );
+  _loadingPopup_.getMonitorView()->setSubProgressFractionPtr( &GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"] );
   GuiModManager::checkAllMods();
 
-  _loadingBox_.getLoadingView()->reset();
   _triggerUpdateModsDisplayedStatus_ = true;
-  _loadingBox_.popView();
+  _loadingPopup_.popView();
   brls::Application::unblockInputs();
   return true;
 }
-
-void GuiModManager::setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDisplayedStatus) {
-  _triggerUpdateModsDisplayedStatus_ = triggerUpdateModsDisplayedStatus;
-}
-
-bool GuiModManager::isTriggerUpdateModsDisplayedStatus() const {
-  return _triggerUpdateModsDisplayedStatus_;
-}
-
 

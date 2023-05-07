@@ -59,12 +59,15 @@ void runGui(){
   brls::i18n::loadTranslations("en-US");
   LogThrowIf(not brls::Application::init("SimpleModManager"), "Unable to init Borealis application");
 
-  auto* main_frame = new FrameRoot();
-  brls::Application::pushView(main_frame);
-  main_frame->registerAction("", brls::Key::PLUS, []{return true;}, true);
-  main_frame->updateActionHint(brls::Key::PLUS, ""); // make the change visible
+  LogInfo << "Creating root frame..." << std::endl;
+  auto* mainFrame = new FrameRoot();
 
-  while(brls::Application::mainLoop()) { }
+  LogInfo << "Pushing to view" << std::endl;
+  brls::Application::pushView( mainFrame );
+  mainFrame->registerAction( "", brls::Key::PLUS, []{return true;}, true );
+  mainFrame->updateActionHint( brls::Key::PLUS, "" ); // make the change visible
+
+  while( brls::Application::mainLoop() ){  }
 
   nsExit();
 }

@@ -8,12 +8,16 @@
 #include <chrono>
 #include <utility>
 
-using namespace std::literals::chrono_literals;
+//using namespace std::literals::chrono_literals;
 
 PopupLoadingView::PopupLoadingView() {
 
   this->reset();
 
+}
+PopupLoadingView::~PopupLoadingView(){
+  if( _execOnDelete_ ){ _execOnDelete_(); }
+  brls::View::~View();
 }
 
 void PopupLoadingView::reset(){
@@ -169,4 +173,8 @@ void PopupLoadingView::setSubTitlePtr(std::string *subTitlePtr) {
 
 void PopupLoadingView::setHeader(std::string header) {
   _header_ = std::move(header);
+}
+
+void PopupLoadingView::setExecOnDelete(const std::function<void()> &execOnDelete) {
+  _execOnDelete_ = execOnDelete;
 }

@@ -12,8 +12,11 @@ class PopupLoadingView : public brls::View {
 
 public:
   PopupLoadingView();
+  ~PopupLoadingView() override;
 
   void reset();
+
+  void setExecOnDelete(const std::function<void()> &execOnDelete);
 
   void setEnableSubLoadingBar(bool enableSubLoadingBar);
 
@@ -49,6 +52,8 @@ private:
   const std::string* _titlePtr_;
   std::string _subTitle_;
   std::string* _subTitlePtr_;
+
+  std::function<void()> _execOnDelete_{};
 
 };
 
