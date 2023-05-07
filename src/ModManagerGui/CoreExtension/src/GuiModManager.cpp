@@ -436,6 +436,7 @@ bool GuiModManager::leaveModAction(bool isSuccess_){
   _triggerUpdateModsDisplayedStatus_ = true;
   _loadingPopup_.popView();
   brls::Application::unblockInputs();
+  LogInfo << "Leaving mod action with success? " << isSuccess_ << std::endl;
   return isSuccess_;
 }
 
