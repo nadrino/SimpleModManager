@@ -6,7 +6,6 @@
 
 #include "FrameModBrowser.h"
 #include <GlobalObjects.h>
-#include <PopupLoadingView.h>
 
 #include "Logger.h"
 #include "GenericToolbox.h"
@@ -129,19 +128,15 @@ void TabModBrowser::updateDisplayedModsStatus(){
     // processing color
     if     ( frac == 0 ){
       // inactive color
-      color = nvgRGB(80, 80, 80);
+      color = GenericToolbox::Switch::Borealis::grayNvgColor;
     }
     else if( frac == 1 ){
-      // applied color
+      // applied color (less saturated green)
       color = nvgRGB(88, 195, 169);
     }
     else{
       // partial color
-      color = nvgRGB(
-          (unsigned char) (245*0.85),
-          (unsigned char) (198*0.85),
-          (unsigned char) (59*0.85)
-      );
+      color = GenericToolbox::Switch::Borealis::orangeNvgColor;
     }
     _modItemList_[iMod].item->setValueActiveColor( color );
   }

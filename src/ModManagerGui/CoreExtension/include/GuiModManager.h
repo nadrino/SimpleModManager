@@ -5,8 +5,6 @@
 #ifndef SIMPLEMODMANAGER_GUIMODMANAGER_H
 #define SIMPLEMODMANAGER_GUIMODMANAGER_H
 
-#include <PopupLoadingView.h>
-#include <PopupLoadingBox.h>
 
 #include "GameBrowser.h"
 #include "GenericToolbox.Switch.Borealis.h"

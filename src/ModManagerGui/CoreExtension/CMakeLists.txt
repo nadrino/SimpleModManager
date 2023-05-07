@@ -4,8 +4,6 @@
 
 set( SRC_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/GuiModManager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/PopupLoadingBox.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/PopupLoadingView.cpp
     )
 
 add_library( CoreExtension STATIC ${SRC_FILES} )
