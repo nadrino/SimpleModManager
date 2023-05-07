@@ -58,6 +58,7 @@ private:
 
   std::future<bool> _asyncResponse_{};
 
+  bool _triggeredOnCancel_{false};
   bool _triggerUpdateModsDisplayedStatus_{false};
 
 
@@ -72,8 +73,6 @@ private:
     double progress{0};
     std::string currentMod{};
   }; ModApplyListMonitor modApplyListMonitor{};
-
-
   struct ModCheckMonitor{
     double progress{0};
     std::string currentFile{};

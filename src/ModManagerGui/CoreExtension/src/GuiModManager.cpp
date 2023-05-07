@@ -30,7 +30,6 @@ bool GuiModManager::isTriggerUpdateModsDisplayedStatus() const {
 const GameBrowser &GuiModManager::getGameBrowser() const { return _gameBrowser_; }
 GameBrowser &GuiModManager::getGameBrowser(){ return _gameBrowser_; }
 
-// static
 void GuiModManager::applyMod(const std::string &modName_) {
   LogWarning << __METHOD_NAME__ << ": " << modName_ << std::endl;
   modApplyMonitor = ModApplyMonitor();
@@ -50,8 +49,9 @@ void GuiModManager::applyMod(const std::string &modName_) {
   LogInfo << modFilesList.size() << " files to be installed." << std::endl;
 
   for(size_t iFile = 0 ; iFile < modFilesList.size() ; iFile++){
+    LogReturnIf( _triggeredOnCancel_, "Cancel detected. Leaving " << __METHOD_NAME__ );
 
-    if(modFilesList[iFile][0] == '.'){
+    if( GenericToolbox::getFileNameFromFilePath(modFilesList[iFile])[0] == '.' ){
       // ignoring cached files
       continue;
     }
@@ -100,6 +100,12 @@ void GuiModManager::getModStatus(const std::string &modName_, bool useCache_) {
   std::vector<std::string> modFileList = GenericToolbox::getListOfFilesInSubFolders(modPath);
 
   for( size_t iFile = 0 ; iFile < modFileList.size() ; iFile++ ){
+    LogReturnIf( _triggeredOnCancel_, "Cancel detected. Leaving " << __METHOD_NAME__ );
+
+    if( GenericToolbox::getFileNameFromFilePath(modFileList[iFile])[0] == '.' ){
+      // ignoring cached files
+      continue;
+    }
 
     std::string srcFilePath = GenericToolbox::joinPath(modPath, modFileList[iFile] );
     std::string dstFilePath = GenericToolbox::joinPath(modManager.fetchCurrentPreset().installBaseFolder, modFileList[iFile] );
@@ -133,16 +139,13 @@ void GuiModManager::removeMod(const std::string &modName_){
 
   int iFile{0};
   for(auto &modFile : modFileList){
-
-    // TODO: on cancel ?
-
-    std::string srcFilePath = GenericToolbox::joinPath( modPath, modFile );
-
+    LogReturnIf( _triggeredOnCancel_, "Cancel detected. Leaving " << __METHOD_NAME__ );
 
     modRemoveMonitor.currentFile = GenericToolbox::getFileNameFromFilePath(modFile);
     modRemoveMonitor.currentFile += " (" + GenericToolbox::joinAsString("/", iFile+1, modFileList.size()) + ")";
     modRemoveMonitor.progress = (iFile++ + 1.) / double(modFileList.size());
 
+    std::string srcFilePath = GenericToolbox::joinPath( modPath, modFile );
     std::string dstFilePath = GenericToolbox::joinPath(_gameBrowser_.getModManager().fetchCurrentPreset().installBaseFolder, modFile );
     // Check if the installed mod belongs to the selected mod
     if( GenericToolbox::Switch::IO::doFilesAreIdentical(srcFilePath, dstFilePath ) ){
@@ -174,6 +177,8 @@ void GuiModManager::removeAllMods() {
   auto modList = _gameBrowser_.getModManager().getModList();
 
   for(int iMod = 0 ; iMod < int(modList.size()) ; iMod++ ){
+    LogReturnIf( _triggeredOnCancel_, "Cancel detected. Leaving " << __METHOD_NAME__ );
+
     modRemoveAllMonitor.currentMod = modList[iMod].modName + " (" + std::to_string(iMod + 1) + "/" + std::to_string(modList.size()) + ")";
     modRemoveAllMonitor.progress = (iMod + 1.) / double(modList.size());
 
@@ -211,6 +216,7 @@ void GuiModManager::applyModsList(std::vector<std::string>& modsList_){
 
   // applying mods with ignored files
   for( size_t iMod = 0 ; iMod < modsList_.size() ; iMod++ ){
+    LogReturnIf( _triggeredOnCancel_, "Cancel detected. Leaving " << __METHOD_NAME__ );
 
     modApplyListMonitor.currentMod = modsList_[iMod];
     modApplyListMonitor.currentMod += " (" + std::to_string(iMod + 1) + "/" + std::to_string(modsList_.size()) + ")";
@@ -229,6 +235,8 @@ void GuiModManager::checkAllMods(bool useCache_) {
 
   auto modList = _gameBrowser_.getModManager().getModList();
   for( size_t iMod = 0 ; iMod < modList.size() ; iMod++ ){
+    LogReturnIf( _triggeredOnCancel_, "Cancel detected. Leaving " << __METHOD_NAME__ );
+
     // progress
     modCheckAllMonitor.currentMod = modList[iMod].modName;
     modCheckAllMonitor.currentMod += " (" + std::to_string(iMod + 1) + "/" + std::to_string(modList.size()) + ")";
@@ -242,24 +250,34 @@ void GuiModManager::checkAllMods(bool useCache_) {
 void GuiModManager::startApplyModThread(const std::string& modName_) {
   LogReturnIf(modName_.empty(), "No mod name provided. Can't apply mod.");
 
+  this->_triggeredOnCancel_ = false;
+
   // start the parallel thread
   _asyncResponse_ = std::async(&GuiModManager::applyModFunction, this, modName_);
 }
 void GuiModManager::startRemoveModThread(const std::string& modName_){
   LogReturnIf(modName_.empty(), "No mod name provided. Can't remove mod.");
 
+  this->_triggeredOnCancel_ = false;
+
   // start the parallel thread
   _asyncResponse_ = std::async(&GuiModManager::removeModFunction, this, modName_);
 }
 void GuiModManager::startCheckAllModsThread(){
+  this->_triggeredOnCancel_ = false;
+
   // start the parallel thread
   _asyncResponse_ = std::async(&GuiModManager::checkAllModsFunction, this);
 }
 void GuiModManager::startRemoveAllModsThread(){
+  this->_triggeredOnCancel_ = false;
+
   // start the parallel thread
   _asyncResponse_ = std::async(&GuiModManager::removeAllModsFunction, this);
 }
 void GuiModManager::startApplyModPresetThread(const std::string &modPresetName_){
+  this->_triggeredOnCancel_ = false;
+
   // start the parallel thread
   _asyncResponse_ = std::async(&GuiModManager::applyModPresetFunction, this, modPresetName_);
 }
@@ -268,9 +286,9 @@ void GuiModManager::startApplyModPresetThread(const std::string &modPresetName_)
 bool GuiModManager::applyModFunction(const std::string& modName_){
   // push the progress bar to the view
   _loadingPopup_.pushView();
+  _loadingPopup_.getMonitorView()->setExecOnDelete([this]{ this->_triggeredOnCancel_ = true; });
 
   LogWarning << "Applying: " << modName_ << std::endl;
-  modApplyMonitor = ModApplyMonitor();
   _loadingPopup_.getMonitorView()->setHeaderTitle("Applying mod...");
   _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Switch::Borealis::greenNvgColor);
   _loadingPopup_.getMonitorView()->resetMonitorAddresses();
@@ -281,7 +299,6 @@ bool GuiModManager::applyModFunction(const std::string& modName_){
   this->applyMod( modName_ );
 
   LogWarning << "Checking: " << modName_ << std::endl;
-  modCheckMonitor = ModCheckMonitor();
   _loadingPopup_.getMonitorView()->setHeaderTitle("Checking the applied mod...");
   _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Switch::Borealis::blueNvgColor);
   _loadingPopup_.getMonitorView()->resetMonitorAddresses();
@@ -299,6 +316,7 @@ bool GuiModManager::applyModFunction(const std::string& modName_){
 bool GuiModManager::applyModPresetFunction(const std::string& presetName_){
   // push the progress bar to the view
   _loadingPopup_.pushView();
+  _loadingPopup_.getMonitorView()->setExecOnDelete([this]{ this->_triggeredOnCancel_ = true; });
 
   LogInfo << "Removing all installed mods..." << std::endl;
   _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Switch::Borealis::redNvgColor);
@@ -344,6 +362,7 @@ bool GuiModManager::applyModPresetFunction(const std::string& presetName_){
 bool GuiModManager::removeModFunction(const std::string& modName_){
   // push the progress bar to the view
   _loadingPopup_.pushView();
+  _loadingPopup_.getMonitorView()->setExecOnDelete([this]{ this->_triggeredOnCancel_ = true; });
 
   LogWarning << "Removing: " << modName_ << std::endl;
   _loadingPopup_.getMonitorView()->setHeaderTitle("Removing mod...");
@@ -374,6 +393,7 @@ bool GuiModManager::removeModFunction(const std::string& modName_){
 bool GuiModManager::checkAllModsFunction(){
   // push the progress bar to the view
   _loadingPopup_.pushView();
+  _loadingPopup_.getMonitorView()->setExecOnDelete([this]{ this->_triggeredOnCancel_ = true; });
 
   LogInfo("Checking all mods status...");
   _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Switch::Borealis::blueNvgColor);
@@ -389,17 +409,16 @@ bool GuiModManager::checkAllModsFunction(){
   _triggerUpdateModsDisplayedStatus_ = true;
   _loadingPopup_.popView();
   brls::Application::unblockInputs();
-
   return true;
 }
 bool GuiModManager::removeAllModsFunction(){
   // push the progress bar to the view
   _loadingPopup_.pushView();
+  _loadingPopup_.getMonitorView()->setExecOnDelete([this]{ this->_triggeredOnCancel_ = true; });
 
   LogInfo("Removing all installed mods...");
   _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Switch::Borealis::redNvgColor);
   _loadingPopup_.getMonitorView()->setHeaderTitle("Removing all installed mods...");
-
   _loadingPopup_.getMonitorView()->resetMonitorAddresses();
   _loadingPopup_.getMonitorView()->setTitlePtr( &modRemoveAllMonitor.currentMod );
   _loadingPopup_.getMonitorView()->setSubTitlePtr( &modRemoveMonitor.currentFile );
@@ -410,7 +429,6 @@ bool GuiModManager::removeAllModsFunction(){
   LogInfo("Checking all mods status...");
   _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Switch::Borealis::blueNvgColor);
   _loadingPopup_.getMonitorView()->setHeaderTitle("Checking all mods status...");
-
   _loadingPopup_.getMonitorView()->resetMonitorAddresses();
   _loadingPopup_.getMonitorView()->setTitlePtr( &modCheckAllMonitor.currentMod );
   _loadingPopup_.getMonitorView()->setSubTitlePtr( &modCheckMonitor.currentFile );
