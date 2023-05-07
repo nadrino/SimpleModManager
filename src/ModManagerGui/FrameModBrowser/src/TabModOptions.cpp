@@ -146,15 +146,19 @@ void TabModOptions::buildGameIdentificationItem(){
   _itemGameIdentification_ = new brls::ListItem(
     "Associated TitleID",
     "",
-    "Current value :"
+    "Current value: "
   );
 
   if( _owner_->getIcon() != nullptr ){
-    _itemGameIdentification_->setValue( _owner_->getTitleId() );
     _itemGameIdentification_->setThumbnail( _owner_->getIcon(), 0x20000 );
+    _itemGameIdentification_->setSubLabel(
+        _itemGameIdentification_->getSubLabel() + _owner_->getTitleId()
+    );
   }
   else{
-    _itemGameIdentification_->setValue("No TitleID candidate");
+    _itemGameIdentification_->setSubLabel(
+        _itemGameIdentification_->getSubLabel() + "Not found."
+    );
   }
 
 }

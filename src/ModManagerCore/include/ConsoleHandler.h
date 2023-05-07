@@ -21,6 +21,17 @@
 
 namespace ConsoleHandler{
 
+  struct FpsCap{
+    explicit FpsCap(double fps_) : createDate(std::chrono::system_clock::now()), fpsMax(1/fps_) {}
+    ~FpsCap(){
+      auto timeDiff = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - createDate);
+      std::this_thread::sleep_for(fpsMax - timeDiff);
+    }
+
+    std::chrono::system_clock::time_point createDate;
+    std::chrono::duration<double> fpsMax;
+  };
+
   void upgradeFrom150(){
     std::string oldPath = GenericToolbox::getCurrentWorkingDirectory() + "/parameters.ini"; // before 1.5.0
     if(GenericToolbox::doesPathIsFile(oldPath)){
@@ -73,7 +84,7 @@ namespace ConsoleHandler{
     // Main loop
     u64 kDown, kHeld;
     while( appletMainLoop() ) {
-//    FpsCap fpsGuard(120);
+      FpsCap fpsGuard(30);
 
       //Scan all the inputs. This should be done once for each frame
       padUpdate( &pad );
@@ -99,7 +110,7 @@ namespace ConsoleHandler{
       gameBrowser.printTerminal();
       std::cout << std::flush;
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+//      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     } // while
   }
 

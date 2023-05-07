@@ -9,8 +9,6 @@
 #include <TabModPresets.h>
 #include <TabModOptions.h>
 
-#include "GuiUtils.h"
-
 #include "GenericToolbox.Switch.h"
 #include "Logger.h"
 
@@ -27,9 +25,8 @@ FrameModBrowser::FrameModBrowser(GuiModManager* guiModManagerPtr_) : _guiModMana
 
   std::string gamePath = getGameBrowser().getModManager().getGameFolderPath();
 
-
-  _titleId_ = GenericToolbox::Switch::Utils::lookForTidInSubFolders( gamePath );
-  _icon_ = ModManagerUtils::getFolderIcon( getGameBrowser().getModManager().getGameFolderPath() );
+  _titleId_ = GenericToolbox::Switch::Utils::lookForTidInSubFolders( gamePath, 5);
+  _icon_ = GenericToolbox::Switch::Utils::getIconFromTitleId( _titleId_ );
   if(_icon_ != nullptr){ this->setIcon(_icon_, 0x20000); }
   else{ this->setIcon("romfs:/images/icon_corner.png"); }
 

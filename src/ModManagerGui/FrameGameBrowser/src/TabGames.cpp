@@ -6,7 +6,6 @@
 #include <GlobalObjects.h>
 #include <FrameModBrowser.h>
 #include "FrameRoot.h"
-#include "GuiUtils.h"
 
 #include "Logger.h"
 #include "GenericToolbox.Switch.h"
@@ -48,14 +47,15 @@ TabGames::TabGames(FrameRoot* owner_) : _owner_(owner_) {
       LogScopeIndent;
       LogInfo << "Adding game folder: \"" << gameEntry.title << "\"" << std::endl;
 
-      int nMods = int( GenericToolbox::getListOfSubFoldersInFolder(
-          this->getConfig().baseFolder + "/" + gameEntry.title
-      ).size() );
+      std::string gamePath{GenericToolbox::joinPath(this->getConfig().baseFolder, gameEntry.title)};
+      int nMods = int( GenericToolbox::getListOfSubFoldersInFolder(gamePath).size() );
 
       // memory allocation
       auto* item = new brls::ListItem(gameEntry.title, "", std::to_string(nMods) + " mod(s) available.");
 
-      auto* icon = ModManagerUtils::getFolderIcon( this->getConfig().baseFolder + "/" + gameEntry.title );
+      // looking for tid is quite slow... Slows down the boot up
+      std::string _titleId_{ GenericToolbox::Switch::Utils::lookForTidInSubFolders(gamePath) };
+      auto* icon = GenericToolbox::Switch::Utils::getIconFromTitleId(_titleId_);
       if(icon != nullptr){ item->setThumbnail(icon, 0x20000); }
       item->getClickEvent()->subscribe([&, gameEntry](View* view) {
         LogWarning << "Opening \"" << gameEntry.title << "\"" << std::endl;
