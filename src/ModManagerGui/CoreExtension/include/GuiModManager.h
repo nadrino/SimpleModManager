@@ -50,6 +50,8 @@ protected:
   bool checkAllModsFunction();
   bool removeAllModsFunction();
 
+  bool leaveModAction(bool isSuccess_);
+
 
 
 private:

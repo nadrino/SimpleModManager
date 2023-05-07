@@ -246,7 +246,6 @@ void GuiModManager::checkAllMods(bool useCache_) {
   }
 }
 
-// not static
 void GuiModManager::startApplyModThread(const std::string& modName_) {
   LogReturnIf(modName_.empty(), "No mod name provided. Can't apply mod.");
 
@@ -282,7 +281,6 @@ void GuiModManager::startApplyModPresetThread(const std::string &modPresetName_)
   _asyncResponse_ = std::async(&GuiModManager::applyModPresetFunction, this, modPresetName_);
 }
 
-
 bool GuiModManager::applyModFunction(const std::string& modName_){
   // push the progress bar to the view
   _loadingPopup_.pushView();
@@ -297,6 +295,7 @@ bool GuiModManager::applyModFunction(const std::string& modName_){
   _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modApplyMonitor.progress );
   _loadingPopup_.getMonitorView()->setSubProgressFractionPtr( &GenericToolbox::Switch::Utils::b.progressMap["copyFile"] );
   this->applyMod( modName_ );
+  if( _triggeredOnCancel_ ){ return this->leaveModAction(false); }
 
   LogWarning << "Checking: " << modName_ << std::endl;
   _loadingPopup_.getMonitorView()->setHeaderTitle("Checking the applied mod...");
@@ -308,10 +307,7 @@ bool GuiModManager::applyModFunction(const std::string& modName_){
   _loadingPopup_.getMonitorView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
   this->getModStatus( modName_, false );
 
-  _triggerUpdateModsDisplayedStatus_ = true;
-  _loadingPopup_.popView();
-  brls::Application::unblockInputs();
-  return true;
+  return this->leaveModAction(true);
 }
 bool GuiModManager::applyModPresetFunction(const std::string& presetName_){
   // push the progress bar to the view
@@ -327,6 +323,7 @@ bool GuiModManager::applyModPresetFunction(const std::string& presetName_){
   _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modRemoveAllMonitor.progress );
   _loadingPopup_.getMonitorView()->setSubProgressFractionPtr( &modRemoveMonitor.progress );
   this->removeAllMods();
+  if( _triggeredOnCancel_ ){ return this->leaveModAction(false); }
 
   LogInfo("Applying Mod Preset");
   _loadingPopup_.getMonitorView()->setHeaderTitle("Applying mod preset...");
@@ -342,6 +339,7 @@ bool GuiModManager::applyModPresetFunction(const std::string& presetName_){
     if( preset.name == presetName_ ){ modsList = preset.modList; break; }
   }
   this->applyModsList(modsList);
+  if( _triggeredOnCancel_ ){ return this->leaveModAction(false); }
 
   LogInfo("Checking all mods status...");
   _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Switch::Borealis::blueNvgColor);
@@ -352,12 +350,10 @@ bool GuiModManager::applyModPresetFunction(const std::string& presetName_){
   _loadingPopup_.getMonitorView()->setSubTitlePtr( &modCheckMonitor.currentFile );
   _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modCheckMonitor.progress );
   _loadingPopup_.getMonitorView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
-  GuiModManager::checkAllMods();
+  this->checkAllMods();
+  if( _triggeredOnCancel_ ){ return this->leaveModAction(false); }
 
-  _triggerUpdateModsDisplayedStatus_ = true;
-  _loadingPopup_.popView();
-  brls::Application::unblockInputs();
-  return true;
+  return this->leaveModAction(true);
 }
 bool GuiModManager::removeModFunction(const std::string& modName_){
   // push the progress bar to the view
@@ -367,28 +363,24 @@ bool GuiModManager::removeModFunction(const std::string& modName_){
   LogWarning << "Removing: " << modName_ << std::endl;
   _loadingPopup_.getMonitorView()->setHeaderTitle("Removing mod...");
   _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Switch::Borealis::redNvgColor);
-
   _loadingPopup_.getMonitorView()->resetMonitorAddresses();
   _loadingPopup_.getMonitorView()->setTitlePtr(&modName_);
   _loadingPopup_.getMonitorView()->setSubTitlePtr( &modRemoveMonitor.currentFile );
   _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modRemoveMonitor.progress );
-  GuiModManager::removeMod( modName_ );
+  this->removeMod( modName_ );
+  if( _triggeredOnCancel_ ){ return this->leaveModAction(false); }
 
   LogWarning << "Checking: " << modName_ << std::endl;
   _loadingPopup_.getMonitorView()->setProgressColor( GenericToolbox::Switch::Borealis::blueNvgColor );
   _loadingPopup_.getMonitorView()->setHeaderTitle("Checking mod...");
-
   _loadingPopup_.getMonitorView()->resetMonitorAddresses();
   _loadingPopup_.getMonitorView()->setTitlePtr(&modName_);
   _loadingPopup_.getMonitorView()->setSubTitlePtr( &modCheckMonitor.currentFile );
   _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modCheckMonitor.progress );
   _loadingPopup_.getMonitorView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
-  GuiModManager::getModStatus(modName_);
+  this->getModStatus(modName_);
 
-  _triggerUpdateModsDisplayedStatus_ = true;
-  _loadingPopup_.popView();
-  brls::Application::unblockInputs();
-  return true;
+  return this->leaveModAction(true);
 }
 bool GuiModManager::checkAllModsFunction(){
   // push the progress bar to the view
@@ -404,12 +396,10 @@ bool GuiModManager::checkAllModsFunction(){
   _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modCheckAllMonitor.progress );
   _loadingPopup_.getMonitorView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
   this->checkAllMods();
+  if( _triggeredOnCancel_ ){ return this->leaveModAction(false); }
   LogInfo << "Check all mods done." << std::endl;
 
-  _triggerUpdateModsDisplayedStatus_ = true;
-  _loadingPopup_.popView();
-  brls::Application::unblockInputs();
-  return true;
+  return this->leaveModAction(true);
 }
 bool GuiModManager::removeAllModsFunction(){
   // push the progress bar to the view
@@ -424,7 +414,8 @@ bool GuiModManager::removeAllModsFunction(){
   _loadingPopup_.getMonitorView()->setSubTitlePtr( &modRemoveMonitor.currentFile );
   _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modRemoveAllMonitor.progress );
   _loadingPopup_.getMonitorView()->setSubProgressFractionPtr( &modRemoveMonitor.progress );
-  GuiModManager::removeAllMods();
+  this->removeAllMods();
+  if( _triggeredOnCancel_ ){ return this->leaveModAction(false); }
 
   LogInfo("Checking all mods status...");
   _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Switch::Borealis::blueNvgColor);
@@ -434,11 +425,17 @@ bool GuiModManager::removeAllModsFunction(){
   _loadingPopup_.getMonitorView()->setSubTitlePtr( &modCheckMonitor.currentFile );
   _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modCheckMonitor.progress );
   _loadingPopup_.getMonitorView()->setSubProgressFractionPtr( &GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"] );
-  GuiModManager::checkAllMods();
+  this->checkAllMods();
+  if( _triggeredOnCancel_ ){ return this->leaveModAction(false); }
 
+  return this->leaveModAction(true);
+}
+
+
+bool GuiModManager::leaveModAction(bool isSuccess_){
   _triggerUpdateModsDisplayedStatus_ = true;
   _loadingPopup_.popView();
   brls::Application::unblockInputs();
-  return true;
+  return isSuccess_;
 }
 
