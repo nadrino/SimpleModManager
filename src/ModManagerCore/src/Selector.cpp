@@ -10,8 +10,6 @@
 
 #include <switch.h>
 
-using namespace GenericToolbox::Switch;
-
 // non native setters
 void Selector::setEntryList(const std::vector<std::string>& entryTitleList_) {
   this->invalidatePageCache();
@@ -101,6 +99,8 @@ bool Selector::isSelectedEntry(const SelectorEntry& entry_) const{
 
 // io
 void Selector::printTerminal() const {
+  using namespace GenericToolbox::Switch::Terminal;
+
   // clear console
   consoleClear();
 
@@ -122,13 +122,13 @@ void Selector::printTerminal() const {
     else{ ssLeft << " "; }
     ssLeft << " " << _entryList_[entryIndex].title;
 
-    Terminal::printLeftRight(
+    printLeftRight(
         ssLeft.str(), _entryList_[entryIndex].tag,
         (entryIndex == _cursorPosition_ ? GenericToolbox::ColorCodes::blueBackground : "")
     );
 
     for( auto& descriptionLine : _entryList_[entryIndex].description ){
-      Terminal::printLeft(
+      printLeft(
           descriptionLine,
           (entryIndex == _cursorPosition_ ? GenericToolbox::ColorCodes::blueBackground : "")
       );
@@ -229,7 +229,7 @@ void Selector::refillPageEntryCache() const {
   _pageEntryCache_.clear();
   _pageEntryCache_.emplace_back();
 
-  long nTotalLines{long(GenericToolbox::Switch::Hardware::getTerminalHeight()) - long(this->getNbMenuLines())};
+  long nTotalLines{long(GenericToolbox::getTerminalHeight()) - long(this->getNbMenuLines())};
   if( nTotalLines < 0 ) nTotalLines = 1; // ?
   long nLinesLeft{nTotalLines};
   for( size_t iEntry = 0 ; iEntry < _entryList_.size() ; iEntry++ ){
@@ -273,9 +273,9 @@ std::string Selector::askQuestion(const std::string& question_, const std::vecto
 
   // set the layout with the question:
   sel.getHeader() >> "SimpleModManager v" >> Toolbox::getAppVersion() << std::endl;
-  sel.getHeader() << GenericToolbox::repeatString("*", Hardware::getTerminalWidth()) << std::endl;
+  sel.getHeader() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth()) << std::endl;
   sel.getHeader() << question_ << std::endl;
-  sel.getHeader() << GenericToolbox::repeatString("*", Hardware::getTerminalWidth());
+  sel.getHeader() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth());
 
   // possible answers
   sel.setEntryList( answers_ );
@@ -286,7 +286,7 @@ std::string Selector::askQuestion(const std::string& question_, const std::vecto
   }
 
   // footer
-  sel.getFooter() << GenericToolbox::repeatString("*", Hardware::getTerminalWidth()) << std::endl;
+  sel.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth()) << std::endl;
   sel.getFooter() << " A: Select" >> "B: back";
 
   PadState pad;

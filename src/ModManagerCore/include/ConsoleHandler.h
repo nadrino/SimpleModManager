@@ -34,7 +34,7 @@ namespace ConsoleHandler{
 
   void upgradeFrom150(){
     std::string oldPath = GenericToolbox::getCurrentWorkingDirectory() + "/parameters.ini"; // before 1.5.0
-    if(GenericToolbox::doesPathIsFile(oldPath)){
+    if(GenericToolbox::isFile(oldPath)){
       ConfigHandler p;
 
       // get the new default path
@@ -50,7 +50,7 @@ namespace ConsoleHandler{
       p.dumpConfigToFile();
 
       // delete the old config file
-      GenericToolbox::deleteFile( oldPath );
+      GenericToolbox::rm( oldPath );
 
       GenericToolbox::Switch::Terminal::printLeft("");
       GenericToolbox::Switch::Terminal::printLeft("Welcome in SimpleModManager v" + Toolbox::getAppVersion(), GenericToolbox::ColorCodes::greenBackground);

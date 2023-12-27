@@ -48,7 +48,7 @@ TabGames::TabGames(FrameRoot* owner_) : _owner_(owner_) {
       LogInfo << "Adding game folder: \"" << gameEntry.title << "\"" << std::endl;
 
       std::string gamePath{GenericToolbox::joinPath(this->getConfig().baseFolder, gameEntry.title)};
-      int nMods = int( GenericToolbox::getListOfSubFoldersInFolder(gamePath).size() );
+      int nMods = int( GenericToolbox::lsDirs(gamePath).size() );
 
       // memory allocation
       auto* item = new brls::ListItem(gameEntry.title, "", std::to_string(nMods) + " mod(s) available.");

@@ -45,7 +45,7 @@ void ConfigHandler::loadConfig(const std::string &configFilePath_) {
 
   std::string lastUsedPresetName{"default"};
 
-  if( not GenericToolbox::doesPathIsFile(config.configFilePath) ){
+  if( not GenericToolbox::isFile(config.configFilePath) ){
     // immediately dump the default config to the file
     this->dumpConfigToFile();
     return;
@@ -59,7 +59,7 @@ void ConfigHandler::loadConfig(const std::string &configFilePath_) {
     GenericToolbox::trimInputString(line, " ");
 
     // check if it is a comment
-    if( GenericToolbox::doesStringStartsWithSubstring(line, "#") ) continue;
+    if( GenericToolbox::startsWith(line, "#") ) continue;
 
     // check if it is a valid piece of data
     auto elements = GenericToolbox::splitString(line, "=");
@@ -106,7 +106,7 @@ void ConfigHandler::loadConfig(const std::string &configFilePath_) {
 }
 void ConfigHandler::dumpConfigToFile() const {
 
-  GenericToolbox::mkdirPath( GenericToolbox::getFolderPathFromFilePath( _config_.configFilePath ) );
+  GenericToolbox::mkdir( GenericToolbox::getFolderPath( _config_.configFilePath ) );
 
   std::stringstream ssConfig;
   ssConfig << "# This is a config file" << std::endl;

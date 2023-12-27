@@ -124,15 +124,15 @@ void GameBrowser::rebuildSelectorMenu(){
   _selector_.getHeader() >> "SimpleModManager v" >> Toolbox::getAppVersion() << std::endl;
   _selector_.getHeader() << GenericToolbox::ColorCodes::redBackground << "Current Folder : ";
   _selector_.getHeader() << _configHandler_.getConfig().baseFolder << std::endl;
-  _selector_.getHeader() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+  _selector_.getHeader() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth()) << std::endl;
 
-  _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+  _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth()) << std::endl;
   _selector_.getFooter() << "  Page (" << _selector_.getCursorPage() + 1 << "/" << _selector_.getNbPages() << ")" << std::endl;
-  _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+  _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth()) << std::endl;
   _selector_.getFooter() << "Configuration preset : " << GenericToolbox::ColorCodes::greenBackground;
   _selector_.getFooter() << _configHandler_.getConfig().getCurrentPresetName() << GenericToolbox::ColorCodes::resetColor << std::endl;
   _selector_.getFooter() << "install-mods-base-folder = " + _configHandler_.getConfig().getCurrentPreset().installBaseFolder << std::endl;
-  _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+  _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth()) << std::endl;
   _selector_.getFooter() << " A : Select folder" >> "Y : Change config preset " << std::endl;
   _selector_.getFooter() << " B : Quit" >> "ZL/ZR : Switch back to the GUI " << std::endl;
   _selector_.getFooter() << std::endl;
@@ -153,13 +153,13 @@ uint8_t* GameBrowser::getFolderIcon(const std::string& gameFolder_){
 
 // protected
 void GameBrowser::init(){
-  auto gameList = GenericToolbox::getListOfSubFoldersInFolder( _configHandler_.getConfig().baseFolder );
+  auto gameList = GenericToolbox::lsDirs( _configHandler_.getConfig().baseFolder );
 
   std::vector<size_t> nGameMod;
   nGameMod.reserve( gameList.size() );
   for( auto& game : gameList ){
     nGameMod.emplace_back(
-        GenericToolbox::getListOfSubFoldersInFolder(
+        GenericToolbox::lsDirs(
             _configHandler_.getConfig().baseFolder + "/" + game
             ).size()
         );

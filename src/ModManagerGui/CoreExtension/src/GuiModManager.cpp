@@ -37,7 +37,7 @@ void GuiModManager::applyMod(const std::string &modName_) {
   std::string modPath = GenericToolbox::joinPath(_gameBrowser_.getModManager().getGameFolderPath(), modName_);
   LogInfo << "Installing files in: " << modPath << std::endl;
 
-  std::vector<std::string> modFilesList = GenericToolbox::getListOfFilesInSubFolders(modPath);
+  std::vector<std::string> modFilesList = GenericToolbox::lsFilesRecursive(modPath);
 
   // deleting ignored entries
   for(int i_mod = int(modFilesList.size()) - 1 ; i_mod >= 0 ; i_mod--){
@@ -51,7 +51,7 @@ void GuiModManager::applyMod(const std::string &modName_) {
   for(size_t iFile = 0 ; iFile < modFilesList.size() ; iFile++){
     LogReturnIf( _triggeredOnCancel_, "Cancel detected. Leaving " << __METHOD_NAME__ );
 
-    if( GenericToolbox::getFileNameFromFilePath(modFilesList[iFile])[0] == '.' ){
+    if( GenericToolbox::getFileName(modFilesList[iFile])[0] == '.' ){
       // ignoring cached files
       continue;
     }
@@ -59,7 +59,7 @@ void GuiModManager::applyMod(const std::string &modName_) {
     std::string filePath = GenericToolbox::joinPath(modPath, modFilesList[iFile]);
     std::string fileSizeStr = GenericToolbox::parseSizeUnits(double(GenericToolbox::getFileSize(filePath)));
 
-    modApplyMonitor.currentFile = GenericToolbox::getFileNameFromFilePath(modFilesList[iFile]) + " (" + fileSizeStr + ")";
+    modApplyMonitor.currentFile = GenericToolbox::getFileName(modFilesList[iFile]) + " (" + fileSizeStr + ")";
     modApplyMonitor.progress = double(iFile + 1) / double(modFilesList.size());
 
     std::string installPath = GenericToolbox::joinPath(_gameBrowser_.getModManager().fetchCurrentPreset().installBaseFolder, modFilesList[iFile] );
@@ -97,12 +97,12 @@ void GuiModManager::getModStatus(const std::string &modName_, bool useCache_) {
   int sameFileCount = 0;
 
   modCheckMonitor.currentFile = "Listing mod files...";
-  std::vector<std::string> modFileList = GenericToolbox::getListOfFilesInSubFolders(modPath);
+  std::vector<std::string> modFileList = GenericToolbox::lsFilesRecursive(modPath);
 
   for( size_t iFile = 0 ; iFile < modFileList.size() ; iFile++ ){
     LogReturnIf( _triggeredOnCancel_, "Cancel detected. Leaving " << __METHOD_NAME__ );
 
-    if( GenericToolbox::getFileNameFromFilePath(modFileList[iFile])[0] == '.' ){
+    if( GenericToolbox::getFileName(modFileList[iFile])[0] == '.' ){
       // ignoring cached files
       continue;
     }
@@ -110,7 +110,7 @@ void GuiModManager::getModStatus(const std::string &modName_, bool useCache_) {
     std::string srcFilePath = GenericToolbox::joinPath(modPath, modFileList[iFile] );
     std::string dstFilePath = GenericToolbox::joinPath(modManager.fetchCurrentPreset().installBaseFolder, modFileList[iFile] );
 
-    modCheckMonitor.currentFile = GenericToolbox::getFileNameFromFilePath(modFileList[iFile]);
+    modCheckMonitor.currentFile = GenericToolbox::getFileName(modFileList[iFile]);
     modCheckMonitor.progress = (double(iFile) + 1.) / double(modFileList.size());
 
     if(GenericToolbox::Switch::IO::doFilesAreIdentical(
@@ -135,13 +135,13 @@ void GuiModManager::removeMod(const std::string &modName_){
   modRemoveMonitor = ModRemoveMonitor();
 
   std::string modPath = GenericToolbox::joinPath( _gameBrowser_.getModManager().getGameFolderPath(), modName_ );
-  auto modFileList = GenericToolbox::getListOfFilesInSubFolders(modPath);
+  auto modFileList = GenericToolbox::lsFilesRecursive(modPath);
 
   int iFile{0};
   for(auto &modFile : modFileList){
     LogReturnIf( _triggeredOnCancel_, "Cancel detected. Leaving " << __METHOD_NAME__ );
 
-    modRemoveMonitor.currentFile = GenericToolbox::getFileNameFromFilePath(modFile);
+    modRemoveMonitor.currentFile = GenericToolbox::getFileName(modFile);
     modRemoveMonitor.currentFile += " (" + GenericToolbox::joinAsString("/", iFile+1, modFileList.size()) + ")";
     modRemoveMonitor.progress = (iFile++ + 1.) / double(modFileList.size());
 
@@ -151,16 +151,16 @@ void GuiModManager::removeMod(const std::string &modName_){
     if( GenericToolbox::Switch::IO::doFilesAreIdentical(srcFilePath, dstFilePath ) ){
 
       // Remove the mod file
-      GenericToolbox::deleteFile( dstFilePath );
+      GenericToolbox::rm( dstFilePath );
 
       // Delete the folder if no other files is present
-      std::string emptyFolderCandidate = GenericToolbox::getFolderPathFromFilePath( dstFilePath );
-      while( GenericToolbox::isFolderEmpty( emptyFolderCandidate ) ) {
+      std::string emptyFolderCandidate = GenericToolbox::getFolderPath( dstFilePath );
+      while( GenericToolbox::isDirEmpty( emptyFolderCandidate ) ) {
 
-        GenericToolbox::deleteEmptyDirectory( emptyFolderCandidate );
+        GenericToolbox::rmDir( emptyFolderCandidate );
 
-        std::vector<std::string> subFolderList = GenericToolbox::splitString(emptyFolderCandidate, "/");
-        if(subFolderList.empty()) break; // virtually impossible -> would mean everything has been deleted on the sd
+        auto subFolderList = GenericToolbox::splitString(emptyFolderCandidate, "/");
+        if( subFolderList.empty() ){ break; }
         // decrement folder depth
         emptyFolderCandidate = "/" + GenericToolbox::joinVectorString( subFolderList, "/", 0, int(subFolderList.size()) - 1 );
       }
@@ -187,7 +187,7 @@ void GuiModManager::removeAllMods() {
 
 }
 void GuiModManager::applyModsList(std::vector<std::string>& modsList_){
-  LogWarning << __METHOD_NAME__ << ": " << GenericToolbox::parseVectorAsString(modsList_) << std::endl;
+  LogWarning << __METHOD_NAME__ << ": " << GenericToolbox::toString(modsList_) << std::endl;
   modApplyListMonitor = ModApplyListMonitor();
 
   // checking for overwritten files in advance:
@@ -201,7 +201,7 @@ void GuiModManager::applyModsList(std::vector<std::string>& modsList_){
   // looping backward as the last mods will be the ones for which their files are going to be kept
   for( int iMod = int(modsList_.size()) - 1 ; iMod >= 0 ; iMod-- ){
     std::string modPath = GenericToolbox::joinPath( _gameBrowser_.getModManager().getGameFolderPath(), modsList_[iMod] );
-    auto fileList = GenericToolbox::getListOfFilesInSubFolders(modPath);
+    auto fileList = GenericToolbox::lsFilesRecursive(modPath);
     for(auto& file : fileList){
       if( GenericToolbox::doesElementIsInVector(file, appliedFileList) ){
         // this file will be installed by a latter mod

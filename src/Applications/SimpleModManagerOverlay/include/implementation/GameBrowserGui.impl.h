@@ -23,7 +23,7 @@ tsl::elm::Element *GameBrowserGui::createUI() {
 //  _gameBrowser_ = std::make_unique<GameBrowser>();
 //  _c_ = std::make_unique<ConfigHandler>();
 
-  GenericToolbox::doesPathIsFile("/config/SimpleModManager/parameters.ini");
+  GenericToolbox::isFile("/config/SimpleModManager/parameters.ini");
 
   // A list that can contain sub elements and handles scrolling
   _list_ = new tsl::elm::List();

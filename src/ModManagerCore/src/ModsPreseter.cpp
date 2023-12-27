@@ -35,20 +35,23 @@ Selector &ModsPresetHandler::getSelector() {
 
 void ModsPresetHandler::selectModPreset() {
 
+
   auto drawSelectorPage = [&]{
+    using namespace GenericToolbox::Switch::Terminal;
+
     consoleClear();
-    GenericToolbox::Switch::Terminal::printRight("SimpleModManager v" + Toolbox::getAppVersion());
-    std::cout << GenericToolbox::ColorCodes::redBackground << std::setw(GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::left;
+    printRight("SimpleModManager v" + Toolbox::getAppVersion());
+    std::cout << GenericToolbox::ColorCodes::redBackground << std::setw(GenericToolbox::getTerminalWidth()) << std::left;
     std::cout << "Select mod preset" << GenericToolbox::ColorCodes::resetColor;
-    std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
+    std::cout << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth());
     _selector_.printTerminal();
-    std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-    GenericToolbox::Switch::Terminal::printLeft("  Page (" + std::to_string(_selector_.getCursorPage() + 1) + "/" + std::to_string(
+    std::cout << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth());
+    printLeft("  Page (" + std::to_string(_selector_.getCursorPage() + 1) + "/" + std::to_string(
         _selector_.getNbPages()) + ")");
-    std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-    GenericToolbox::Switch::Terminal::printLeftRight(" A : Select mod preset", " X : Delete mod preset ");
-    GenericToolbox::Switch::Terminal::printLeftRight(" Y : Edit preset", "+ : Create a preset ");
-    GenericToolbox::Switch::Terminal::printLeft(" B : Go back");
+    std::cout << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth());
+    printLeftRight(" A : Select mod preset", " X : Delete mod preset ");
+    printLeftRight(" Y : Edit preset", "+ : Create a preset ");
+    printLeft(" B : Go back");
     consoleUpdate(nullptr);
   };
 
@@ -105,7 +108,7 @@ void ModsPresetHandler::editPreset( size_t entryIndex_ ) {
 
   auto& preset = _presetList_[entryIndex_];
 
-  std::vector<std::string> modsList = GenericToolbox::getListOfFilesInSubFolders(_gameFolder_);
+  std::vector<std::string> modsList = GenericToolbox::lsFilesRecursive(_gameFolder_);
   std::sort( modsList.begin(), modsList.end() );
   Selector sel;
   sel.setEntryList(modsList);
@@ -133,16 +136,18 @@ void ModsPresetHandler::editPreset( size_t entryIndex_ ) {
 
 
   auto printSelector = [&]{
+    using namespace GenericToolbox::Switch::Terminal;
+
     consoleClear();
-    GenericToolbox::Switch::Terminal::printRight("SimpleModManager v" + Toolbox::getAppVersion());
-    std::cout << GenericToolbox::ColorCodes::redBackground << std::setw(GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::left;
+    printRight("SimpleModManager v" + Toolbox::getAppVersion());
+    std::cout << GenericToolbox::ColorCodes::redBackground << std::setw(GenericToolbox::getTerminalWidth()) << std::left;
     std::string header_title = "Creating preset : " + preset.name + ". Select the mods you want.";
     std::cout << header_title << GenericToolbox::ColorCodes::resetColor;
-    std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
+    std::cout << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth());
     sel.printTerminal();
-    std::cout << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
-    GenericToolbox::Switch::Terminal::printLeftRight(" A : Add mod", "X : Cancel mod ");
-    GenericToolbox::Switch::Terminal::printLeftRight(" + : SAVE", "B : Abort / Go back ");
+    std::cout << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth());
+    printLeftRight(" A : Add mod", "X : Cancel mod ");
+    printLeftRight(" + : SAVE", "B : Abort / Go back ");
     consoleUpdate(nullptr);
   };
 
@@ -190,11 +195,13 @@ void ModsPresetHandler::deletePreset( size_t entryIndex ){
   this->readConfigFile();
 }
 void ModsPresetHandler::showConflictingFiles( size_t entryIndex_ ) {
+  using namespace GenericToolbox::Switch::Terminal;
+
   auto& preset = _presetList_[entryIndex_];
 
   consoleClear();
 
-  GenericToolbox::Switch::Terminal::printLeft("Scanning preset files...", GenericToolbox::ColorCodes::magentaBackground);
+  printLeft("Scanning preset files...", GenericToolbox::ColorCodes::magentaBackground);
   consoleUpdate(nullptr);
 
   struct ModFileEntry{
@@ -205,10 +212,10 @@ void ModsPresetHandler::showConflictingFiles( size_t entryIndex_ ) {
   std::map<std::string, ModFileEntry> installedFileList;
 
   for( auto& mod : preset.modList ){
-    GenericToolbox::Switch::Terminal::printLeft(" > Getting files for the mod: " + mod, GenericToolbox::ColorCodes::magentaBackground);
+    printLeft(" > Getting files for the mod: " + mod, GenericToolbox::ColorCodes::magentaBackground);
     consoleUpdate(nullptr);
 
-    auto filesList = GenericToolbox::getListOfFilesInSubFolders(_gameFolder_ + "/" + mod );
+    auto filesList = GenericToolbox::lsFilesRecursive(_gameFolder_ + "/" + mod );
     for( auto& file: filesList ){
       std::stringstream ss;
       ss << _gameFolder_ << "/" << mod << "/" << file;
@@ -241,13 +248,13 @@ void ModsPresetHandler::showConflictingFiles( size_t entryIndex_ ) {
 
     sel.getHeader() >> "SimpleModManager v" >> Toolbox::getAppVersion() << std::endl;
     sel.getHeader() << GenericToolbox::ColorCodes::redBackground << "Conflicted files for the preset \"" << preset.name << "\":" << std::endl;
-    sel.getHeader() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+    sel.getHeader() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth()) << std::endl;
 
-    sel.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+    sel.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth()) << std::endl;
     sel.getFooter() << GenericToolbox::ColorCodes::greenBackground << "Total size of the preset:" + GenericToolbox::parseSizeUnits(presetSize) << std::endl;
-    sel.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+    sel.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth()) << std::endl;
     sel.getFooter() << "Page (" << sel.getCursorPage() << "/" << sel.getNbPages() << ")" << std::endl;
-    sel.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+    sel.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth()) << std::endl;
     sel.getFooter() << " A : OK" << std::endl;
     sel.getFooter() << " <- : Previous Page" >> "-> : Next Page " << std::endl;
 

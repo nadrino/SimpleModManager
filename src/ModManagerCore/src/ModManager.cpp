@@ -65,7 +65,7 @@ ConfigHolder& ModManager::getConfig(){
 
 void ModManager::updateModList() {
   // list folders
-  auto folderList = GenericToolbox::getListOfSubFoldersInFolder(_gameFolderPath_);
+  auto folderList = GenericToolbox::lsDirs(_gameFolderPath_);
   GenericToolbox::removeEntryIf(folderList, [](const std::string& entry_){ return entry_ == ".plugins"; });
 
   _modList_.clear(); _modList_.reserve( folderList.size() );
@@ -100,13 +100,13 @@ void ModManager::dumpModStatusCache() {
 }
 void ModManager::reloadModStatusCache(){
   std::string cacheFilePath = _gameFolderPath_ + "/mods_status_cache.txt";
-  if( not GenericToolbox::doesPathIsFile(cacheFilePath) ) return;
+  if( not GenericToolbox::isFile(cacheFilePath) ) return;
 
   auto lines = GenericToolbox::dumpFileAsVectorString( cacheFilePath );
   for( auto & line : lines ){
     GenericToolbox::trimInputString(line, " ");
 
-    if( GenericToolbox::doesStringStartsWithSubstring(line, "#") ) continue;
+    if( GenericToolbox::startsWith(line, "#") ) continue;
 
     auto elements = GenericToolbox::splitString(line, "=");
     if( elements.size() < 2 ) continue;
@@ -131,7 +131,7 @@ void ModManager::reloadModStatusCache(){
   }
 }
 void ModManager::resetAllModsCacheAndFile(){
-  GenericToolbox::deleteFile(_gameFolderPath_ + "/mods_status_cache.txt");
+  GenericToolbox::rm(_gameFolderPath_ + "/mods_status_cache.txt");
   this->updateModList();
 }
 
@@ -157,7 +157,7 @@ ResultModAction ModManager::updateModStatus(int modIndex_){
   consoleUpdate(nullptr);
 
   std::string modFolderPath = _gameFolderPath_ + "/" + modPtr->modName;
-  auto filesList = GenericToolbox::getListOfFilesInSubFolders( modFolderPath );
+  auto filesList = GenericToolbox::lsFilesRecursive( modFolderPath );
 
 
   PadState pad;
@@ -174,7 +174,7 @@ ResultModAction ModManager::updateModStatus(int modIndex_){
       if( kDown & HidNpadButton_B ) return Abort;
     }
 
-    if( _ignoreCacheFiles_ and GenericToolbox::doesStringStartsWithSubstring(GenericToolbox::getFileNameFromFilePath(file), ".") ) {
+    if( _ignoreCacheFiles_ and GenericToolbox::startsWith(GenericToolbox::getFileName(file), ".") ) {
       nIgnoredFiles++; continue;
     }
 
@@ -185,7 +185,7 @@ ResultModAction ModManager::updateModStatus(int modIndex_){
     modFilePath += "/" + file;
 
     std::stringstream ssPbar;
-    ssPbar << "Checking : (" << iFile+1 << "/" << filesList.size() << ") " << GenericToolbox::getFileNameFromFilePath(file);
+    ssPbar << "Checking : (" << iFile+1 << "/" << filesList.size() << ") " << GenericToolbox::getFileName(file);
     GenericToolbox::Switch::Terminal::displayProgressBar( iFile++, filesList.size(), ssPbar.str() );
 
     if( GenericToolbox::Switch::IO::doFilesAreIdentical( installedPathCandidate, modFilePath ) ){
@@ -256,14 +256,14 @@ ResultModAction ModManager::applyMod(int modIndex_, bool overrideConflicts_){
 
   GenericToolbox::Switch::Terminal::printLeft("   Getting files list...", GenericToolbox::ColorCodes::greenBackground, true);
   consoleUpdate(nullptr);
-  auto filesList = GenericToolbox::getListOfFilesInSubFolders( modFolderPath );
+  auto filesList = GenericToolbox::lsFilesRecursive( modFolderPath );
 
   // filtering files
   GenericToolbox::removeEntryIf(filesList, [&](const std::string &file_) {
     return (
         (_ignoreCacheFiles_ and
-        GenericToolbox::doesStringStartsWithSubstring(
-            GenericToolbox::getFileNameFromFilePath(file_), "."
+        GenericToolbox::startsWith(
+            GenericToolbox::getFileName(file_), "."
          ))
         or
         (GenericToolbox::doesElementIsInVector(file_, _ignoredFileList_))
@@ -293,7 +293,7 @@ ResultModAction ModManager::applyMod(int modIndex_, bool overrideConflicts_){
     GenericToolbox::Switch::Terminal::displayProgressBar(
         iFile, filesList.size(),
         "(" + std::to_string(iFile+1) + "/" + std::to_string(filesList.size()) + ") " +
-        GenericToolbox::getFileNameFromFilePath(file) + " (" + fileSize + ")"
+        GenericToolbox::getFileName(file) + " (" + fileSize + ")"
     );
     iFile++;
 
@@ -305,7 +305,7 @@ ResultModAction ModManager::applyMod(int modIndex_, bool overrideConflicts_){
     // on conflict:
     if     ( onConflictAction == "Yes to all" ){ installFile = true; } // no IO first
     else if( onConflictAction == "No to all" ){ installFile = false; }
-    else if( not GenericToolbox::doesPathIsFile( dstFilePath ) ){ installFile = true; }
+    else if( not GenericToolbox::isFile( dstFilePath ) ){ installFile = true; }
     else if( GenericToolbox::Switch::IO::doFilesAreIdentical( dstFilePath, srcFilePath ) ){ installFile = false; }
     else{
       onConflictAction = Selector::askQuestion(
@@ -336,7 +336,7 @@ ResultModAction ModManager::applyModList(const std::vector<std::string> &modName
 
   for( int iMod = int( modNamesList_.size() ) - 1 ; iMod >= 0 ; iMod-- ){
     std::string modFolder = _gameFolderPath_ + "/" + modNamesList_[iMod];
-    auto fileList = GenericToolbox::getListOfFilesInSubFolders(modFolder );
+    auto fileList = GenericToolbox::lsFilesRecursive(modFolder );
     for(auto& file : fileList){
       if( GenericToolbox::doesElementIsInVector(file, appliedFileList) ){
         ignoredFileListPerMod[iMod].emplace_back(file);
@@ -367,7 +367,7 @@ void ModManager::removeMod(int modIndex_) {
   GenericToolbox::Switch::Terminal::printLeft("Disabling : " + modPtr->modName, GenericToolbox::ColorCodes::redBackground);
 
   std::string srcFolder = _gameFolderPath_ + "/" + modPtr->modName;
-  auto fileList{GenericToolbox::getListOfFilesInSubFolders(srcFolder)};
+  auto fileList{GenericToolbox::lsFilesRecursive(srcFolder)};
 
   size_t iFile{0};
   for( auto& file : fileList ){
@@ -383,21 +383,21 @@ void ModManager::removeMod(int modIndex_) {
 
     GenericToolbox::Switch::Terminal::displayProgressBar(
         iFile++, fileList.size(),
-        GenericToolbox::getFileNameFromFilePath(file) + " (" + fileSize + ")"
+        GenericToolbox::getFileName(file) + " (" + fileSize + ")"
     );
 
     // Check if the installed mod belongs to the selected mod
     if( GenericToolbox::Switch::IO::doFilesAreIdentical( dstFilePath, srcFilePath ) ){
 
       // Remove the mod file
-      GenericToolbox::deleteFile( dstFilePath );
+      GenericToolbox::rm( dstFilePath );
 
       // Delete the folder if no other files is present
-      std::string emptyFolderCandidate = GenericToolbox::getFolderPathFromFilePath(dstFilePath );
-      while( GenericToolbox::isFolderEmpty( emptyFolderCandidate ) ) {
+      std::string emptyFolderCandidate = GenericToolbox::getFolderPath(dstFilePath );
+      while( GenericToolbox::isDirEmpty( emptyFolderCandidate ) ) {
         if( emptyFolderCandidate.empty() ) break;
-        GenericToolbox::deleteEmptyDirectory( emptyFolderCandidate );
-        emptyFolderCandidate = GenericToolbox::getFolderPathFromFilePath( emptyFolderCandidate );
+        GenericToolbox::rmDir( emptyFolderCandidate );
+        emptyFolderCandidate = GenericToolbox::getFolderPath( emptyFolderCandidate );
       }
     }
   }
@@ -530,16 +530,16 @@ void ModManager::rebuildSelectorMenu(){
   _selector_.clearMenu();
   _selector_.getHeader() >> "SimpleModManager v" >> Toolbox::getAppVersion() << std::endl;
   _selector_.getHeader() << GenericToolbox::ColorCodes::redBackground << "Current Folder : " << _owner_->getConfigHandler().getConfig().baseFolder << std::endl;
-  _selector_.getHeader() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+  _selector_.getHeader() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth()) << std::endl;
 
-  _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+  _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth()) << std::endl;
   _selector_.getFooter() << "  Page (" << _selector_.getCursorPage() + 1 << "/" << _selector_.getNbPages() << ")" << std::endl;
-  _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+  _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth()) << std::endl;
   _selector_.getFooter() << "Mod preset : " << _owner_->getModPresetHandler().getSelectedModPresetName() << std::endl;
   _selector_.getFooter() << "Configuration preset : " << GenericToolbox::ColorCodes::greenBackground;
   _selector_.getFooter() << fetchCurrentPreset().name << GenericToolbox::ColorCodes::resetColor << std::endl;
   _selector_.getFooter() << "install-mods-base-folder = " + this->fetchCurrentPreset().installBaseFolder << std::endl;
-  _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+  _selector_.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth()) << std::endl;
   _selector_.getFooter() << " ZL : Rescan all mods" >> "ZR : Disable all mods " << std::endl;
   _selector_.getFooter() << " A/X : Apply/Disable mod" >> "L/R : Previous/Next preset " << std::endl;
   _selector_.getFooter() << " -/+ : Select/Apply mod preset" >> "Y : Mod options " << std::endl;
@@ -557,7 +557,7 @@ void ModManager::displayModFilesStatus(const std::string &modName_){
 
   std::stringstream ssSrcFolder;
   ssSrcFolder << _gameFolderPath_ << "/" << modName_;
-  auto fileList = GenericToolbox::getListOfFilesInSubFolders( ssSrcFolder.str() );
+  auto fileList = GenericToolbox::lsFilesRecursive( ssSrcFolder.str() );
 
   GenericToolbox::Switch::Terminal::printLeft("Checking Files...", GenericToolbox::ColorCodes::redBackground);
   consoleUpdate(nullptr);
@@ -569,7 +569,7 @@ void ModManager::displayModFilesStatus(const std::string &modName_){
     GenericToolbox::Switch::Terminal::displayProgressBar(
         iFile, fileList.size(),
         "(" + std::to_string(iFile + 1) + "/" + std::to_string(fileList.size()) + ") " +
-        GenericToolbox::getFileNameFromFilePath(file)
+        GenericToolbox::getFileName(file)
     );
 
     std::stringstream ssSrc;
@@ -580,7 +580,7 @@ void ModManager::displayModFilesStatus(const std::string &modName_){
     if( GenericToolbox::Switch::IO::doFilesAreIdentical( ssDst.str(), ssSrc.str() ) ){
       selector.setTag(iFile, "-> Installed");
     }
-    else if( GenericToolbox::doesPathIsFile( ssDst.str() ) ){
+    else if( GenericToolbox::isFile( ssDst.str() ) ){
       selector.setTag(iFile, "-> Not same");
     }
     else{
@@ -591,11 +591,11 @@ void ModManager::displayModFilesStatus(const std::string &modName_){
   }
 
   selector.getHeader() << GenericToolbox::ColorCodes::redBackground << modName_ << std::endl;
-  selector.getHeader() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth());
+  selector.getHeader() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth());
 
-  selector.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+  selector.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth()) << std::endl;
   selector.getFooter() << "Page (" << selector.getCursorPage() << "/" << selector.getNbPages() << ")" << std::endl;
-  selector.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+  selector.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth()) << std::endl;
   selector.getFooter() << " B : Go back" << std::endl;
   if(selector.getNbPages() > 1) selector.getFooter() << " <- : Previous Page" >> "-> : Next Page " << std::endl;
 
@@ -638,7 +638,7 @@ void ModManager::displayConflictsWithOtherMods(size_t modIndex_){
   };
 
 
-  auto fileList = GenericToolbox::getListOfFilesInSubFolders(
+  auto fileList = GenericToolbox::lsFilesRecursive(
       _gameFolderPath_ + "/" + _modList_[modIndex_].modName
   );
   std::vector<ModFileConflict> modFileConflictList;
@@ -654,7 +654,7 @@ void ModManager::displayConflictsWithOtherMods(size_t modIndex_){
   for( auto& mod : _modList_ ){
     if( mod.modName == _modList_[modIndex_].modName ){ continue; }
 
-    auto fList = GenericToolbox::getListOfFilesInSubFolders( _gameFolderPath_+"/"+mod.modName );
+    auto fList = GenericToolbox::lsFilesRecursive( _gameFolderPath_+"/"+mod.modName );
     for( auto& conflictCandidate : modFileConflictList ){
       if( GenericToolbox::doesElementIsInVector(conflictCandidate.file, fList) ){
         conflictCandidate.conflictingModList.emplace_back( mod.modName );
@@ -682,12 +682,12 @@ void ModManager::displayConflictsWithOtherMods(size_t modIndex_){
 
     // header
     sel.getHeader() << GenericToolbox::ColorCodes::redBackground << "Conflicts with " + _modList_[modIndex_].modName << std::endl;
-    sel.getHeader() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+    sel.getHeader() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth()) << std::endl;
 
     // footer
-    sel.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+    sel.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth()) << std::endl;
     sel.getFooter() << "Page (" << sel.getCursorPage() << "/" << sel.getNbPages() << ")" << std::endl;
-    sel.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::Switch::Hardware::getTerminalWidth()) << std::endl;
+    sel.getFooter() << GenericToolbox::repeatString("*", GenericToolbox::getTerminalWidth()) << std::endl;
     sel.getFooter() << " B : Go back" >> "" << std::endl;
     sel.getFooter() << " <- : Previous Page" >> "-> : Next Page " << std::endl;
 
@@ -738,7 +738,7 @@ int ModManager::getModIndex(const std::string& modName_){
 
 void ModManager::reloadCustomPreset(){
   std::string configFilePath = _gameFolderPath_ + "/this_folder_config.txt";
-  if( GenericToolbox::doesPathIsFile(configFilePath) ){
+  if( GenericToolbox::isFile(configFilePath) ){
     _currentPresetName_ = GenericToolbox::dumpFileAsString(configFilePath);
   }
   else{
@@ -747,7 +747,7 @@ void ModManager::reloadCustomPreset(){
 }
 void ModManager::setCustomPreset(const std::string &presetName_) {
   std::string configFilePath = _gameFolderPath_ + "/this_folder_config.txt";
-  GenericToolbox::deleteFile( configFilePath );
+  GenericToolbox::rm( configFilePath );
   if( not presetName_.empty() ){
     GenericToolbox::dumpStringInFile( configFilePath, presetName_ );
   }

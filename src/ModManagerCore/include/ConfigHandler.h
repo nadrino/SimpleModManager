@@ -43,7 +43,7 @@ struct ConfigHolder{
     ss << GET_VAR_NAME_VALUE(selectedPresetIndex) << std::endl;
     ss << GET_VAR_NAME_VALUE(lastSmmVersion) << std::endl;
     ss << GET_VAR_NAME_VALUE(configFilePath) << std::endl;
-    ss << GenericToolbox::iterableToString(presetList, [](const PresetConfig& p){ return p.name + " -> " + p.installBaseFolder; });
+    ss << GenericToolbox::toString(presetList, [](const PresetConfig& p){ return p.name + " -> " + p.installBaseFolder; });
     return ss.str();
   }
 };
