@@ -8,7 +8,7 @@
 
 #include "GameBrowserGui.h"
 
-//#include <GlobalObjects.h>
+//
 //#include <ModBrowserGui.h>
 #include "ConfigHandler.h"
 //#include "GameBrowser.h"

@@ -7,12 +7,12 @@
 
 
 #include "ConfigHandler.h"
-#include "Selector.h"
 #include "GameBrowser.h"
+#include "Selector.h"
 
-#include <borealis.hpp>
+#include "borealis.hpp"
 
-#include "vector"
+#include <vector>
 
 
 struct GameItem;

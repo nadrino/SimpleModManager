@@ -5,10 +5,11 @@
 #include "TabModBrowser.h"
 
 #include "FrameModBrowser.h"
-#include <GlobalObjects.h>
 
+
+#include "GenericToolbox.Macro.h"
 #include "Logger.h"
-#include "GenericToolbox.h"
+
 
 #include <future>
 

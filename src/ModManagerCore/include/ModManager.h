@@ -8,10 +8,12 @@
 #include <ConfigHandler.h>
 #include "Selector.h"
 
-#include <utility>
+#include "GenericToolbox.Map.h"
+
+#include <map>
 #include <vector>
 #include <string>
-#include <map>
+#include <utility>
 
 struct ApplyCache{
   std::string statusStr{"UNCHECKED"};
@@ -36,7 +38,7 @@ struct ModEntry{
     if( cache == nullptr ){ return {}; }
     return cache->statusStr;
   }
-  double getStatusFraction(const std::string& preset_) const {
+  [[nodiscard]] double getStatusFraction(const std::string& preset_) const {
     auto* cache{this->getCache(preset_)};
     if( cache == nullptr ){ return 0; }
     return cache->applyFraction;

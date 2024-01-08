@@ -5,8 +5,8 @@
 #include <Toolbox.h>
 #include <ModsPresetHandler.h>
 #include <Selector.h>
-#include "GlobalObjects.h"
 
+#include "GenericToolbox.Vector.h"
 #include "GenericToolbox.Switch.h"
 
 #include <switch.h>

@@ -2,15 +2,15 @@
 // Created by Adrien BLANCHET on 21/06/2020.
 //
 
-#include <TabGames.h>
-#include <GlobalObjects.h>
-#include <FrameModBrowser.h>
+#include "TabGames.h"
+#include "FrameModBrowser.h"
 #include "FrameRoot.h"
 
-#include "Logger.h"
 #include "GenericToolbox.Switch.h"
+#include "GenericToolbox.Vector.h"
+#include "Logger.h"
 
-#include "sstream"
+#include <sstream>
 
 LoggerInit([]{
   Logger::setUserHeaderStr("[TabGames]");

@@ -10,7 +10,6 @@
 #include "Selector.h"
 #include "GameBrowser.h"
 
-#include "GenericToolbox.h"
 #include "GenericToolbox.Switch.h"
 
 #include "string"

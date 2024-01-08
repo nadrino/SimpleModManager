@@ -6,6 +6,7 @@
 #include "Toolbox.h"
 
 #include "GenericToolbox.Switch.h"
+#include "GenericToolbox.Vector.h"
 
 #include <iostream>
 

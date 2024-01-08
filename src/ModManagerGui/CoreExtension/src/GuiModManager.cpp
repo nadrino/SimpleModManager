@@ -3,16 +3,16 @@
 //
 
 #include "GuiModManager.h"
-#include <GlobalObjects.h>
-#include <Toolbox.h>
+
 
 #include "GenericToolbox.Switch.h"
+#include "GenericToolbox.Vector.h"
+#include "GenericToolbox.Misc.h"
 #include "Logger.h"
 
-#include <utility>
-#include "string"
-#include "vector"
-#include "future"
+#include <string>
+#include <vector>
+#include <future>
 
 
 LoggerInit([]{

@@ -3,10 +3,10 @@
 //
 
 #include <TabGeneralSettings.h>
-#include <GlobalObjects.h>
+
 #include "FrameRoot.h"
 
-#include "GenericToolbox.h"
+
 #include "Logger.h"
 
 LoggerInit([]{

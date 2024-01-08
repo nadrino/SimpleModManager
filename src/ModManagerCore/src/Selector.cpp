@@ -3,10 +3,11 @@
 //
 
 #include "Selector.h"
-#include "GlobalObjects.h"
+
 #include <Toolbox.h>
 
 #include "GenericToolbox.Switch.h"
+#include "GenericToolbox.Vector.h"
 
 #include <switch.h>
 

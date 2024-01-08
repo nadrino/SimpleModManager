@@ -4,7 +4,6 @@
 
 
 set( SRC_FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/GlobalObjects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/GameBrowser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ModManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ModsPreseter.cpp

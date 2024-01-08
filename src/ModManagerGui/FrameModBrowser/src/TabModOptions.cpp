@@ -5,9 +5,9 @@
 #include "TabModOptions.h"
 #include "FrameModBrowser.h"
 
-#include <GlobalObjects.h>
 
-#include "GenericToolbox.h"
+
+
 #include "Logger.h"
 
 LoggerInit([]{

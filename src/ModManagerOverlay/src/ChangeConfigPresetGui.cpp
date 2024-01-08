@@ -3,7 +3,7 @@
 //
 
 #include "ChangeConfigPresetGui.h"
-#include <GlobalObjects.h>
+
 
 ChangeConfigPresetGui::ChangeConfigPresetGui(){
 

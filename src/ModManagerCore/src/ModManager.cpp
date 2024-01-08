@@ -7,6 +7,7 @@
 #include <GameBrowser.h>
 
 #include "GenericToolbox.Switch.h"
+#include "GenericToolbox.Vector.h"
 
 #include <switch.h>
 

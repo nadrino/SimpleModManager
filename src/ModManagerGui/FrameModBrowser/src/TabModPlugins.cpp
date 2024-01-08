@@ -2,13 +2,13 @@
 // Created by Adrien BLANCHET on 21/06/2020.
 //
 
-#include <GlobalObjects.h>
+
 #include "TabModPlugins.h"
 
 #include "FrameModBrowser.h"
 
 #include "Logger.h"
-#include "GenericToolbox.h"
+
 
 #include <switch.h>
 

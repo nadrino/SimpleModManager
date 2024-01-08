@@ -4,9 +4,10 @@
 
 #include <GameBrowser.h>
 #include <Toolbox.h>
-#include <GlobalObjects.h>
+
 
 #include "GenericToolbox.Switch.h"
+#include "GenericToolbox.Vector.h"
 
 #include <switch.h>
 

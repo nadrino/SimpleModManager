@@ -5,13 +5,13 @@
 #include "ThumbnailPresetEditor.h"
 #include "FrameModBrowser.h"
 
-#include <GlobalObjects.h>
 
-#include <ranges>
 
+#include "GenericToolbox.Vector.h"
 #include "GenericToolbox.Switch.h"
 
-#include "sstream"
+#include <sstream>
+#include <ranges>
 
 
 

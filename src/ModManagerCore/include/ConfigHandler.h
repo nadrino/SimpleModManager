@@ -5,12 +5,14 @@
 #ifndef SIMPLEMODMANAGER_CONFIGHANDLER_H
 #define SIMPLEMODMANAGER_CONFIGHANDLER_H
 
-#include "GenericToolbox.h"
 
+#include "GenericToolbox.String.h"
+#include "GenericToolbox.Macro.h"
+
+#include <map>
 #include <string>
 #include <vector>
-#include "sstream"
-#include <map>
+#include <sstream>
 
 struct PresetConfig{
   std::string name{};

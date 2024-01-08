@@ -8,10 +8,9 @@
 #include <TabAbout.h>
 #include <TabGeneralSettings.h>
 
-#include <GlobalObjects.h>
+
 #include "Toolbox.h"
 
-#include "GenericToolbox.h"
 #include "Logger.h"
 
 LoggerInit([]{

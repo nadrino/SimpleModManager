@@ -4,10 +4,10 @@
 
 #include <ModBrowserGui.h>
 #include <Toolbox.h>
-#include <GlobalObjects.h>
+
 #include <ChangeConfigPresetGui.h>
 
-#include "GenericToolbox.h"
+
 
 
 ModBrowserGui::ModBrowserGui(const std::basic_string<char> &current_sub_folder_) {
