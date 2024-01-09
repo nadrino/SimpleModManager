@@ -7,7 +7,7 @@
 
 
 #include "GameBrowser.h"
-#include "GenericToolbox.Switch.Borealis.h"
+#include "GenericToolbox.Borealis.h"
 
 #include <borealis.hpp>
 
@@ -63,7 +63,7 @@ private:
 
 
   // monitors
-  GenericToolbox::Switch::Borealis::PopupLoadingBox _loadingPopup_;
+  GenericToolbox::Borealis::PopupLoadingBox _loadingPopup_;
   struct ModApplyMonitor{
     double progress{0};
     std::string currentFile{};

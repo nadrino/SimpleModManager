@@ -129,7 +129,7 @@ void TabModBrowser::updateDisplayedModsStatus(){
     // processing color
     if     ( frac == 0 ){
       // inactive color
-      color = GenericToolbox::Switch::Borealis::grayNvgColor;
+      color = GenericToolbox::Borealis::grayNvgColor;
     }
     else if( frac == 1 ){
       // applied color (less saturated green)
@@ -137,7 +137,7 @@ void TabModBrowser::updateDisplayedModsStatus(){
     }
     else{
       // partial color
-      color = GenericToolbox::Switch::Borealis::orangeNvgColor;
+      color = GenericToolbox::Borealis::orangeNvgColor;
     }
     _modItemList_[iMod].item->setValueActiveColor( color );
   }
