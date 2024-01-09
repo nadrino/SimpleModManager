@@ -25,14 +25,6 @@ std::string ConfigHolder::getCurrentPresetName() const{
   return presetList[selectedPresetIndex].name;
 }
 
-// getters
-const ConfigHolder &ConfigHandler::getConfig() const {
-  return _config_;
-}
-ConfigHolder &ConfigHandler::getConfig(){
-  return _config_;
-}
-
 // io
 void ConfigHandler::loadConfig(const std::string &configFilePath_) {
   ConfigHolder config{}; // loads defaults
@@ -72,6 +64,9 @@ void ConfigHandler::loadConfig(const std::string &configFilePath_) {
 
     if     ( elements[0] == "use-gui" ){
       config.useGui = GenericToolbox::toBool( elements[1] );
+    }
+    else if( elements[0] == "sort-game-list-by" ){
+      config.sortGameList = SortGameList::toEnum( elements[1] );
     }
     else if( elements[0] == "stored-mods-base-folder" ){
       config.baseFolder = elements[1];
@@ -115,6 +110,7 @@ void ConfigHandler::dumpConfigToFile() const {
   ssConfig << "# folder where mods are stored" << std::endl;
   ssConfig << "stored-mods-base-folder = " << _config_.baseFolder << std::endl;
   ssConfig << "use-gui = " << _config_.useGui << std::endl;
+  ssConfig << "sort-game-list-by = " << _config_.sortGameList.toString() << std::endl;
   ssConfig << "last-preset-used = " << _config_.getCurrentPresetName() << std::endl;
   ssConfig << std::endl;
   ssConfig << std::endl;

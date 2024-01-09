@@ -65,6 +65,56 @@ void TabGeneralSettings::rebuildLayout() {
   itemStoredModsBaseFolder->setValue( this->getConfig().baseFolder );
   this->addView(itemStoredModsBaseFolder);
 
+
+  auto*  itemSortGames = new brls::ListItem(
+      "\uE255 Sort games by",
+      "Set which ordering of the games are displayed in the Game Browser list.\n",
+      ""
+  );
+  itemSortGames->setValue( this->getConfig().sortGameList.toString() );
+
+
+  // On click : show scrolling up menu
+  itemSortGames->getClickEvent()->subscribe([this, itemSortGames](View* view) {
+    LogInfo << "Opening itemSortGames selector..." << std::endl;
+
+    // build the choice list + preselection
+    int preSelection{0};
+    std::vector<std::string> menuList;
+    menuList.reserve( SortGameList::getEnumSize() );
+    for( int iEnum = 0 ; iEnum < SortGameList::getEnumSize() ; iEnum++ ){
+      menuList.emplace_back( SortGameList::toString(iEnum) );
+      if( menuList.back() == this->getConfig().sortGameList.toString() ){ preSelection = iEnum; }
+    }
+
+    // function that will set the config preset from the Dropdown menu selection (int result)
+    brls::ValueSelectedEvent::Callback valueCallback = [this, itemSortGames, menuList](int result) {
+      if( result == -1 ){
+        LogDebug << "Not selected. Return." << std::endl;
+        // auto pop view
+        return;
+      }
+
+      LogInfo << "Selected: " << menuList[result] << std::endl;
+      this->getConfig().sortGameList = SortGameList::toEnum( menuList[result] );
+      _owner_->getGuiModManager().getGameBrowser().getConfigHandler().dumpConfigToFile();
+      itemSortGames->setValue( this->getConfig().sortGameList.toString() );
+
+      brls::Application::popView();
+      return;
+    }; // Callback sequence
+
+    brls::Dropdown::open(
+        "Please select the sort preset you want",
+        menuList, valueCallback,
+        preSelection,
+        true
+    );
+
+  });
+  this->addView(itemSortGames);
+
+
   auto* itemUseUI = new brls::ListItem("\uE072 Disable the GUI", "If you want to go back on the old UI, select this option.");
 
   itemUseUI->updateActionHint(brls::Key::B, "Back");

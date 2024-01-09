@@ -44,10 +44,3 @@ bool FrameRoot::onCancel() {
 
   return onCancel;
 }
-
-const GuiModManager &FrameRoot::getGuiModManager() const {
-  return _guiModManager_;
-}
-GuiModManager &FrameRoot::getGuiModManager() {
-  return _guiModManager_;
-}

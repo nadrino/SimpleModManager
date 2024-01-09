@@ -76,11 +76,34 @@ TabGames::TabGames(FrameRoot* owner_) : _owner_(owner_) {
     }
   }
 
-  LogDebug << "Sorting games wrt nb of mods..." << std::endl;
-  GenericToolbox::sortVector(_gameList_, [](const GameItem& a_, const GameItem& b_){
-    if( a_.nMods > b_.nMods ) return true;
-    return false;
-  });
+  switch( this->getConfig().sortGameList.value ){
+    case SortGameList::Alphabetical:
+    {
+      LogInfo << "Sorting games wrt nb of mods..." << std::endl;
+      GenericToolbox::sortVector(_gameList_, [](const GameItem& a_, const GameItem& b_){
+        return GenericToolbox::toLowerCase(a_.title) < GenericToolbox::toLowerCase(b_.title); // if true, then a_ goes first
+      });
+      break;
+    }
+    case SortGameList::NbMods:
+    {
+      // "nb-mods" or default
+      LogInfo << "Sorting games wrt nb of mods..." << std::endl;
+      GenericToolbox::sortVector(_gameList_, [](const GameItem& a_, const GameItem& b_){
+        return a_.nMods > b_.nMods; // if true, then a_ goes first
+      });
+      break;
+    }
+    case SortGameList::NoSort:
+    {
+      LogInfo << "No sort selected." << std::endl;
+      break;
+    }
+    default:
+    {
+      LogError << "Invalid sort preset: " << this->getConfig().sortGameList << " / " << this->getConfig().sortGameList.toString() << std::endl;
+    }
+  }
   LogDebug << "Sort done." << std::endl;
 
   // add to the view

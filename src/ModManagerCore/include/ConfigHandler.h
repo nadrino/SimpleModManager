@@ -14,6 +14,15 @@
 #include <vector>
 #include <sstream>
 
+
+#define MAKE_ENUM \
+  ENUM_NAME( SortGameList ) \
+  ENUM_ENTRY( NbMods, 0 ) \
+  ENUM_ENTRY( Alphabetical ) \
+  ENUM_ENTRY( NoSort )
+#include "GenericToolbox.MakeEnum.h"
+#undef MAKE_ENUM
+
 struct PresetConfig{
   std::string name{};
   std::string installBaseFolder{};
@@ -21,6 +30,7 @@ struct PresetConfig{
 
 struct ConfigHolder{
   bool useGui{true};
+  SortGameList sortGameList{SortGameList::NbMods};
   std::string baseFolder{"/mods"};
   int selectedPresetIndex{0};
   std::vector<PresetConfig> presetList{
@@ -41,6 +51,7 @@ struct ConfigHolder{
   [[nodiscard]] std::string getSummary() const {
     std::stringstream ss;
     ss << GET_VAR_NAME_VALUE(useGui) << std::endl;
+    ss << GET_VAR_NAME_VALUE(sortGameList.toString()) << std::endl;
     ss << GET_VAR_NAME_VALUE(baseFolder) << std::endl;
     ss << GET_VAR_NAME_VALUE(selectedPresetIndex) << std::endl;
     ss << GET_VAR_NAME_VALUE(lastSmmVersion) << std::endl;
@@ -56,8 +67,8 @@ public:
   ConfigHandler(){ this->loadConfig(); }
 
   // getters
-  [[nodiscard]] const ConfigHolder &getConfig() const;
-  ConfigHolder &getConfig();
+  [[nodiscard]] const ConfigHolder &getConfig() const{ return _config_; }
+  ConfigHolder &getConfig(){ return _config_; }
 
   // io
   void loadConfig(const std::string& configFilePath_ = "");

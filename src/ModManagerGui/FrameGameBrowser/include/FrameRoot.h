@@ -7,7 +7,8 @@
 
 #include "GuiModManager.h"
 
-#include <borealis.hpp>
+#include "borealis.hpp"
+
 
 class FrameRoot : public brls::TabFrame {
 
@@ -16,8 +17,8 @@ public:
 
   bool onCancel() override;
 
-  const GuiModManager &getGuiModManager() const;
-  GuiModManager &getGuiModManager();
+  const GuiModManager &getGuiModManager() const { return _guiModManager_; }
+  GuiModManager &getGuiModManager(){ return _guiModManager_; }
 
 private:
   GuiModManager _guiModManager_{};

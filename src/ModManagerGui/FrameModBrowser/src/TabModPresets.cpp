@@ -15,11 +15,6 @@ LoggerInit([]{
   Logger::setUserHeaderStr("[TabModPresets]");
 });
 
-TabModPresets::TabModPresets(FrameModBrowser* owner_) : _owner_(owner_) {  }
-
-void TabModPresets::setTriggerUpdateItem(bool triggerUpdateItem) {
-  _triggerUpdateItem_ = triggerUpdateItem;
-}
 
 void TabModPresets::draw(NVGcontext *vg, int x, int y, unsigned width, unsigned height, brls::Style *style, brls::FrameContext *ctx) {
 

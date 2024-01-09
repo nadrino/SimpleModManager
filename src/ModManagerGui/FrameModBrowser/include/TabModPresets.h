@@ -14,9 +14,9 @@ class FrameModBrowser;
 class TabModPresets : public brls::List {
 
 public:
-  explicit TabModPresets(FrameModBrowser* owner_);
+  explicit TabModPresets(FrameModBrowser* owner_) : _owner_(owner_) {  }
 
-  void setTriggerUpdateItem(bool triggerUpdateItem);
+  void setTriggerUpdateItem(bool triggerUpdateItem){ _triggerUpdateItem_ = triggerUpdateItem; }
 
   void draw(NVGcontext *vg, int x, int y, unsigned width, unsigned height, brls::Style *style, brls::FrameContext *ctx) override;
 

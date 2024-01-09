@@ -4,7 +4,6 @@
 
 #include "GuiModManager.h"
 
-
 #include "GenericToolbox.Switch.h"
 #include "GenericToolbox.Vector.h"
 #include "GenericToolbox.Misc.h"
