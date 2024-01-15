@@ -81,9 +81,9 @@ void TabGeneralSettings::rebuildLayout() {
     // build the choice list + preselection
     int preSelection{0};
     std::vector<std::string> menuList;
-    menuList.reserve( SortGameList::getEnumSize() );
-    for( int iEnum = 0 ; iEnum < SortGameList::getEnumSize() ; iEnum++ ){
-      menuList.emplace_back( SortGameList::toString(iEnum) );
+    menuList.reserve( ConfigHolder::SortGameList::getEnumSize() );
+    for( int iEnum = 0 ; iEnum < ConfigHolder::SortGameList::getEnumSize() ; iEnum++ ){
+      menuList.emplace_back( ConfigHolder::SortGameList::toString(iEnum) );
       if( menuList.back() == this->getConfig().sortGameList.toString() ){ preSelection = iEnum; }
     }
 
@@ -96,7 +96,7 @@ void TabGeneralSettings::rebuildLayout() {
       }
 
       LogInfo << "Selected: " << menuList[result] << std::endl;
-      this->getConfig().sortGameList = SortGameList::toEnum( menuList[result] );
+      this->getConfig().sortGameList = ConfigHolder::SortGameList::toEnum( menuList[result] );
       _owner_->getGuiModManager().getGameBrowser().getConfigHandler().dumpConfigToFile();
       itemSortGames->setValue( this->getConfig().sortGameList.toString() );
 

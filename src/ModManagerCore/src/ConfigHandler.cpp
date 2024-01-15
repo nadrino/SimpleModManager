@@ -66,7 +66,7 @@ void ConfigHandler::loadConfig(const std::string &configFilePath_) {
       config.useGui = GenericToolbox::toBool( elements[1] );
     }
     else if( elements[0] == "sort-game-list-by" ){
-      config.sortGameList = SortGameList::toEnum( elements[1] );
+      config.sortGameList = ConfigHolder::SortGameList::toEnum( elements[1] );
     }
     else if( elements[0] == "stored-mods-base-folder" ){
       config.baseFolder = elements[1];

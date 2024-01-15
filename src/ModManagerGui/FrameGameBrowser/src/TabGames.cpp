@@ -77,7 +77,7 @@ TabGames::TabGames(FrameRoot* owner_) : _owner_(owner_) {
   }
 
   switch( this->getConfig().sortGameList.value ){
-    case SortGameList::Alphabetical:
+    case ConfigHolder::SortGameList::Alphabetical:
     {
       LogInfo << "Sorting games wrt nb of mods..." << std::endl;
       GenericToolbox::sortVector(_gameList_, [](const GameItem& a_, const GameItem& b_){
@@ -85,7 +85,7 @@ TabGames::TabGames(FrameRoot* owner_) : _owner_(owner_) {
       });
       break;
     }
-    case SortGameList::NbMods:
+    case ConfigHolder::SortGameList::NbMods:
     {
       // "nb-mods" or default
       LogInfo << "Sorting games wrt nb of mods..." << std::endl;
@@ -94,7 +94,7 @@ TabGames::TabGames(FrameRoot* owner_) : _owner_(owner_) {
       });
       break;
     }
-    case SortGameList::NoSort:
+    case ConfigHolder::SortGameList::NoSort:
     {
       LogInfo << "No sort selected." << std::endl;
       break;

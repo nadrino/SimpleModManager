@@ -15,13 +15,6 @@
 #include <sstream>
 
 
-#define MAKE_ENUM \
-  ENUM_NAME( SortGameList ) \
-  ENUM_ENTRY( NbMods, 0 ) \
-  ENUM_ENTRY( Alphabetical ) \
-  ENUM_ENTRY( NoSort )
-#include "GenericToolbox.MakeEnum.h"
-#undef MAKE_ENUM
 
 struct PresetConfig{
   std::string name{};
@@ -29,6 +22,14 @@ struct PresetConfig{
 };
 
 struct ConfigHolder{
+
+#define ENUM_NAME SortGameList
+#define ENUM_FIELDS \
+  ENUM_FIELD( NbMods, 0 ) \
+  ENUM_FIELD( Alphabetical ) \
+  ENUM_FIELD( NoSort )
+#include "GenericToolbox.MakeEnum.h"
+
   bool useGui{true};
   SortGameList sortGameList{SortGameList::NbMods};
   std::string baseFolder{"/mods"};
