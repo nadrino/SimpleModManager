@@ -84,7 +84,7 @@ void GuiModManager::getModStatus(const std::string &modName_, bool useCache_) {
 
   // cached?
   std::string configPresetName{modManager.fetchCurrentPreset().name};
-  if( useCache_ and GenericToolbox::doesKeyIsInMap(configPresetName, modManager.getModList()[modIndex].applyCache ) ){
+  if( useCache_ and GenericToolbox::isIn(configPresetName, modManager.getModList()[modIndex].applyCache ) ){
     LogDebug << configPresetName << ":" << modManager.getModList()[modIndex].modName << " CACHED: " << modManager.getModList()[modIndex].applyCache[configPresetName].statusStr << std::endl;
     return;
   }

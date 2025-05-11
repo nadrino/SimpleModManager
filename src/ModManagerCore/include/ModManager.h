@@ -28,7 +28,7 @@ struct ModEntry{
   std::map<std::string, ApplyCache> applyCache;
 
   [[nodiscard]] const ApplyCache* getCache(const std::string& preset_) const {
-    if( not GenericToolbox::doesKeyIsInMap(preset_, applyCache) ){
+    if( not GenericToolbox::isIn(preset_, applyCache) ){
       return nullptr;
     }
     return &applyCache.at(preset_);
