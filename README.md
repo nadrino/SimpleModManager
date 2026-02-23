@@ -84,6 +84,29 @@ make
 ```
 
 
+### Test run
+
+From your build folder, you can test the app from the Homebrew screen (press X):
+
+```bash
+nxlink -s -a <IP_SWITCH> src/Applications/SimpleModManager/SimpleModManager.nro
+```
+
+Command line options are:
+```
+$ nxlink -h
+Usage: nxlink [options] nrofile
+
+--help,    -h   Display this information
+--address, -a   Hostname or IPv4 address of Switch
+--retries, -r   number of times to ping before giving up
+--path   , -p   set upload path for file
+--args          args to send to nro
+--server , -s   start server after completed upload
+```
+
+`-s` option will show the std::cout output in the terminal.
+
 
 
 ## Plugins
