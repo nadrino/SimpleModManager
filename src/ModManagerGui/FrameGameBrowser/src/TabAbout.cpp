@@ -49,7 +49,7 @@ TabAbout::TabAbout() {
   auto *copyright = new brls::Label(
     brls::LabelStyle::DESCRIPTION,
     "SimpleModManager is licensed under GPL-v3.0\n" \
-        "\u00A9 2019 - 2023 Nadrino",
+        "\u00A9 2019 - 2026 Nadrino",
     true
   );
   copyright->setHorizontalAlign(NVG_ALIGN_CENTER);
