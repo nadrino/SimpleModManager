@@ -69,6 +69,9 @@ void ConfigHandler::loadConfig(const std::string &configFilePath_) {
     else if( elements[0] == "show-debug-mtp-files" ){
       config.showDebugMtpFiles = GenericToolbox::toBool( elements[1] );
     }
+    else if( elements[0] == "offer-orphan-installed-mod-cleanup" ){
+      config.offerOrphanInstalledModCleanup = GenericToolbox::toBool( elements[1] );
+    }
     else if( elements[0] == "sort-game-list-by" ){
       if( elements[1] == "LastPlayed" ){
         config.sortGameList = ConfigHolder::SortGameList::GameLaunched;
@@ -145,6 +148,7 @@ void ConfigHandler::dumpConfigToFile() const {
   ssConfig << "stored-mods-base-folder = " << _config_.baseFolder << std::endl;
   ssConfig << "use-gui = " << _config_.useGui << std::endl;
   ssConfig << "show-debug-mtp-files = " << _config_.showDebugMtpFiles << std::endl;
+  ssConfig << "offer-orphan-installed-mod-cleanup = " << _config_.offerOrphanInstalledModCleanup << std::endl;
   ssConfig << "sort-game-list-by = " << _config_.sortGameList.toString() << std::endl;
   ssConfig << "sort-game-list-direction = " << _config_.sortGameListDirection.toString() << std::endl;
   ssConfig << "last-preset-used = " << _config_.getCurrentPresetName() << std::endl;
@@ -188,4 +192,3 @@ void ConfigHandler::selectNextPreset(){
 void ConfigHandler::selectPreviousPreset(){
   _config_.setSelectedPresetIndex( _config_.selectedPresetIndex - 1 );
 }
-

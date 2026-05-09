@@ -42,6 +42,7 @@ struct ConfigHolder{
 
   bool useGui{true};
   bool showDebugMtpFiles{false};
+  bool offerOrphanInstalledModCleanup{true};
   SortGameList sortGameList{SortGameList::NbMods};
   SortGameListDirection sortGameListDirection{SortGameListDirection::Ascending};
   std::string baseFolder{"/mods"};
@@ -90,6 +91,7 @@ struct ConfigHolder{
     std::stringstream ss;
     ss << GET_VAR_NAME_VALUE(useGui) << std::endl;
     ss << GET_VAR_NAME_VALUE(showDebugMtpFiles) << std::endl;
+    ss << GET_VAR_NAME_VALUE(offerOrphanInstalledModCleanup) << std::endl;
     ss << GET_VAR_NAME_VALUE(sortGameList.toString()) << std::endl;
     ss << GET_VAR_NAME_VALUE(sortGameListDirection.toString()) << std::endl;
     ss << GET_VAR_NAME_VALUE(baseFolder) << std::endl;

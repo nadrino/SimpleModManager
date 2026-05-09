@@ -68,6 +68,11 @@ struct ModStatusSummary{
   size_t uncheckedMods{0};
 };
 
+struct OrphanInstalledMod{
+  std::string modName;
+  std::map<std::string, ApplyCache> applyCache;
+};
+
 ENUM_EXPANDER(
     ResultModAction, 0,
     Success,
@@ -95,6 +100,7 @@ public:
   const Selector &getSelector() const;
   [[nodiscard]] const std::vector<std::string> & getIgnoredFileList() const;
   const std::vector<ModEntry> &getModList() const;
+  [[nodiscard]] const std::vector<OrphanInstalledMod>& getOrphanInstalledModList() const;
 
   std::vector<ModEntry> &getModList();
   std::vector<std::string> & getIgnoredFileList();
@@ -109,6 +115,10 @@ public:
   void reloadModStatusCache();
   void resetAllModsCacheAndFile();
   void refreshAllModStatusCache(bool forceRecheck_ = false);
+  void refreshOrphanInstalledModList();
+  void removeOrphanInstalledModCache(const std::string& modName_);
+  void claimOrphanInstalledFilesForMod(const std::string& modName_);
+  int getOrphanInstalledModIndex(const std::string& modName_) const;
 
   // mod management
   void resetModCache(int modIndex_);
@@ -167,6 +177,7 @@ private:
 
   Selector _selector_;
   std::vector<ModEntry> _modList_{};
+  std::vector<OrphanInstalledMod> _orphanInstalledModList_{};
 
   std::string _currentPresetName_{};
 };

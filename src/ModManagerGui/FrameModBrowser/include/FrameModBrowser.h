@@ -29,6 +29,10 @@ public:
   std::string getTitleId();
   TabModBrowser* getTabModBrowser(){ return _tabModBrowser_; }
   TabModPresets* getTabModPresets(){ return _tabModPresets_; }
+  void resetOrphanCleanupPrompt(){
+    _orphanCleanupPromptShown_ = false;
+    _orphanCleanupScanDone_ = false;
+  }
 
 
   [[nodiscard]] const ConfigHolder& getConfig() const{ return _guiModManagerPtr_->getGameBrowser().getConfigHandler().getConfig(); }
@@ -40,7 +44,11 @@ public:
 
 
 private:
+  void promptOrphanInstalledModsCleanup();
+
   GuiModManager* _guiModManagerPtr_{};
+  bool _orphanCleanupPromptShown_{false};
+  bool _orphanCleanupScanDone_{false};
 
   // memory handled by brls
   TabModBrowser* _tabModBrowser_{nullptr};

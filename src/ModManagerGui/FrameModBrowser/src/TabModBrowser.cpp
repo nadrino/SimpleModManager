@@ -81,12 +81,27 @@ TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
       item->updateActionHint(brls::Key::X, "Disable");
 
       item->registerAction("Delete mod", brls::Key::Y, [&, mod]{
+        if( !_owner_->getGuiModManager().canStartDeleteModFolderThread() ){
+          brls::Application::notify("Please wait before deleting another mod.");
+          return true;
+        }
+
+        const std::string modName = mod.modName;
         auto* dialog = new brls::Dialog("Do you want to delete \"" + mod.modName + "\" from the SD card and remove its installed files?");
 
-        dialog->addButton("Yes", [&, dialog, mod](brls::View* view) {
-          _focusModNameAfterDelete_ = this->getFocusTargetBeforeDelete(mod.modName);
-          dialog->close();
-          _owner_->getGuiModManager().startDeleteModFolderThread(mod.modName);
+        dialog->addButton("Yes", [this, dialog, modName](brls::View* view) {
+          if( !_owner_->getGuiModManager().canStartDeleteModFolderThread() ){
+            brls::Application::notify("Please wait before deleting another mod.");
+            dialog->close();
+            return;
+          }
+
+          _focusModNameAfterDelete_ = this->getFocusTargetBeforeDelete(modName);
+          dialog->close([this, modName]{
+            if( !_owner_->getGuiModManager().startDeleteModFolderThread(modName) ){
+              _focusModNameAfterDelete_.clear();
+            }
+          });
         });
         dialog->addButton("No", [dialog](brls::View* view) { dialog->close(); });
 
@@ -114,6 +129,9 @@ TabModBrowser::TabModBrowser(FrameModBrowser* owner_) : _owner_(owner_) {
 
 void TabModBrowser::rebuildUiFromSd(const std::string& focusModName_) {
   // Fully rebuild UI to guarantee it matches SD state.
+  brls::Application::giveFocus(nullptr);
+  _owner_->getGameBrowser().getModManager().updateModList();
+
   this->clear( true );
   _modItemList_.clear();
 
@@ -128,7 +146,12 @@ void TabModBrowser::rebuildUiFromSd(const std::string& focusModName_) {
     );
     _modItemList_.back().item->show([](){}, false);
     this->addView( _modItemList_.back().item );
+    this->resyncListItemFocusIndices();
     brls::Application::giveFocus( _modItemList_.back().item );
+    this->invalidate(true);
+    if( this->getParent() != nullptr ) {
+      this->getParent()->invalidate(true);
+    }
     return;
   }
 
@@ -168,11 +191,26 @@ void TabModBrowser::rebuildUiFromSd(const std::string& focusModName_) {
 
     // Delete folder (SD)
     item->registerAction("Delete mod", brls::Key::Y, [&, mod]{
+      if( !_owner_->getGuiModManager().canStartDeleteModFolderThread() ){
+        brls::Application::notify("Please wait before deleting another mod.");
+        return true;
+      }
+
+      const std::string modName = mod.modName;
       auto* dialog = new brls::Dialog("Do you want to delete \"" + mod.modName + "\" from the SD card and remove its installed files?");
-      dialog->addButton("Yes", [&, dialog, mod](brls::View* view) {
-        _focusModNameAfterDelete_ = this->getFocusTargetBeforeDelete(mod.modName);
-        dialog->close();
-        _owner_->getGuiModManager().startDeleteModFolderThread(mod.modName);
+      dialog->addButton("Yes", [this, dialog, modName](brls::View* view) {
+        if( !_owner_->getGuiModManager().canStartDeleteModFolderThread() ){
+          brls::Application::notify("Please wait before deleting another mod.");
+          dialog->close();
+          return;
+        }
+
+        _focusModNameAfterDelete_ = this->getFocusTargetBeforeDelete(modName);
+        dialog->close([this, modName]{
+          if( !_owner_->getGuiModManager().startDeleteModFolderThread(modName) ){
+            _focusModNameAfterDelete_.clear();
+          }
+        });
       });
       dialog->addButton("No", [dialog](brls::View* view) { dialog->close(); });
       dialog->setCancelable(true);
@@ -321,11 +359,16 @@ void TabModBrowser::draw(NVGcontext *vg, int x, int y, unsigned int width, unsig
                          brls::FrameContext *ctx) {
 
   if( _owner_->getGuiModManager().isTriggerRebuildModBrowser() ){
-    LogDebug << "Rebuilding mod browser from SD..." << std::endl;
-    _owner_->getGuiModManager().setTriggerRebuildModBrowser( false );
-    _owner_->getGuiModManager().setTriggerUpdateModsDisplayedStatus( false );
-    this->rebuildUiFromSd(_focusModNameAfterDelete_);
-    _focusModNameAfterDelete_.clear();
+    const bool canRebuildNow = !brls::Application::hasViewDisappearing()
+        && brls::Application::getTopStackView() == _owner_;
+    if( canRebuildNow ){
+      LogDebug << "Rebuilding mod browser from SD..." << std::endl;
+      _owner_->getGuiModManager().setTriggerRebuildModBrowser( false );
+      _owner_->getGuiModManager().setTriggerUpdateModsDisplayedStatus( false );
+      this->rebuildUiFromSd(_focusModNameAfterDelete_);
+      _owner_->resetOrphanCleanupPrompt();
+      _focusModNameAfterDelete_.clear();
+    }
   }
 
   ScrollView::draw(vg, x, y, width, height, style, ctx);
@@ -346,7 +389,10 @@ void TabModBrowser::updateDisplayedModsStatus(){
   auto currentPreset = this->getModManager().fetchCurrentPreset().name;
   LogInfo << "Will display mod status with install preset: " << currentPreset << std::endl;
 
-  for( size_t iMod = 0 ; iMod < modEntryList.size() ; iMod++ ){
+  for( size_t iMod = 0 ; iMod < modEntryList.size() && iMod < _modItemList_.size() ; iMod++ ){
+    if( _modItemList_[iMod].item == nullptr ){
+      continue;
+    }
 
     // Use cached status only to avoid slow verification
     std::string statusStr;

@@ -157,6 +157,21 @@ void TabGeneralSettings::rebuildLayout() {
   itemShowDebugMtpFiles->updateActionHint(brls::Key::A, "Toggle");
   this->addView(itemShowDebugMtpFiles);
 
+  auto* itemOfferOrphanInstalledModCleanup = new brls::ListItem(
+      "\uE0A6 Orphan installed mod cleanup:",
+      "Offer to delete installed mod files when their mod folder is no longer present on the SD card.",
+      ""
+  );
+  itemOfferOrphanInstalledModCleanup->setValue(this->getConfig().offerOrphanInstalledModCleanup ? "Enabled" : "Disabled");
+  itemOfferOrphanInstalledModCleanup->registerAction("Toggle", brls::Key::A, [this, itemOfferOrphanInstalledModCleanup](){
+    this->getConfig().offerOrphanInstalledModCleanup = !this->getConfig().offerOrphanInstalledModCleanup;
+    _owner_->getGuiModManager().getGameBrowser().getConfigHandler().dumpConfigToFile();
+    itemOfferOrphanInstalledModCleanup->setValue(this->getConfig().offerOrphanInstalledModCleanup ? "Enabled" : "Disabled");
+    return true;
+  });
+  itemOfferOrphanInstalledModCleanup->updateActionHint(brls::Key::A, "Toggle");
+  this->addView(itemOfferOrphanInstalledModCleanup);
+
 
   auto* itemUseUI = new brls::ListItem("\uE072 Disable the GUI", "If you want to go back on the old UI, select this option.");
 

@@ -16,12 +16,14 @@
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
+#include <set>
 #include <sys/stat.h>
 
 namespace {
 
 constexpr const char* kModStatusCacheFileName = "mods_status_cache.txt";
 constexpr const char* kModStatusCacheVersion = "# SimpleModManager mod status cache v2";
+constexpr const char* kUnknownInstalledFilesName = "Unknown installed files";
 
 struct FileStamp{
   bool exists{false};
@@ -160,6 +162,104 @@ std::vector<std::string> listVisibleModFiles(const std::string& modFolderPath){
   return files;
 }
 
+bool safeIsFile(const std::string& path){
+  try { return GenericToolbox::isFile(path); }
+  catch(...) { return false; }
+}
+
+bool isRelativePathSharedWithOtherMod(
+    const std::string& gameFolderPath,
+    const std::vector<ModEntry>& modList,
+    const std::string& modName,
+    const std::string& relativePath ){
+  for( const auto& otherMod : modList ){
+    if( otherMod.modName == modName ){
+      continue;
+    }
+
+    const std::string otherPath = GenericToolbox::joinPath(
+        GenericToolbox::joinPath(gameFolderPath, otherMod.modName),
+        relativePath );
+    if( safeIsFile(otherPath) ){
+      return true;
+    }
+  }
+  return false;
+}
+
+bool isRelativePathOwnedByActiveOtherMod(
+    const std::string& gameFolderPath,
+    const std::vector<ModEntry>& modList,
+    const std::string& currentModName,
+    const std::string& presetName,
+    const std::string& installBaseFolder,
+    const std::string& relativePath ){
+  const std::string dstPath = GenericToolbox::joinPath(installBaseFolder, relativePath);
+  if( !safeIsFile(dstPath) ){
+    return false;
+  }
+
+  for( const auto& otherMod : modList ){
+    if( otherMod.modName == currentModName ){
+      continue;
+    }
+
+    auto cacheIt = otherMod.applyCache.find(presetName);
+    if( cacheIt == otherMod.applyCache.end() || cacheIt->second.statusStr != "ACTIVE" ){
+      continue;
+    }
+
+    const std::string otherPath = GenericToolbox::joinPath(
+        GenericToolbox::joinPath(gameFolderPath, otherMod.modName),
+        relativePath );
+    if( !safeIsFile(otherPath) ){
+      continue;
+    }
+
+    try {
+      if( GenericToolbox::Switch::IO::doFilesAreIdentical(otherPath, dstPath) ){
+        return true;
+      }
+    }
+    catch(...) {}
+  }
+  return false;
+}
+
+bool isRelativePathOwnedByActiveMod(
+    const std::string& gameFolderPath,
+    const std::vector<ModEntry>& modList,
+    const std::string& presetName,
+    const std::string& installBaseFolder,
+    const std::string& relativePath ){
+  const std::string dstPath = GenericToolbox::joinPath(installBaseFolder, relativePath);
+  if( !safeIsFile(dstPath) ){
+    return false;
+  }
+
+  for( const auto& mod : modList ){
+    auto cacheIt = mod.applyCache.find(presetName);
+    if( cacheIt == mod.applyCache.end() || cacheIt->second.statusStr != "ACTIVE" ){
+      continue;
+    }
+
+    const std::string modFilePath = GenericToolbox::joinPath(
+        GenericToolbox::joinPath(gameFolderPath, mod.modName),
+        relativePath );
+    if( !safeIsFile(modFilePath) ){
+      continue;
+    }
+
+    try {
+      if( GenericToolbox::Switch::IO::doFilesAreIdentical(modFilePath, dstPath) ){
+        return true;
+      }
+    }
+    catch(...) {}
+  }
+  return false;
+}
+
 void countCacheState(ApplyCache& cache, const std::string& state){
   if( state == "MATCHING" ){
     cache.matchingFiles++;
@@ -170,6 +270,20 @@ void countCacheState(ApplyCache& cache, const std::string& state){
   else{
     cache.missingFiles++;
   }
+}
+
+void rebuildCacheSummaryFromFiles(ApplyCache& cache){
+  cache.totalFiles = cache.fileStatusCache.size();
+  cache.matchingFiles = 0;
+  cache.differentFiles = 0;
+  cache.missingFiles = 0;
+
+  for( auto& fileCache : cache.fileStatusCache ){
+    fileCache.second.state = normalizeStatusState(fileCache.second.state);
+    countCacheState(cache, fileCache.second.state);
+  }
+
+  rebuildStatusString(cache);
 }
 
 void addSummaryLine(
@@ -224,6 +338,159 @@ void classifySummaryStatus(ModStatusSummary& summary, const std::string& status)
   }
 }
 
+const PresetConfig* findPresetConfig(const ConfigHolder& config, const std::string& presetName){
+  for( const auto& preset : config.presetList ){
+    if( preset.name == presetName ){
+      return &preset;
+    }
+  }
+  return nullptr;
+}
+
+std::string toLowerAscii(std::string value){
+  std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c){
+    return static_cast<char>(std::tolower(c));
+  });
+  return value;
+}
+
+std::string findTitleContentsFolder(const std::string& installBaseFolder, const std::string& titleId){
+  const std::string contentsFolder = GenericToolbox::joinPath(installBaseFolder, "contents");
+  if( !GenericToolbox::isDir(contentsFolder) ){
+    return {};
+  }
+
+  const std::string exactFolder = GenericToolbox::joinPath(contentsFolder, titleId);
+  if( GenericToolbox::isDir(exactFolder) ){
+    return exactFolder;
+  }
+
+  const std::string expectedTitleId = toLowerAscii(titleId);
+  std::vector<std::string> contentDirs;
+  try {
+    contentDirs = GenericToolbox::lsDirs(contentsFolder);
+  }
+  catch(...) {
+    return {};
+  }
+
+  for( const auto& contentDir : contentDirs ){
+    if( toLowerAscii(contentDir) == expectedTitleId ){
+      return GenericToolbox::joinPath(contentsFolder, contentDir);
+    }
+  }
+
+  return {};
+}
+
+std::string normalizeRelativeModPath(const std::string& relativePath){
+  std::string out = relativePath;
+  std::replace(out.begin(), out.end(), '\\', '/');
+  while( !out.empty() && out.front() == '/' ){
+    out.erase(out.begin());
+  }
+  return toLowerAscii(out);
+}
+
+bool isRelativePathOwnedByOtherOrphanMod(
+    const std::vector<OrphanInstalledMod>& orphanModList,
+    const std::string& currentModName,
+    const std::string& presetName,
+    const std::string& relativePath ){
+  const std::string normalizedPath = normalizeRelativeModPath(relativePath);
+  for( const auto& orphanMod : orphanModList ){
+    if( orphanMod.modName == currentModName || orphanMod.modName == kUnknownInstalledFilesName ){
+      continue;
+    }
+
+    auto presetCacheIt = orphanMod.applyCache.find(presetName);
+    if( presetCacheIt == orphanMod.applyCache.end() ){
+      continue;
+    }
+
+    for( const auto& fileCache : presetCacheIt->second.fileStatusCache ){
+      if( !fileCache.second.destinationExists ){
+        continue;
+      }
+      if( normalizeRelativeModPath(fileCache.first) == normalizedPath ){
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool naturalStringLess(const std::string& left, const std::string& right){
+  size_t iLeft{0};
+  size_t iRight{0};
+
+  while( iLeft < left.size() && iRight < right.size() ){
+    const auto cLeft = static_cast<unsigned char>(left[iLeft]);
+    const auto cRight = static_cast<unsigned char>(right[iRight]);
+
+    if( std::isdigit(cLeft) && std::isdigit(cRight) ){
+      size_t leftDigitsStart = iLeft;
+      size_t rightDigitsStart = iRight;
+      while( leftDigitsStart < left.size() && left[leftDigitsStart] == '0' ){ leftDigitsStart++; }
+      while( rightDigitsStart < right.size() && right[rightDigitsStart] == '0' ){ rightDigitsStart++; }
+
+      size_t leftDigitsEnd = leftDigitsStart;
+      size_t rightDigitsEnd = rightDigitsStart;
+      while( leftDigitsEnd < left.size() && std::isdigit(static_cast<unsigned char>(left[leftDigitsEnd])) ){
+        leftDigitsEnd++;
+      }
+      while( rightDigitsEnd < right.size() && std::isdigit(static_cast<unsigned char>(right[rightDigitsEnd])) ){
+        rightDigitsEnd++;
+      }
+
+      const size_t leftDigitsLength = leftDigitsEnd - leftDigitsStart;
+      const size_t rightDigitsLength = rightDigitsEnd - rightDigitsStart;
+      if( leftDigitsLength != rightDigitsLength ){
+        return leftDigitsLength < rightDigitsLength;
+      }
+
+      for( size_t offset = 0; offset < leftDigitsLength; ++offset ){
+        if( left[leftDigitsStart + offset] != right[rightDigitsStart + offset] ){
+          return left[leftDigitsStart + offset] < right[rightDigitsStart + offset];
+        }
+      }
+
+      const size_t leftTotalDigitsEnd = leftDigitsEnd;
+      const size_t rightTotalDigitsEnd = rightDigitsEnd;
+      if( leftDigitsStart == leftDigitsEnd ){
+        while( leftDigitsEnd < left.size() && left[leftDigitsEnd] == '0' ){ leftDigitsEnd++; }
+      }
+      if( rightDigitsStart == rightDigitsEnd ){
+        while( rightDigitsEnd < right.size() && right[rightDigitsEnd] == '0' ){ rightDigitsEnd++; }
+      }
+
+      const size_t leftLeadingZeroes = leftDigitsStart - iLeft;
+      const size_t rightLeadingZeroes = rightDigitsStart - iRight;
+      if( leftLeadingZeroes != rightLeadingZeroes ){
+        return leftLeadingZeroes < rightLeadingZeroes;
+      }
+
+      iLeft = leftTotalDigitsEnd;
+      iRight = rightTotalDigitsEnd;
+      continue;
+    }
+
+    const char lowerLeft = static_cast<char>(std::tolower(cLeft));
+    const char lowerRight = static_cast<char>(std::tolower(cRight));
+    if( lowerLeft != lowerRight ){
+      return lowerLeft < lowerRight;
+    }
+    if( left[iLeft] != right[iRight] ){
+      return left[iLeft] < right[iRight];
+    }
+
+    iLeft++;
+    iRight++;
+  }
+
+  return left.size() < right.size();
+}
+
 } // namespace
 
 
@@ -261,6 +528,9 @@ const std::vector<std::string> & ModManager::getIgnoredFileList() const {
 const std::vector<ModEntry> &ModManager::getModList() const {
   return _modList_;
 }
+const std::vector<OrphanInstalledMod>& ModManager::getOrphanInstalledModList() const {
+  return _orphanInstalledModList_;
+}
 
 std::vector<ModEntry> &ModManager::getModList() {
   return _modList_;
@@ -288,13 +558,16 @@ void ModManager::updateModList() {
     folderList.clear();
   }
   GenericToolbox::removeEntryIf(folderList, [](const std::string& entry_){ return entry_ == ".plugins"; });
+  std::sort(folderList.begin(), folderList.end(), naturalStringLess);
 
   _modList_.clear(); _modList_.reserve( folderList.size() );
   for( auto& folder : folderList ){ _modList_.emplace_back( folder ); }
+  _orphanInstalledModList_.clear();
 
   // reload and refresh the status cache. Valid entries are reused through file stats,
   // stale entries are checked once and written back.
   this->reloadModStatusCache();
+  this->refreshOrphanInstalledModList();
   this->refreshAllModStatusCache(false);
 
   // reset the selector
@@ -319,6 +592,14 @@ void ModManager::dumpModStatusCache() {
       }
     }
   }
+  for( auto& orphanMod : _orphanInstalledModList_ ){
+    for( auto& presetCache : orphanMod.applyCache ){
+      addSummaryLine(ss, presetCache.first, orphanMod.modName, presetCache.second);
+      for( const auto& fileCache : presetCache.second.fileStatusCache ){
+        addFileLine(ss, presetCache.first, orphanMod.modName, fileCache.first, fileCache.second);
+      }
+    }
+  }
 
   std::string cacheFilePath = getStatusCachePath(_gameFolderPath_);
   GenericToolbox::dumpStringInFile(cacheFilePath, ss.str());
@@ -339,7 +620,23 @@ void ModManager::reloadModStatusCache(){
       const std::string& modName = tabElements[2];
 
       int modIndex = this->getModIndex( modName );
-      if( modIndex == -1 ) continue;
+      if( modIndex == -1 ){
+        int orphanIndex = this->getOrphanInstalledModIndex(modName);
+        if( orphanIndex == -1 ){
+          _orphanInstalledModList_.emplace_back();
+          _orphanInstalledModList_.back().modName = modName;
+          orphanIndex = int(_orphanInstalledModList_.size()) - 1;
+        }
+
+        auto& cache = _orphanInstalledModList_[orphanIndex].applyCache[preset];
+        cache.statusStr = tabElements[3];
+        cache.applyFraction = parseDouble(tabElements[4]);
+        cache.totalFiles = parseSizeT(tabElements[5]);
+        cache.matchingFiles = parseSizeT(tabElements[6]);
+        cache.differentFiles = parseSizeT(tabElements[7]);
+        cache.missingFiles = parseSizeT(tabElements[8]);
+        continue;
+      }
 
       auto& cache = _modList_[modIndex].applyCache[preset];
       cache.statusStr = tabElements[3];
@@ -357,8 +654,6 @@ void ModManager::reloadModStatusCache(){
       const std::string& relativePath = tabElements[3];
 
       int modIndex = this->getModIndex( modName );
-      if( modIndex == -1 ) continue;
-
       ModFileStatusCache fileCache;
       fileCache.state = normalizeStatusState(tabElements[4]);
       fileCache.sourceSize = parseLongLong(tabElements[5], -1);
@@ -366,6 +661,18 @@ void ModManager::reloadModStatusCache(){
       fileCache.destinationExists = parseLongLong(tabElements[7]) != 0;
       fileCache.destinationSize = parseLongLong(tabElements[8], -1);
       fileCache.destinationMtime = parseLongLong(tabElements[9]);
+
+      if( modIndex == -1 ){
+        int orphanIndex = this->getOrphanInstalledModIndex(modName);
+        if( orphanIndex == -1 ){
+          _orphanInstalledModList_.emplace_back();
+          _orphanInstalledModList_.back().modName = modName;
+          orphanIndex = int(_orphanInstalledModList_.size()) - 1;
+        }
+        _orphanInstalledModList_[orphanIndex].applyCache[preset].fileStatusCache[relativePath] = fileCache;
+        continue;
+      }
+
       _modList_[modIndex].applyCache[preset].fileStatusCache[relativePath] = fileCache;
       continue;
     }
@@ -380,7 +687,19 @@ void ModManager::reloadModStatusCache(){
     for( auto& element : presetModName ){ GenericToolbox::trimInputString(element, " "); }
 
     int modIndex = this->getModIndex( presetModName[1] );
-    if( modIndex == -1 ) continue;
+    if( modIndex == -1 ){
+      int orphanIndex = this->getOrphanInstalledModIndex(presetModName[1]);
+      if( orphanIndex == -1 ){
+        _orphanInstalledModList_.emplace_back();
+        _orphanInstalledModList_.back().modName = presetModName[1];
+        orphanIndex = int(_orphanInstalledModList_.size()) - 1;
+      }
+      _orphanInstalledModList_[orphanIndex].applyCache[presetModName[0]].statusStr = elements[1];
+      if( elements.size() >= 3 ){
+        _orphanInstalledModList_[orphanIndex].applyCache[presetModName[0]].applyFraction = parseDouble( elements[2] );
+      }
+      continue;
+    }
     auto* modEntryPtr = &_modList_[modIndex];
 
     auto& cache = modEntryPtr->applyCache[presetModName[0]];
@@ -392,6 +711,28 @@ void ModManager::reloadModStatusCache(){
     // v >= 1.5.0
     cache.applyFraction = parseDouble( elements[2] );
   }
+
+  GenericToolbox::removeEntryIf(_orphanInstalledModList_, [this](OrphanInstalledMod& orphanMod){
+    bool hasInstalledFiles{false};
+    for( auto& presetCache : orphanMod.applyCache ){
+      const auto* preset = findPresetConfig(this->getConfig(), presetCache.first);
+      if( preset == nullptr ){
+        continue;
+      }
+
+      for( auto& fileCache : presetCache.second.fileStatusCache ){
+        const std::string dstPath = GenericToolbox::joinPath(preset->installBaseFolder, fileCache.first);
+        const FileStamp dstStamp = getFileStamp(dstPath);
+        fileCache.second.destinationExists = dstStamp.exists;
+        fileCache.second.destinationSize = dstStamp.size;
+        fileCache.second.destinationMtime = dstStamp.mtime;
+        if( dstStamp.exists ){
+          hasInstalledFiles = true;
+        }
+      }
+    }
+    return !hasInstalledFiles;
+  });
 }
 void ModManager::resetAllModsCacheAndFile(){
   GenericToolbox::rm(getStatusCachePath(_gameFolderPath_));
@@ -399,6 +740,177 @@ void ModManager::resetAllModsCacheAndFile(){
     mod = ModEntry(mod.modName);
   }
   _selector_.clearTags();
+}
+
+void ModManager::removeOrphanInstalledModCache(const std::string& modName_){
+  auto it = std::remove_if(
+      _orphanInstalledModList_.begin(),
+      _orphanInstalledModList_.end(),
+      [&](const OrphanInstalledMod& mod){ return mod.modName == modName_; });
+  _orphanInstalledModList_.erase(it, _orphanInstalledModList_.end());
+  this->dumpModStatusCache();
+}
+
+void ModManager::claimOrphanInstalledFilesForMod(const std::string& modName_){
+  const int modIndex = this->getModIndex(modName_);
+  if( modIndex == -1 ){
+    return;
+  }
+
+  const auto& preset = this->fetchCurrentPreset();
+  const std::string modFolderPath = GenericToolbox::joinPath(_gameFolderPath_, modName_);
+
+  std::set<std::string> claimedFiles;
+  for( const auto& relativePath : listVisibleModFiles(modFolderPath) ){
+    const std::string srcPath = GenericToolbox::joinPath(modFolderPath, relativePath);
+    const std::string dstPath = GenericToolbox::joinPath(preset.installBaseFolder, relativePath);
+    if( !safeIsFile(srcPath) || !safeIsFile(dstPath) ){
+      continue;
+    }
+
+    try {
+      if( GenericToolbox::Switch::IO::doFilesAreIdentical(srcPath, dstPath) ){
+        claimedFiles.insert(normalizeRelativeModPath(relativePath));
+      }
+    }
+    catch(...) {}
+  }
+
+  if( claimedFiles.empty() ){
+    return;
+  }
+
+  bool cacheChanged{false};
+  GenericToolbox::removeEntryIf(_orphanInstalledModList_, [&](OrphanInstalledMod& orphanMod){
+    if( orphanMod.modName == modName_ ){
+      return false;
+    }
+
+    for( auto presetCacheIt = orphanMod.applyCache.begin(); presetCacheIt != orphanMod.applyCache.end(); ){
+      if( presetCacheIt->first != preset.name ){
+        ++presetCacheIt;
+        continue;
+      }
+
+      auto& cache = presetCacheIt->second;
+      for( auto fileCacheIt = cache.fileStatusCache.begin(); fileCacheIt != cache.fileStatusCache.end(); ){
+        if( claimedFiles.count(normalizeRelativeModPath(fileCacheIt->first)) == 0 ){
+          ++fileCacheIt;
+          continue;
+        }
+
+        cacheChanged = true;
+        fileCacheIt = cache.fileStatusCache.erase(fileCacheIt);
+      }
+
+      if( cache.fileStatusCache.empty() ){
+        cacheChanged = true;
+        presetCacheIt = orphanMod.applyCache.erase(presetCacheIt);
+        continue;
+      }
+
+      rebuildCacheSummaryFromFiles(cache);
+      ++presetCacheIt;
+    }
+
+    return orphanMod.applyCache.empty();
+  });
+
+  if( cacheChanged ){
+    this->dumpModStatusCache();
+  }
+}
+
+int ModManager::getOrphanInstalledModIndex(const std::string& modName_) const{
+  return GenericToolbox::findElementIndex(modName_, _orphanInstalledModList_, [](const OrphanInstalledMod& mod_){ return mod_.modName; });
+}
+
+void ModManager::refreshOrphanInstalledModList(){
+  auto clearOrphanInstalledMods = [this](){
+    if( !_orphanInstalledModList_.empty() ){
+      _orphanInstalledModList_.clear();
+      this->dumpModStatusCache();
+    }
+  };
+
+  if( !this->getConfig().offerOrphanInstalledModCleanup ){
+    clearOrphanInstalledMods();
+    return;
+  }
+
+  const std::string titleId = Toolbox::getGameFolderTitleId(_gameFolderPath_);
+  if( titleId.empty() ){
+    clearOrphanInstalledMods();
+    return;
+  }
+
+  const auto& preset = this->fetchCurrentPreset();
+  const std::string titleContentsFolder = findTitleContentsFolder(preset.installBaseFolder, titleId);
+  if( titleContentsFolder.empty() ){
+    clearOrphanInstalledMods();
+    return;
+  }
+
+  bool cacheChanged{false};
+  GenericToolbox::removeEntryIf(_orphanInstalledModList_, [this, &cacheChanged](OrphanInstalledMod& orphanMod){
+    if( orphanMod.modName == kUnknownInstalledFilesName ){
+      cacheChanged = true;
+      return true;
+    }
+
+    bool hasInstalledFiles{false};
+    for( auto presetCacheIt = orphanMod.applyCache.begin(); presetCacheIt != orphanMod.applyCache.end(); ){
+      const auto* orphanPreset = findPresetConfig(this->getConfig(), presetCacheIt->first);
+      if( orphanPreset == nullptr ){
+        cacheChanged = true;
+        presetCacheIt = orphanMod.applyCache.erase(presetCacheIt);
+        continue;
+      }
+
+      auto& cache = presetCacheIt->second;
+      for( auto fileCacheIt = cache.fileStatusCache.begin(); fileCacheIt != cache.fileStatusCache.end(); ){
+        const bool ownedByActiveCurrentSdMod = isRelativePathOwnedByActiveMod(
+            _gameFolderPath_,
+            _modList_,
+            orphanPreset->name,
+            orphanPreset->installBaseFolder,
+            fileCacheIt->first );
+        const std::string dstPath = GenericToolbox::joinPath(orphanPreset->installBaseFolder, fileCacheIt->first);
+        const FileStamp dstStamp = getFileStamp(dstPath);
+        fileCacheIt->second.destinationExists = dstStamp.exists;
+        fileCacheIt->second.destinationSize = dstStamp.size;
+        fileCacheIt->second.destinationMtime = dstStamp.mtime;
+
+        if( ownedByActiveCurrentSdMod || !dstStamp.exists ){
+          cacheChanged = true;
+          fileCacheIt = cache.fileStatusCache.erase(fileCacheIt);
+          continue;
+        }
+
+        hasInstalledFiles = true;
+        ++fileCacheIt;
+      }
+
+      if( cache.fileStatusCache.empty() ){
+        cacheChanged = true;
+        presetCacheIt = orphanMod.applyCache.erase(presetCacheIt);
+        continue;
+      }
+
+      rebuildCacheSummaryFromFiles(cache);
+      ++presetCacheIt;
+    }
+
+    if( !hasInstalledFiles ){
+      cacheChanged = true;
+      return true;
+    }
+    return false;
+  });
+
+  if( cacheChanged ){
+    this->dumpModStatusCache();
+  }
 }
 
 // mod management
@@ -478,11 +990,34 @@ ResultModAction ModManager::updateModStatusInternal(int modIndex_, bool forceRec
     }
 
     fileCache.state = normalizeStatusState(fileCache.state);
+    if( fileCache.state == "MATCHING"
+        && isRelativePathOwnedByOtherOrphanMod(_orphanInstalledModList_, modPtr->modName, presetName, file) ){
+      fileCache.state = "MISSING";
+    }
     refreshedCache.fileStatusCache[file] = fileCache;
     countCacheState(refreshedCache, fileCache.state);
   }
 
   rebuildStatusString(refreshedCache);
+  if( refreshedCache.matchingFiles > 0 && refreshedCache.matchingFiles < refreshedCache.totalFiles ){
+    size_t matchingFilesOwnedByThisMod{0};
+    for( const auto& fileCache : refreshedCache.fileStatusCache ){
+      if( fileCache.second.state != "MATCHING" ){
+        continue;
+      }
+      if( !isRelativePathSharedWithOtherMod(_gameFolderPath_, _modList_, modPtr->modName, fileCache.first) ){
+        matchingFilesOwnedByThisMod++;
+      }
+    }
+
+    if( matchingFilesOwnedByThisMod == 0 ){
+      refreshedCache.matchingFiles = 0;
+      refreshedCache.differentFiles = 0;
+      refreshedCache.missingFiles = refreshedCache.totalFiles;
+      refreshedCache.applyFraction = 0;
+      refreshedCache.statusStr = "INACTIVE";
+    }
+  }
   modPtr->applyCache[presetName] = refreshedCache;
 
   // update selector
@@ -628,6 +1163,7 @@ ResultModAction ModManager::applyMod(int modIndex_, bool overrideConflicts_){
 
   }
 
+  this->claimOrphanInstalledFilesForMod(modPtr->modName);
   return Success;
 }
 ResultModAction ModManager::applyMod(const std::string& modName_, bool overrideConflicts_) {
@@ -693,6 +1229,15 @@ void ModManager::removeMod(int modIndex_) {
     // Check if the installed mod belongs to the selected mod
     try {
       if( GenericToolbox::Switch::IO::doFilesAreIdentical( dstFilePath, srcFilePath ) ){
+        if( isRelativePathOwnedByActiveOtherMod(
+            _gameFolderPath_,
+            _modList_,
+            modPtr->modName,
+            this->fetchCurrentPreset().name,
+            this->fetchCurrentPreset().installBaseFolder,
+            file ) ){
+          continue;
+        }
 
         // Remove the mod file with multiple retries
         for( int retry = 0; retry < 5; ++retry ){
@@ -799,6 +1344,7 @@ void ModManager::scanInputs(u64 kDown, u64 kHeld){
       auto subAnswer = Selector::askQuestion("Do you which to recheck all mods ?", {{"Yes"}, {"No"}});
       if( subAnswer == "Yes"){
         this->resetAllModsCacheAndFile();
+        this->refreshOrphanInstalledModList();
         for( auto& mod : _modList_ ){ this->updateModStatus( mod.modName ); }
       }
     }

@@ -33,16 +33,19 @@ public:
 
   void startApplyModThread(const std::string& modName_);
   void startRemoveModThread(const std::string& modName_);
-  void startDeleteModFolderThread(const std::string& modName_);
+  bool startDeleteModFolderThread(const std::string& modName_);
+  bool startDeleteOrphanInstalledModsThread(const std::vector<std::string>& modNameList_);
   void startCheckAllModsThread();
   void startRemoveAllModsThread();
   void startApplyModPresetThread(const std::string &modPresetName_);
   bool isBackgroundTaskRunning() const;
+  bool canStartDeleteModFolderThread() const;
 
   void applyMod(const std::string &modName_);
   void applyModsList(std::vector<std::string>& modsList_);
   void removeMod(const std::string &modName_);
   bool deleteModFolderFromSd(const std::string &modName_);
+  bool deleteOrphanInstalledMods(const std::vector<std::string>& modNameList_);
   void removeAllMods();
   void checkAllMods(bool useCache_ = false);
   void getModStatus(const std::string &modName_, bool useCache_ = false);
@@ -52,10 +55,13 @@ protected:
   bool applyModPresetFunction(const std::string& presetName_);
   bool removeModFunction(const std::string& modName_);
   bool deleteModFolderFunction(const std::string& modName_);
+  bool deleteOrphanInstalledModsFunction(std::vector<std::string> modNameList_);
   bool checkAllModsFunction();
   bool removeAllModsFunction();
 
   void removeModInstalledFiles(const std::string &modName_, bool forceUnknownInstalledFiles_);
+  bool cleanupInstalledFilesByRelativePaths(const std::vector<std::string>& relativePathList_, const std::string& label_, bool allowCurrentSdOwnedFiles_);
+  bool deleteOrphanInstalledModsPass(const std::vector<std::string>& modNameList_, bool forceDelete_);
   bool leaveModAction(bool isSuccess_);
   void finishDeleteModFolderTask();
 
