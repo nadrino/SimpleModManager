@@ -1,5 +1,5 @@
 //
-// In-app import: USB MTP responder → sdmc:/mods
+// In-app import: USB MTP responder -> sdmc:/mods
 //
 
 #include "TabImportMod.h"
@@ -21,8 +21,7 @@ const char* kInstructionsEn =
     "to the \"mods\" folder (sdmc:/mods) while this tab is active.\n\n"
     "1. Connect the Switch to the PC with a data USB cable.\n"
     "2. Wait until the device appears in Explorer.\n"
-    "3. Open the device, then copy files/folders into the mods storage.\n"
-    "4. When finished, press A to stop MTP before leaving this tab.\n\n"
+    "3. Open the device, then copy files/folders into the mods storage.\n\n"
     "Press A to start/stop MTP.";
 
 } // namespace
@@ -73,7 +72,7 @@ void TabImportMod::refreshStatusLine() {
   if( _actionRow_ != nullptr ) {
     if( ModsMtpServer::isRunning() ) {
       _actionRow_->setLabel( "Stop MTP responder" );
-      _actionRow_->setDescription( "Press A after you finish copying on PC." );
+      _actionRow_->setDescription( "Press A to stop USB MTP mode." );
     }
     else {
       _actionRow_->setLabel( "Start MTP responder" );
