@@ -39,6 +39,7 @@ public:
   void printTerminal();
   void rebuildSelectorMenu();
   bool refreshGameList(bool force_ = false);
+  std::string refreshGameListTag(const std::string& gameName_);
 
   // utils -> move to gui lib??
   uint8_t* getFolderIcon(const std::string& gameFolder_);

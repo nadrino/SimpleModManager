@@ -224,63 +224,22 @@ void GuiModManager::getModStatus(const std::string &modName_, bool useCache_) {
   LogWarning << __METHOD_NAME__ << ": " << modName_ << ", with cache? " << useCache_ << std::endl;
   modCheckMonitor = ModCheckMonitor();
 
-  // (XX/XX) Files Applied
-  // ACTIVE
-  // INACTIVE
-  std::string result;
-
   auto& modManager = _gameBrowser_.getModManager();
-  int modIndex = modManager.getModIndex( modName_ );
+  const bool forceRecheck = !useCache_;
+  modCheckMonitor.currentFile = forceRecheck ? "Checking changed files..." : "Refreshing status cache...";
+  modCheckMonitor.progress = 0.5;
 
-  // entry valid?
-  if( modIndex == -1 ){ return; }
-
-  // cached?
-  std::string configPresetName{modManager.fetchCurrentPreset().name};
-  if( useCache_ and GenericToolbox::isIn(configPresetName, modManager.getModList()[modIndex].applyCache ) ){
-    LogDebug << configPresetName << ":" << modManager.getModList()[modIndex].modName << " CACHED: " << modManager.getModList()[modIndex].applyCache[configPresetName].statusStr << std::endl;
-    return;
+  auto result = modManager.refreshModStatus(modName_, forceRecheck);
+  if( result == ResultModAction::Fail ){
+    LogWarning << "Could not refresh mod status: " << modName_ << std::endl;
   }
 
-  // recheck?
-  auto& cacheEntry = modManager.getModList()[modIndex].applyCache[configPresetName];
-  std::string modPath = GenericToolbox::joinPath(modManager.getGameFolderPath(), modName_ );
-
-  int sameFileCount = 0;
-
-  modCheckMonitor.currentFile = "Listing mod files...";
-  std::vector<std::string> modFileList = GenericToolbox::lsFilesRecursive(modPath);
-
-  for( size_t iFile = 0 ; iFile < modFileList.size() ; iFile++ ){
-    LogReturnIf( _triggeredOnCancel_, "Cancel detected. Leaving " << __METHOD_NAME__ );
-
-    if( GenericToolbox::getFileName(modFileList[iFile])[0] == '.' ){
-      // ignoring cached files
-      continue;
-    }
-
-    std::string srcFilePath = GenericToolbox::joinPath(modPath, modFileList[iFile] );
-    std::string dstFilePath = GenericToolbox::joinPath(modManager.fetchCurrentPreset().installBaseFolder, modFileList[iFile] );
-
-    modCheckMonitor.currentFile = GenericToolbox::getFileName(modFileList[iFile]);
-    modCheckMonitor.progress = (double(iFile) + 1.) / double(modFileList.size());
-
-    if(GenericToolbox::Switch::IO::doFilesAreIdentical(
-        modManager.fetchCurrentPreset().installBaseFolder + "/" + modFileList[iFile],
-        srcFilePath
-    )){ sameFileCount++; }
-
+  int modIndex = modManager.getModIndex(modName_);
+  if( modIndex != -1 ){
+    const std::string configPresetName{modManager.fetchCurrentPreset().name};
+    LogInfo << modName_ << " -> " << modManager.getModList()[modIndex].getStatus(configPresetName) << std::endl;
   }
-
-  cacheEntry.applyFraction = double(sameFileCount) / double(modFileList.size());
-
-  if     ( modFileList.empty()           ) cacheEntry.statusStr = "NO FILE";
-  else if( cacheEntry.applyFraction == 0 ) cacheEntry.statusStr = "INACTIVE";
-  else if( cacheEntry.applyFraction == 1 ) cacheEntry.statusStr = "ACTIVE";
-  else cacheEntry.statusStr = "PARTIAL (" + GenericToolbox::joinAsString("/", sameFileCount, modFileList.size()) + ")";
-
-  LogInfo << modName_ << " -> " << cacheEntry.statusStr << std::endl;
-  modManager.dumpModStatusCache();
+  modCheckMonitor.progress = 1;
 }
 void GuiModManager::removeMod(const std::string &modName_){
   this->removeModInstalledFiles(modName_, false);

@@ -8,6 +8,7 @@
 
 
 #include "GenericToolbox.Macro.h"
+#include "GenericToolbox.String.h"
 #include "Logger.h"
 
 
@@ -366,7 +367,11 @@ void TabModBrowser::updateDisplayedModsStatus(){
 
     NVGcolor color;
     // processing color
-    if     ( frac == 0 ){
+    if( GenericToolbox::startsWith(statusStr, "PARTIAL") ){
+      // partial or conflicting files
+      color = GenericToolbox::Borealis::orangeNvgColor;
+    }
+    else if( frac == 0 ){
       // inactive/unchecked color
       color = GenericToolbox::Borealis::grayNvgColor;
     }
@@ -375,7 +380,7 @@ void TabModBrowser::updateDisplayedModsStatus(){
       color = nvgRGB(88, 195, 169);
     }
     else{
-      // partial color
+      // partial color fallback
       color = GenericToolbox::Borealis::orangeNvgColor;
     }
     _modItemList_[iMod].item->setValueActiveColor( color );

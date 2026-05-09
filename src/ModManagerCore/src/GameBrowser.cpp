@@ -30,6 +30,7 @@ struct GameSortEntry{
   std::string title{};
   std::string path{};
   size_t nMods{0};
+  ModStatusSummary modStatusSummary{};
 
   bool hasFirstModTimestamp{false};
   bool hasLastModTimestamp{false};
@@ -200,22 +201,47 @@ std::string formatPlaytime(u64 playtimeNs){
   return ss.str();
 }
 
-std::string formatModCount(size_t nMods){
-  return std::to_string(nMods) + " mod(s)";
+const PresetConfig& resolvePresetForGame(const std::string& gameFolderPath, const ConfigHolder& config){
+  static PresetConfig fallbackPreset{};
+  std::string presetName;
+  const std::string configFilePath = GenericToolbox::joinPath(gameFolderPath, "this_folder_config.txt");
+  if( GenericToolbox::isFile(configFilePath) ){
+    presetName = GenericToolbox::dumpFileAsString(configFilePath);
+    GenericToolbox::trimInputString(presetName, " \n\r\t");
+  }
+
+  if( !presetName.empty() ){
+    for( const auto& preset : config.presetList ){
+      if( preset.name == presetName ){
+        return preset;
+      }
+    }
+  }
+
+  if( !config.presetList.empty()
+      && config.selectedPresetIndex >= 0
+      && config.selectedPresetIndex < int(config.presetList.size()) ){
+    return config.presetList[config.selectedPresetIndex];
+  }
+
+  fallbackPreset.name = "default";
+  fallbackPreset.installBaseFolder = "/atmosphere";
+  return fallbackPreset;
 }
 
 std::string buildSortTag(const GameSortEntry& entry, const ConfigHolder& config){
+  const std::string statusSummary = ModManager::formatGameStatusSummary(entry.modStatusSummary);
   switch( config.sortGameList.value ){
     case ConfigHolder::SortGameList::GameLaunched:
-      return entry.hasPlayStats ? "Game launched: " + formatTimestamp(getSortValue(entry, config)) : "Never launched";
+      return statusSummary + " | " + (entry.hasPlayStats ? "Game launched: " + formatTimestamp(getSortValue(entry, config)) : "Never launched");
     case ConfigHolder::SortGameList::ModAdded:
-      return hasSortValue(entry, config) ? "Mod added: " + formatTimestamp(getSortValue(entry, config)) : "No mods";
+      return statusSummary + " | " + (hasSortValue(entry, config) ? "Mod added: " + formatTimestamp(getSortValue(entry, config)) : "No mods");
     case ConfigHolder::SortGameList::PlayTime:
-      return entry.hasPlayStats ? "Play time: " + formatPlaytime(entry.playtimeNs) : "No play data";
+      return statusSummary + " | " + (entry.hasPlayStats ? "Play time: " + formatPlaytime(entry.playtimeNs) : "No play data");
     case ConfigHolder::SortGameList::LaunchCount:
-      return entry.hasPlayStats ? "Launches: " + std::to_string(entry.launchCount) : "No launch data";
+      return statusSummary + " | " + (entry.hasPlayStats ? "Launches: " + std::to_string(entry.launchCount) : "No launch data");
     default:
-      return formatModCount(entry.nMods);
+      return statusSummary;
   }
 }
 
@@ -396,6 +422,36 @@ bool GameBrowser::refreshGameList(bool force_){
   return true;
 }
 
+std::string GameBrowser::refreshGameListTag(const std::string& gameName_){
+  if( gameName_.empty() ){
+    return {};
+  }
+
+  GameSortEntry entry;
+  entry.title = gameName_;
+  entry.path = GenericToolbox::joinPath(_configHandler_.getConfig().baseFolder, gameName_);
+  fillModTimestamps(entry);
+  const auto& preset = resolvePresetForGame(entry.path, _configHandler_.getConfig());
+  entry.modStatusSummary = ModManager::readGameStatusSummary(entry.path, preset.name);
+
+  const bool needsPlayStats = sortNeedsPlayStats(_configHandler_.getConfig().sortGameList);
+  const bool playStatsReady = not needsPlayStats or R_SUCCEEDED(pdmqryInitialize());
+  if( needsPlayStats and playStatsReady ){
+    fillPlayStats(entry);
+    pdmqryExit();
+  }
+
+  const std::string tag = buildSortTag(entry, _configHandler_.getConfig());
+  for( size_t iEntry = 0; iEntry < _selector_.getEntryList().size(); ++iEntry ){
+    if( _selector_.getEntryList()[iEntry].title == gameName_ ){
+      _selector_.setTag(iEntry, tag);
+      break;
+    }
+  }
+
+  return tag;
+}
+
 uint8_t* GameBrowser::getFolderIcon(const std::string& gameFolder_){
   if( _isGameSelected_ ){ return nullptr; }
   std::string game_folder_path = _configHandler_.getConfig().baseFolder + "/" + gameFolder_;
@@ -422,6 +478,8 @@ void GameBrowser::init(){
     visibleGameList.back().title = game;
     visibleGameList.back().path = gameFolderPath;
     fillModTimestamps(visibleGameList.back());
+    const auto& preset = resolvePresetForGame(gameFolderPath, _configHandler_.getConfig());
+    visibleGameList.back().modStatusSummary = ModManager::readGameStatusSummary(gameFolderPath, preset.name);
     if( needsPlayStats and playStatsReady ){
       fillPlayStats(visibleGameList.back());
     }
@@ -444,6 +502,7 @@ void GameBrowser::init(){
 std::string GameBrowser::buildGameListSignature() const{
   std::stringstream ss;
   ss << _configHandler_.getConfig().baseFolder << "|";
+  ss << _configHandler_.getConfig().getCurrentPresetName() << "|";
   ss << _configHandler_.getConfig().sortGameList.toString() << "|";
   ss << _configHandler_.getConfig().sortGameListDirection.toString() << "|";
 
@@ -456,6 +515,16 @@ std::string GameBrowser::buildGameListSignature() const{
     const auto gameMtime = stat(gameFolderPath.c_str(), &gameStat) == 0 ? gameStat.st_mtime : 0;
 
     ss << game << ":" << gameMtime << ":";
+    const std::string cacheFilePath = GenericToolbox::joinPath(gameFolderPath, "mods_status_cache.txt");
+    struct stat cacheStat{};
+    if( stat(cacheFilePath.c_str(), &cacheStat) == 0 ){
+      ss << "cache=" << cacheStat.st_mtime << ":" << cacheStat.st_size << ":";
+    }
+    const std::string customPresetPath = GenericToolbox::joinPath(gameFolderPath, "this_folder_config.txt");
+    struct stat customPresetStat{};
+    if( stat(customPresetPath.c_str(), &customPresetStat) == 0 ){
+      ss << "custom=" << customPresetStat.st_mtime << ":" << customPresetStat.st_size << ":";
+    }
 
     auto modList = GenericToolbox::lsDirs(gameFolderPath);
     std::sort(modList.begin(), modList.end());

@@ -13,6 +13,218 @@
 
 #include <iostream>
 #include <sstream>
+#include <algorithm>
+#include <cctype>
+#include <cstdlib>
+#include <sys/stat.h>
+
+namespace {
+
+constexpr const char* kModStatusCacheFileName = "mods_status_cache.txt";
+constexpr const char* kModStatusCacheVersion = "# SimpleModManager mod status cache v2";
+
+struct FileStamp{
+  bool exists{false};
+  long long size{-1};
+  long long mtime{0};
+};
+
+std::string getStatusCachePath(const std::string& gameFolderPath){
+  return GenericToolbox::joinPath(gameFolderPath, kModStatusCacheFileName);
+}
+
+FileStamp getFileStamp(const std::string& path){
+  struct stat st{};
+  if( stat(path.c_str(), &st) != 0 ){
+    return {};
+  }
+  if( !S_ISREG(st.st_mode) ){
+    return {};
+  }
+
+  FileStamp out;
+  out.exists = true;
+  out.size = static_cast<long long>(st.st_size);
+  out.mtime = static_cast<long long>(st.st_mtime);
+  return out;
+}
+
+long long parseLongLong(const std::string& value, long long fallback = 0){
+  try { return std::stoll(value); }
+  catch(...) { return fallback; }
+}
+
+size_t parseSizeT(const std::string& value, size_t fallback = 0){
+  try { return static_cast<size_t>(std::stoull(value)); }
+  catch(...) { return fallback; }
+}
+
+double parseDouble(const std::string& value, double fallback = 0){
+  try { return std::stod(value); }
+  catch(...) { return fallback; }
+}
+
+bool isManagedStatusFile(const std::string& relativePath){
+  const std::string fileName = GenericToolbox::getFileName(relativePath);
+  return !fileName.empty() && fileName[0] == '.';
+}
+
+std::string normalizeStatusState(std::string state){
+  std::transform(state.begin(), state.end(), state.begin(), [](unsigned char c){
+    return static_cast<char>(std::toupper(c));
+  });
+  if( state == "MATCH" || state == "MATCHING" || state == "ACTIVE" ){
+    return "MATCHING";
+  }
+  if( state == "DIFF" || state == "DIFFERENT" || state == "PARTIAL" ){
+    return "DIFFERENT";
+  }
+  if( state == "MISS" || state == "MISSING" || state == "INACTIVE" ){
+    return "MISSING";
+  }
+  return "MISSING";
+}
+
+void rebuildStatusString(ApplyCache& cache){
+  if( cache.totalFiles == 0 ){
+    cache.applyFraction = 0;
+    cache.statusStr = "NO FILE";
+    return;
+  }
+
+  cache.applyFraction = double(cache.matchingFiles) / double(cache.totalFiles);
+
+  if( cache.matchingFiles == cache.totalFiles ){
+    cache.statusStr = "ACTIVE";
+  }
+  else if( cache.matchingFiles == 0 ){
+    cache.statusStr = "INACTIVE";
+  }
+  else{
+    cache.statusStr = "PARTIAL (" + std::to_string(cache.matchingFiles)
+        + "/" + std::to_string(cache.totalFiles) + ")";
+  }
+}
+
+bool canReuseCachedFileStatus(
+    const ModFileStatusCache& previous,
+    const FileStamp& sourceStamp,
+    const FileStamp& destinationStamp ){
+  if( !sourceStamp.exists ){
+    return false;
+  }
+  if( previous.sourceSize != sourceStamp.size || previous.sourceMtime != sourceStamp.mtime ){
+    return false;
+  }
+  if( previous.destinationExists != destinationStamp.exists ){
+    return false;
+  }
+  if( destinationStamp.exists ){
+    return previous.destinationSize == destinationStamp.size
+        && previous.destinationMtime == destinationStamp.mtime;
+  }
+  return true;
+}
+
+std::string classifyFileStatus(
+    const std::string& sourcePath,
+    const std::string& destinationPath,
+    const FileStamp& sourceStamp,
+    const FileStamp& destinationStamp ){
+  if( !sourceStamp.exists || !destinationStamp.exists ){
+    return "MISSING";
+  }
+  if( sourceStamp.size != destinationStamp.size ){
+    return "DIFFERENT";
+  }
+  try {
+    return GenericToolbox::Switch::IO::doFilesAreIdentical(destinationPath, sourcePath) ? "MATCHING" : "DIFFERENT";
+  }
+  catch(...) {
+    return "DIFFERENT";
+  }
+}
+
+std::vector<std::string> listVisibleModFiles(const std::string& modFolderPath){
+  std::vector<std::string> files;
+  try {
+    files = GenericToolbox::lsFilesRecursive(modFolderPath);
+  }
+  catch(...) {
+    files.clear();
+  }
+  GenericToolbox::removeEntryIf(files, [](const std::string& file){
+    return isManagedStatusFile(file);
+  });
+  std::sort(files.begin(), files.end());
+  return files;
+}
+
+void countCacheState(ApplyCache& cache, const std::string& state){
+  if( state == "MATCHING" ){
+    cache.matchingFiles++;
+  }
+  else if( state == "DIFFERENT" ){
+    cache.differentFiles++;
+  }
+  else{
+    cache.missingFiles++;
+  }
+}
+
+void addSummaryLine(
+    std::stringstream& ss,
+    const std::string& preset,
+    const std::string& modName,
+    const ApplyCache& cache ){
+  ss << "summary\t" << preset
+     << "\t" << modName
+     << "\t" << cache.statusStr
+     << "\t" << cache.applyFraction
+     << "\t" << cache.totalFiles
+     << "\t" << cache.matchingFiles
+     << "\t" << cache.differentFiles
+     << "\t" << cache.missingFiles
+     << std::endl;
+}
+
+void addFileLine(
+    std::stringstream& ss,
+    const std::string& preset,
+    const std::string& modName,
+    const std::string& relativePath,
+    const ModFileStatusCache& fileCache ){
+  ss << "file\t" << preset
+     << "\t" << modName
+     << "\t" << relativePath
+     << "\t" << fileCache.state
+     << "\t" << fileCache.sourceSize
+     << "\t" << fileCache.sourceMtime
+     << "\t" << (fileCache.destinationExists ? 1 : 0)
+     << "\t" << fileCache.destinationSize
+     << "\t" << fileCache.destinationMtime
+     << std::endl;
+}
+
+void classifySummaryStatus(ModStatusSummary& summary, const std::string& status){
+  if( status == "ACTIVE" ){
+    summary.activeMods++;
+  }
+  else if( status == "INACTIVE" ){
+    summary.inactiveMods++;
+  }
+  else if( GenericToolbox::startsWith(status, "PARTIAL") ){
+    summary.partialMods++;
+  }
+  else if( status == "NO FILE" ){
+    summary.noFileMods++;
+  }
+  else{
+    summary.uncheckedMods++;
+  }
+}
+
+} // namespace
 
 
 ModManager::ModManager(GameBrowser* owner_) : _owner_(owner_) {}
@@ -80,8 +292,10 @@ void ModManager::updateModList() {
   _modList_.clear(); _modList_.reserve( folderList.size() );
   for( auto& folder : folderList ){ _modList_.emplace_back( folder ); }
 
-  // reload .txt cache
+  // reload and refresh the status cache. Valid entries are reused through file stats,
+  // stale entries are checked once and written back.
   this->reloadModStatusCache();
+  this->refreshAllModStatusCache(false);
 
   // reset the selector
   _selector_ = Selector();
@@ -95,20 +309,22 @@ void ModManager::updateModList() {
 }
 void ModManager::dumpModStatusCache() {
   std::stringstream ss;
+  ss << kModStatusCacheVersion << std::endl;
 
   for( auto& mod : _modList_ ){
     for( auto& presetCache : mod.applyCache ){
-      ss << presetCache.first << ": " << mod.modName
-      << " = " << presetCache.second.statusStr
-      << " = " << presetCache.second.applyFraction << std::endl;
+      addSummaryLine(ss, presetCache.first, mod.modName, presetCache.second);
+      for( const auto& fileCache : presetCache.second.fileStatusCache ){
+        addFileLine(ss, presetCache.first, mod.modName, fileCache.first, fileCache.second);
+      }
     }
   }
 
-  std::string cacheFilePath = _gameFolderPath_ + "/mods_status_cache.txt";
+  std::string cacheFilePath = getStatusCachePath(_gameFolderPath_);
   GenericToolbox::dumpStringInFile(cacheFilePath, ss.str());
 }
 void ModManager::reloadModStatusCache(){
-  std::string cacheFilePath = _gameFolderPath_ + "/mods_status_cache.txt";
+  std::string cacheFilePath = getStatusCachePath(_gameFolderPath_);
   if( not GenericToolbox::isFile(cacheFilePath) ) return;
 
   auto lines = GenericToolbox::dumpFileAsVectorString( cacheFilePath );
@@ -116,6 +332,43 @@ void ModManager::reloadModStatusCache(){
     GenericToolbox::trimInputString(line, " ");
 
     if( GenericToolbox::startsWith(line, "#") ) continue;
+
+    auto tabElements = GenericToolbox::splitString(line, "\t");
+    if( tabElements.size() >= 9 && tabElements[0] == "summary" ){
+      const std::string& preset = tabElements[1];
+      const std::string& modName = tabElements[2];
+
+      int modIndex = this->getModIndex( modName );
+      if( modIndex == -1 ) continue;
+
+      auto& cache = _modList_[modIndex].applyCache[preset];
+      cache.statusStr = tabElements[3];
+      cache.applyFraction = parseDouble(tabElements[4]);
+      cache.totalFiles = parseSizeT(tabElements[5]);
+      cache.matchingFiles = parseSizeT(tabElements[6]);
+      cache.differentFiles = parseSizeT(tabElements[7]);
+      cache.missingFiles = parseSizeT(tabElements[8]);
+      continue;
+    }
+
+    if( tabElements.size() >= 10 && tabElements[0] == "file" ){
+      const std::string& preset = tabElements[1];
+      const std::string& modName = tabElements[2];
+      const std::string& relativePath = tabElements[3];
+
+      int modIndex = this->getModIndex( modName );
+      if( modIndex == -1 ) continue;
+
+      ModFileStatusCache fileCache;
+      fileCache.state = normalizeStatusState(tabElements[4]);
+      fileCache.sourceSize = parseLongLong(tabElements[5], -1);
+      fileCache.sourceMtime = parseLongLong(tabElements[6]);
+      fileCache.destinationExists = parseLongLong(tabElements[7]) != 0;
+      fileCache.destinationSize = parseLongLong(tabElements[8], -1);
+      fileCache.destinationMtime = parseLongLong(tabElements[9]);
+      _modList_[modIndex].applyCache[preset].fileStatusCache[relativePath] = fileCache;
+      continue;
+    }
 
     auto elements = GenericToolbox::splitString(line, "=");
     if( elements.size() < 2 ) continue;
@@ -130,18 +383,22 @@ void ModManager::reloadModStatusCache(){
     if( modIndex == -1 ) continue;
     auto* modEntryPtr = &_modList_[modIndex];
 
-    modEntryPtr->applyCache[presetModName[0]].statusStr = elements[1];
+    auto& cache = modEntryPtr->applyCache[presetModName[0]];
+    cache.statusStr = elements[1];
 
     // v < 1.5.0
     if( elements.size() < 3 ){ continue; }
 
     // v >= 1.5.0
-    modEntryPtr->applyCache[presetModName[0]].applyFraction = std::stod( elements[2] );
+    cache.applyFraction = parseDouble( elements[2] );
   }
 }
 void ModManager::resetAllModsCacheAndFile(){
-  GenericToolbox::rm(_gameFolderPath_ + "/mods_status_cache.txt");
-  this->updateModList();
+  GenericToolbox::rm(getStatusCachePath(_gameFolderPath_));
+  for( auto& mod : _modList_ ){
+    mod = ModEntry(mod.modName);
+  }
+  _selector_.clearTags();
 }
 
 // mod management
@@ -157,23 +414,28 @@ void ModManager::resetModCache(const std::string &modName_){
   this->resetModCache( this->getModIndex(modName_) );
 }
 
-ResultModAction ModManager::updateModStatus(int modIndex_){
+ResultModAction ModManager::updateModStatusInternal(int modIndex_, bool forceRecheck_, bool showTerminalProgress_, bool dumpCache_){
   if( modIndex_ < 0 or modIndex_ >= int( _modList_.size() ) ) return Fail;
   auto* modPtr = &_modList_[modIndex_];
   if( modPtr == nullptr ) return Fail;
 
-  GenericToolbox::Switch::Terminal::printLeft("Checking : " + modPtr->modName, GenericToolbox::ColorCodes::magentaBackground);
-  consoleUpdate(nullptr);
+  if( showTerminalProgress_ ){
+    GenericToolbox::Switch::Terminal::printLeft("Checking : " + modPtr->modName, GenericToolbox::ColorCodes::magentaBackground);
+    consoleUpdate(nullptr);
+  }
 
   std::string modFolderPath = _gameFolderPath_ + "/" + modPtr->modName;
-  auto filesList = GenericToolbox::lsFilesRecursive( modFolderPath );
+  auto filesList = listVisibleModFiles( modFolderPath );
 
 
   PadState pad;
   padInitializeAny(&pad);
 
-  size_t nSameFiles{0};
-  size_t nIgnoredFiles{0};
+  const std::string presetName = this->fetchCurrentPreset().name;
+  ApplyCache previousCache = modPtr->applyCache[presetName];
+  ApplyCache refreshedCache;
+  refreshedCache.totalFiles = filesList.size();
+
   size_t iFile{0};
   for( auto& file : filesList ){
 
@@ -183,49 +445,81 @@ ResultModAction ModManager::updateModStatus(int modIndex_){
       if( kDown & HidNpadButton_B ) return Abort;
     }
 
-    if( _ignoreCacheFiles_ and GenericToolbox::startsWith(GenericToolbox::getFileName(file), ".") ) {
-      nIgnoredFiles++; continue;
-    }
-
     std::string installedPathCandidate{this->fetchCurrentPreset().installBaseFolder};
     installedPathCandidate += "/" + file;
 
     std::string modFilePath{modFolderPath};
     modFilePath += "/" + file;
 
-    std::stringstream ssPbar;
-    ssPbar << "Checking : (" << iFile+1 << "/" << filesList.size() << ") " << GenericToolbox::getFileName(file);
-    GenericToolbox::Switch::Terminal::displayProgressBar( iFile++, filesList.size(), ssPbar.str() );
-
-    if( GenericToolbox::Switch::IO::doFilesAreIdentical( installedPathCandidate, modFilePath ) ){
-      nSameFiles++;
+    if( showTerminalProgress_ ){
+      std::stringstream ssPbar;
+      ssPbar << "Checking : (" << iFile+1 << "/" << filesList.size() << ") " << GenericToolbox::getFileName(file);
+      GenericToolbox::Switch::Terminal::displayProgressBar( iFile, filesList.size(), ssPbar.str() );
     }
+    iFile++;
+
+    const FileStamp sourceStamp = getFileStamp(modFilePath);
+    const FileStamp destinationStamp = getFileStamp(installedPathCandidate);
+
+    ModFileStatusCache fileCache;
+    auto previousFileIt = previousCache.fileStatusCache.find(file);
+    if( !forceRecheck_
+        && previousFileIt != previousCache.fileStatusCache.end()
+        && canReuseCachedFileStatus(previousFileIt->second, sourceStamp, destinationStamp) ){
+      fileCache = previousFileIt->second;
+    }
+    else{
+      fileCache.state = classifyFileStatus(modFilePath, installedPathCandidate, sourceStamp, destinationStamp);
+      fileCache.sourceSize = sourceStamp.size;
+      fileCache.sourceMtime = sourceStamp.mtime;
+      fileCache.destinationExists = destinationStamp.exists;
+      fileCache.destinationSize = destinationStamp.size;
+      fileCache.destinationMtime = destinationStamp.mtime;
+    }
+
+    fileCache.state = normalizeStatusState(fileCache.state);
+    refreshedCache.fileStatusCache[file] = fileCache;
+    countCacheState(refreshedCache, fileCache.state);
   }
 
-  // (XX/XX) Files Applied
-  // ACTIVE
-  // INACTIVE
-  modPtr->applyCache[this->fetchCurrentPreset().name].applyFraction = double(nSameFiles) / double(filesList.size() - nIgnoredFiles);
-  if     ( filesList.empty() )         { modPtr->applyCache[this->fetchCurrentPreset().name].statusStr = "NO FILE"; }
-  else if( modPtr->applyCache[this->fetchCurrentPreset().name].applyFraction == 0 ){ modPtr->applyCache[this->fetchCurrentPreset().name].statusStr = "INACTIVE"; }
-  else if( modPtr->applyCache[this->fetchCurrentPreset().name].applyFraction == 1 ){ modPtr->applyCache[this->fetchCurrentPreset().name].statusStr = "ACTIVE"; }
-  else{
-    std::stringstream ss;
-    ss << "PARTIAL (" << nSameFiles << "/" << filesList.size() - nIgnoredFiles << ")";
-    modPtr->applyCache[this->fetchCurrentPreset().name].statusStr = ss.str();
-  }
+  rebuildStatusString(refreshedCache);
+  modPtr->applyCache[presetName] = refreshedCache;
 
   // update selector
-  _selector_.setTag(modIndex_, modPtr->applyCache[this->fetchCurrentPreset().name].statusStr);
+  if( modIndex_ >= 0 and modIndex_ < int(_selector_.getEntryList().size()) ){
+    _selector_.setTag(modIndex_, modPtr->applyCache[presetName].statusStr);
+  }
 
-  // immediately save
-  this->dumpModStatusCache();
+  if( dumpCache_ ){
+    this->dumpModStatusCache();
+  }
 
   return Success;
+}
+
+ResultModAction ModManager::refreshModStatus(int modIndex_, bool forceRecheck_){
+  return this->updateModStatusInternal(modIndex_, forceRecheck_, false, true);
+}
+
+ResultModAction ModManager::refreshModStatus(const std::string& modName_, bool forceRecheck_){
+  return this->refreshModStatus( this->getModIndex(modName_), forceRecheck_ );
+}
+
+ResultModAction ModManager::updateModStatus(int modIndex_){
+  return this->updateModStatusInternal(modIndex_, true, true, true);
 }
 ResultModAction ModManager::updateModStatus(const std::string& modName_){
   return this->updateModStatus( this->getModIndex(modName_) );
 }
+
+void ModManager::refreshAllModStatusCache(bool forceRecheck_){
+  for(size_t iMod = 0 ; iMod < _modList_.size() ; iMod++ ){
+    this->updateModStatusInternal( int(iMod), forceRecheck_, false, false );
+  }
+
+  this->dumpModStatusCache();
+}
+
 ResultModAction ModManager::updateAllModStatus(){
   _selector_.clearTags();
 
@@ -247,10 +541,11 @@ ResultModAction ModManager::updateAllModStatus(){
     ss << _selector_.getEntryList()[iMod].title << "...";
     GenericToolbox::Switch::Terminal::printLeft(ss.str(), GenericToolbox::ColorCodes::magentaBackground);
     consoleUpdate(nullptr);
-    auto result = this->updateModStatus( _selector_.getEntryList()[iMod].title );
+    auto result = this->updateModStatusInternal( int(iMod), true, true, false );
     if( result == Abort ) return result;
   }
 
+  this->dumpModStatusCache();
   return Success;
 }
 
@@ -790,6 +1085,92 @@ int ModManager::getModIndex(const std::string& modName_){
   return GenericToolbox::findElementIndex(modName_, _modList_, [](const ModEntry& mod_){ return mod_.modName; } );
 }
 
+ModStatusSummary ModManager::readGameStatusSummary(
+    const std::string& gameFolderPath_,
+    const std::string& presetName_ ){
+  ModStatusSummary summary;
+
+  std::vector<std::string> modDirs;
+  try {
+    modDirs = GenericToolbox::lsDirs(gameFolderPath_);
+  }
+  catch(...) {
+    modDirs.clear();
+  }
+  GenericToolbox::removeEntryIf(modDirs, [](const std::string& entry){ return entry == ".plugins"; });
+  summary.totalMods = modDirs.size();
+
+  std::map<std::string, std::string> cachedStatusByMod;
+  const std::string cacheFilePath = getStatusCachePath(gameFolderPath_);
+  if( GenericToolbox::isFile(cacheFilePath) ){
+    auto lines = GenericToolbox::dumpFileAsVectorString(cacheFilePath);
+    for( auto& line : lines ){
+      GenericToolbox::trimInputString(line, " ");
+      if( line.empty() || GenericToolbox::startsWith(line, "#") ){
+        continue;
+      }
+
+      auto tabElements = GenericToolbox::splitString(line, "\t");
+      if( tabElements.size() >= 4 && tabElements[0] == "summary" ){
+        if( tabElements[1] == presetName_ ){
+          cachedStatusByMod[tabElements[2]] = tabElements[3];
+        }
+        continue;
+      }
+
+      auto elements = GenericToolbox::splitString(line, "=");
+      if( elements.size() < 2 ){
+        continue;
+      }
+      for( auto& element : elements ){ GenericToolbox::trimInputString(element, " "); }
+
+      auto presetModName = GenericToolbox::splitString(elements[0], ":");
+      if( presetModName.size() != 2 ){
+        continue;
+      }
+      for( auto& element : presetModName ){ GenericToolbox::trimInputString(element, " "); }
+      if( presetModName[0] == presetName_ ){
+        cachedStatusByMod[presetModName[1]] = elements[1];
+      }
+    }
+  }
+
+  for( const auto& modName : modDirs ){
+    auto it = cachedStatusByMod.find(modName);
+    if( it == cachedStatusByMod.end() ){
+      summary.uncheckedMods++;
+      continue;
+    }
+    classifySummaryStatus(summary, it->second);
+  }
+
+  return summary;
+}
+
+std::string ModManager::formatGameStatusSummary(const ModStatusSummary& summary_){
+  if( summary_.totalMods == 0 ){
+    return "0 mods";
+  }
+
+  std::stringstream ss;
+  ss << summary_.totalMods << " mod" << (summary_.totalMods == 1 ? "" : "s");
+
+  const size_t knownMods = summary_.activeMods + summary_.partialMods + summary_.inactiveMods + summary_.noFileMods;
+  if( knownMods == 0 ){
+    return ss.str();
+  }
+
+  ss << " | " << summary_.activeMods << " active"
+     << " / " << summary_.partialMods << " partial"
+     << " / " << summary_.inactiveMods << " inactive";
+
+  if( summary_.noFileMods > 0 ){
+    ss << " / " << summary_.noFileMods << " empty";
+  }
+
+  return ss.str();
+}
+
 
 void ModManager::reloadCustomPreset(){
   std::string configFilePath = _gameFolderPath_ + "/this_folder_config.txt";
@@ -818,7 +1199,3 @@ const PresetConfig &ModManager::fetchCurrentPreset() const {
 const std::string &ModManager::getCurrentPresetName() const {
   return _currentPresetName_;
 }
-
-
-
-
