@@ -24,6 +24,9 @@ public:
   explicit TabModBrowser(FrameModBrowser* owner_);
 
   void updateDisplayedModsStatus();
+  void removeDisplayedMod(const std::string& modName_);
+  void removeDisplayedMod(brls::ListItem* item_);
+  void rebuildUiFromSd(const std::string& focusModName_ = "");
 
   void draw(NVGcontext* vg, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* ctx) override;
 
@@ -32,6 +35,10 @@ public:
 private:
   FrameModBrowser* _owner_{nullptr};
   std::vector<ModItem> _modItemList_{};
+  std::string _focusModNameAfterDelete_{};
+
+  [[nodiscard]] std::string getFocusTargetBeforeDelete(const std::string& modName_) const;
+  void resyncListItemFocusIndices();
 };
 
 

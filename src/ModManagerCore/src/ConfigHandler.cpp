@@ -37,6 +37,7 @@ void ConfigHandler::loadConfig(const std::string &configFilePath_) {
   }
 
   std::string lastUsedPresetName{"default"};
+  bool sortGameListDirectionWasRead{false};
 
   if( not GenericToolbox::isFile(config.configFilePath) ){
     // immediately dump the default config to the file
@@ -65,8 +66,41 @@ void ConfigHandler::loadConfig(const std::string &configFilePath_) {
     if     ( elements[0] == "use-gui" ){
       config.useGui = GenericToolbox::toBool( elements[1] );
     }
+    else if( elements[0] == "show-debug-mtp-files" ){
+      config.showDebugMtpFiles = GenericToolbox::toBool( elements[1] );
+    }
     else if( elements[0] == "sort-game-list-by" ){
-      config.sortGameList = ConfigHolder::SortGameList::toEnum( elements[1] );
+      if( elements[1] == "LastPlayed" ){
+        config.sortGameList = ConfigHolder::SortGameList::GameLaunched;
+        if( not sortGameListDirectionWasRead ){
+          config.sortGameListDirection = ConfigHolder::SortGameListDirection::Descending;
+        }
+      }
+      else if( elements[1] == "FirstPlayed" ){
+        config.sortGameList = ConfigHolder::SortGameList::GameLaunched;
+        if( not sortGameListDirectionWasRead ){
+          config.sortGameListDirection = ConfigHolder::SortGameListDirection::Ascending;
+        }
+      }
+      else if( elements[1] == "LastModAdded" ){
+        config.sortGameList = ConfigHolder::SortGameList::ModAdded;
+        if( not sortGameListDirectionWasRead ){
+          config.sortGameListDirection = ConfigHolder::SortGameListDirection::Descending;
+        }
+      }
+      else if( elements[1] == "FirstModAdded" ){
+        config.sortGameList = ConfigHolder::SortGameList::ModAdded;
+        if( not sortGameListDirectionWasRead ){
+          config.sortGameListDirection = ConfigHolder::SortGameListDirection::Ascending;
+        }
+      }
+      else {
+        config.sortGameList = ConfigHolder::SortGameList::toEnum( elements[1] );
+      }
+    }
+    else if( elements[0] == "sort-game-list-direction" ){
+      config.sortGameListDirection = ConfigHolder::SortGameListDirection::toEnum( elements[1] );
+      sortGameListDirectionWasRead = true;
     }
     else if( elements[0] == "stored-mods-base-folder" ){
       config.baseFolder = elements[1];
@@ -110,7 +144,9 @@ void ConfigHandler::dumpConfigToFile() const {
   ssConfig << "# folder where mods are stored" << std::endl;
   ssConfig << "stored-mods-base-folder = " << _config_.baseFolder << std::endl;
   ssConfig << "use-gui = " << _config_.useGui << std::endl;
+  ssConfig << "show-debug-mtp-files = " << _config_.showDebugMtpFiles << std::endl;
   ssConfig << "sort-game-list-by = " << _config_.sortGameList.toString() << std::endl;
+  ssConfig << "sort-game-list-direction = " << _config_.sortGameListDirection.toString() << std::endl;
   ssConfig << "last-preset-used = " << _config_.getCurrentPresetName() << std::endl;
   ssConfig << std::endl;
   ssConfig << std::endl;
@@ -152,7 +188,4 @@ void ConfigHandler::selectNextPreset(){
 void ConfigHandler::selectPreviousPreset(){
   _config_.setSelectedPresetIndex( _config_.selectedPresetIndex - 1 );
 }
-
-
-
 

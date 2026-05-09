@@ -15,6 +15,7 @@ class FrameRoot : public brls::TabFrame {
 public:
   FrameRoot();
 
+  void draw(NVGcontext* vg, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* ctx) override;
   bool onCancel() override;
 
   const GuiModManager &getGuiModManager() const { return _guiModManager_; }

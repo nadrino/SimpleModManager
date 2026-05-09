@@ -22,6 +22,7 @@ class FrameModBrowser : public brls::TabFrame {
 
 public:
   explicit FrameModBrowser(GuiModManager* guiModManagerPtr_);
+  void draw(NVGcontext* vg, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* ctx) override;
   bool onCancel() override;
 
   uint8_t *getIcon();

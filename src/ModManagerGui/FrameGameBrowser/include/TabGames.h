@@ -23,6 +23,9 @@ class TabGames : public brls::List {
 public:
   explicit TabGames(FrameRoot* owner_);
 
+  void rebuildLayout(bool force_ = false);
+  void willAppear(bool resetState = false) override;
+
   // non native getters
   [[nodiscard]] const GameBrowser& getGameBrowser() const;
   [[nodiscard]] const ConfigHolder& getConfig() const;
@@ -33,6 +36,8 @@ public:
 private:
   FrameRoot* _owner_{};
   std::vector<GameItem> _gameList_;
+  bool _hasAppearedOnce_{false};
+  bool _layoutBuilt_{false};
 
 };
 

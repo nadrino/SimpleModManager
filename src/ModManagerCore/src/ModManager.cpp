@@ -66,7 +66,15 @@ ConfigHolder& ModManager::getConfig(){
 
 void ModManager::updateModList() {
   // list folders
-  auto folderList = GenericToolbox::lsDirs(_gameFolderPath_);
+  std::vector<std::string> folderList;
+  try {
+    if( GenericToolbox::isDir(_gameFolderPath_) ){
+      folderList = GenericToolbox::lsDirs(_gameFolderPath_);
+    }
+  }
+  catch(...) {
+    folderList.clear();
+  }
   GenericToolbox::removeEntryIf(folderList, [](const std::string& entry_){ return entry_ == ".plugins"; });
 
   _modList_.clear(); _modList_.reserve( folderList.size() );
@@ -388,19 +396,65 @@ void ModManager::removeMod(int modIndex_) {
     );
 
     // Check if the installed mod belongs to the selected mod
-    if( GenericToolbox::Switch::IO::doFilesAreIdentical( dstFilePath, srcFilePath ) ){
+    try {
+      if( GenericToolbox::Switch::IO::doFilesAreIdentical( dstFilePath, srcFilePath ) ){
 
-      // Remove the mod file
-      GenericToolbox::rm( dstFilePath );
+        // Remove the mod file with multiple retries
+        for( int retry = 0; retry < 5; ++retry ){
+          try {
+            GenericToolbox::rm( dstFilePath );
+            break; // Success, exit retry loop
+          } catch (...) {
+            // Retry with delay
+            if( retry < 4 ){
+              svcSleepThread(50000000); // 50ms delay between retries
+            }
+          }
+        }
 
-      // Delete the folder if no other files is present
-      std::string emptyFolderCandidate = GenericToolbox::getFolderPath(dstFilePath );
-      while( GenericToolbox::isDirEmpty( emptyFolderCandidate ) ) {
-        if( emptyFolderCandidate.empty() ) break;
-        GenericToolbox::rmDir( emptyFolderCandidate );
-        emptyFolderCandidate = GenericToolbox::getFolderPath( emptyFolderCandidate );
+        // Delete the folder if no other files is present
+        std::string emptyFolderCandidate = GenericToolbox::getFolderPath(dstFilePath );
+        int safetyCounter = 0;
+        while( GenericToolbox::isDirEmpty( emptyFolderCandidate ) ) {
+          if( emptyFolderCandidate.empty() ) break;
+
+          // Safety check to prevent deleting system folders
+          std::string installBase = this->fetchCurrentPreset().installBaseFolder;
+          if( emptyFolderCandidate.find(installBase) != 0 ) break;
+          if( emptyFolderCandidate == installBase ) break;
+
+          // Safety counter to prevent infinite loops
+          if( safetyCounter++ > 50 ) break;
+
+          // Delete directory with retries
+          for( int retry = 0; retry < 3; ++retry ){
+            try {
+              GenericToolbox::rmDir( emptyFolderCandidate );
+              break; // Success, exit retry loop
+            } catch (...) {
+              // Retry with delay
+              if( retry < 2 ){
+                svcSleepThread(100000000); // 100ms delay between retries
+              } else {
+                // Max retries reached, break the while loop
+                goto folder_cleanup_done;
+              }
+            }
+          }
+
+          // Longer delay to prevent filesystem issues
+          svcSleepThread(20000000); // 20ms delay
+
+          emptyFolderCandidate = GenericToolbox::getFolderPath( emptyFolderCandidate );
+        }
+        folder_cleanup_done:;
       }
+    } catch (...) {
+      // Ignore all errors in the comparison and deletion process to prevent crashes
     }
+
+    // Small delay between file deletions to prevent filesystem overload
+    svcSleepThread(10000000); // 10ms delay
   }
 
   this->resetModCache( modPtr->modName );
@@ -764,8 +818,6 @@ const PresetConfig &ModManager::fetchCurrentPreset() const {
 const std::string &ModManager::getCurrentPresetName() const {
   return _currentPresetName_;
 }
-
-
 
 
 

@@ -13,6 +13,7 @@
 
 #include <string>
 #include <future>
+#include <atomic>
 
 
 class GuiModManager {
@@ -22,21 +23,26 @@ public:
 
   // setters
   void setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDisplayedStatus);
+  void setTriggerRebuildModBrowser(bool triggerRebuildModBrowser);
 
   // getters
   [[nodiscard]] bool isTriggerUpdateModsDisplayedStatus() const;
+  [[nodiscard]] bool isTriggerRebuildModBrowser() const;
   const GameBrowser &getGameBrowser() const;
   GameBrowser &getGameBrowser();
 
   void startApplyModThread(const std::string& modName_);
   void startRemoveModThread(const std::string& modName_);
+  void startDeleteModFolderThread(const std::string& modName_);
   void startCheckAllModsThread();
   void startRemoveAllModsThread();
   void startApplyModPresetThread(const std::string &modPresetName_);
+  bool isBackgroundTaskRunning() const;
 
   void applyMod(const std::string &modName_);
   void applyModsList(std::vector<std::string>& modsList_);
   void removeMod(const std::string &modName_);
+  bool deleteModFolderFromSd(const std::string &modName_);
   void removeAllMods();
   void checkAllMods(bool useCache_ = false);
   void getModStatus(const std::string &modName_, bool useCache_ = false);
@@ -45,10 +51,13 @@ protected:
   bool applyModFunction(const std::string& modName_);
   bool applyModPresetFunction(const std::string& presetName_);
   bool removeModFunction(const std::string& modName_);
+  bool deleteModFolderFunction(const std::string& modName_);
   bool checkAllModsFunction();
   bool removeAllModsFunction();
 
+  void removeModInstalledFiles(const std::string &modName_, bool forceUnknownInstalledFiles_);
   bool leaveModAction(bool isSuccess_);
+  void finishDeleteModFolderTask();
 
 
 
@@ -60,6 +69,9 @@ private:
 
   bool _triggeredOnCancel_{false};
   bool _triggerUpdateModsDisplayedStatus_{false};
+  bool _triggerRebuildModBrowser_{false};
+  std::atomic<bool> _deleteModFolderRunning_{false};
+  std::atomic<long long> _lastDeleteModFolderFinishedMs_{0};
 
 
   // monitors
@@ -93,6 +105,10 @@ private:
     std::string currentMod{};
   }; ModRemoveAllMonitor modRemoveAllMonitor{};
 
+  struct ModDeleteFolderMonitor{
+    double progress{0};
+    std::string currentEntry{};
+  }; ModDeleteFolderMonitor modDeleteFolderMonitor{};
 
 };
 

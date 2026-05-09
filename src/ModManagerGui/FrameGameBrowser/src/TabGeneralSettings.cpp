@@ -8,6 +8,15 @@
 
 
 #include "Logger.h"
+#include "GenericToolbox.Fs.h"
+#include "GenericToolbox.String.h"
+#include "GenericToolbox.Switch.h"
+
+#include <switch.h>
+#include <fstream>
+#include <sstream>
+#include <set>
+#include <vector>
 
 LoggerInit([]{
   Logger::setUserHeaderStr("[TabGeneralSettings]");
@@ -68,10 +77,23 @@ void TabGeneralSettings::rebuildLayout() {
 
   auto*  itemSortGames = new brls::ListItem(
       "\uE255 Sort games by",
-      "Set which ordering of the games are displayed in the Game Browser list.\n",
+      "Set which ordering of the games are displayed in the Game Browser list. Press X to switch ascending/descending.\n",
       ""
   );
-  itemSortGames->setValue( this->getConfig().sortGameList.toString() );
+  itemSortGames->setValue( this->getConfig().getSortGameListSettingDisplayName() );
+
+  itemSortGames->registerAction("Order", brls::Key::X, [this, itemSortGames](){
+    if( this->getConfig().sortGameListDirection == ConfigHolder::SortGameListDirection::Ascending ){
+      this->getConfig().sortGameListDirection = ConfigHolder::SortGameListDirection::Descending;
+    }
+    else{
+      this->getConfig().sortGameListDirection = ConfigHolder::SortGameListDirection::Ascending;
+    }
+    _owner_->getGuiModManager().getGameBrowser().getConfigHandler().dumpConfigToFile();
+    itemSortGames->setValue( this->getConfig().getSortGameListSettingDisplayName() );
+    return true;
+  });
+  itemSortGames->updateActionHint(brls::Key::X, "Order");
 
 
   // On click : show scrolling up menu
@@ -81,14 +103,20 @@ void TabGeneralSettings::rebuildLayout() {
     // build the choice list + preselection
     int preSelection{0};
     std::vector<std::string> menuList;
+    std::vector<ConfigHolder::SortGameList> sortValueList;
     menuList.reserve( ConfigHolder::SortGameList::getEnumSize() );
+    sortValueList.reserve( ConfigHolder::SortGameList::getEnumSize() );
     for( int iEnum = 0 ; iEnum < ConfigHolder::SortGameList::getEnumSize() ; iEnum++ ){
-      menuList.emplace_back( ConfigHolder::SortGameList::toString(iEnum) );
-      if( menuList.back() == this->getConfig().sortGameList.toString() ){ preSelection = iEnum; }
+      ConfigHolder::SortGameList sortValue{ConfigHolder::SortGameList::getEnumVal(iEnum)};
+      sortValueList.emplace_back( sortValue );
+      ConfigHolder tmpConfig{this->getConfig()};
+      tmpConfig.sortGameList = sortValue;
+      menuList.emplace_back( tmpConfig.getSortGameListDisplayName() );
+      if( sortValue == this->getConfig().sortGameList ){ preSelection = iEnum; }
     }
 
     // function that will set the config preset from the Dropdown menu selection (int result)
-    brls::ValueSelectedEvent::Callback valueCallback = [this, itemSortGames, menuList](int result) {
+    brls::ValueSelectedEvent::Callback valueCallback = [this, itemSortGames, menuList, sortValueList](int result) {
       if( result == -1 ){
         LogDebug << "Not selected. Return." << std::endl;
         // auto pop view
@@ -96,9 +124,9 @@ void TabGeneralSettings::rebuildLayout() {
       }
 
       LogInfo << "Selected: " << menuList[result] << std::endl;
-      this->getConfig().sortGameList = ConfigHolder::SortGameList::toEnum( menuList[result] );
+      this->getConfig().sortGameList = sortValueList[result];
       _owner_->getGuiModManager().getGameBrowser().getConfigHandler().dumpConfigToFile();
-      itemSortGames->setValue( this->getConfig().sortGameList.toString() );
+      itemSortGames->setValue( this->getConfig().getSortGameListSettingDisplayName() );
 
       brls::Application::popView();
       return;
@@ -113,6 +141,21 @@ void TabGeneralSettings::rebuildLayout() {
 
   });
   this->addView(itemSortGames);
+
+  auto* itemShowDebugMtpFiles = new brls::ListItem(
+      "\uE073 Debug MTP files:",
+      "Show SimpleModManager internal metadata files in MTP.",
+      ""
+  );
+  itemShowDebugMtpFiles->setValue(this->getConfig().showDebugMtpFiles ? "Enabled" : "Disabled");
+  itemShowDebugMtpFiles->registerAction("Toggle", brls::Key::A, [this, itemShowDebugMtpFiles](){
+    this->getConfig().showDebugMtpFiles = !this->getConfig().showDebugMtpFiles;
+    _owner_->getGuiModManager().getGameBrowser().getConfigHandler().dumpConfigToFile();
+    itemShowDebugMtpFiles->setValue(this->getConfig().showDebugMtpFiles ? "Enabled" : "Disabled");
+    return true;
+  });
+  itemShowDebugMtpFiles->updateActionHint(brls::Key::A, "Toggle");
+  this->addView(itemShowDebugMtpFiles);
 
 
   auto* itemUseUI = new brls::ListItem("\uE072 Disable the GUI", "If you want to go back on the old UI, select this option.");

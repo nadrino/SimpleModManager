@@ -6,9 +6,12 @@
 #include "SimpleModManager.h"
 
 #include <FrameRoot.h>
+#include <ModsMtpServer.h>
+#include <SystemStatusOverlay.h>
 #include "ConsoleHandler.h"
 
 #include "ConfigHandler.h"
+#include "Toolbox.h"
 
 #include "Logger.h"
 
@@ -29,6 +32,8 @@ LoggerInit([]{
 int main(int argc, char* argv[]){
   LogInfo << "SimpleModManager is starting..." << std::endl;
 
+  Toolbox::ensureModsRootFolder();
+
   // https://github.com/jbeder/yaml-cpp/wiki/Tutorial
 //  YAML::Node config = YAML::LoadFile("config.yaml");
 //  if (config["lastLogin"]) {
@@ -38,11 +43,21 @@ int main(int argc, char* argv[]){
 //  const auto password = config["password"].as<std::string>();
 
   ConfigHandler c;
-  if( c.getConfig().useGui ){ runGui(); }
+  if( c.getConfig().useGui ){ runGui(c.getConfig().baseFolder); }
   else{
+    const Result nsRc = nsInitialize();
+    if( R_SUCCEEDED(nsRc) ) {
+      Toolbox::ensureInstalledGameModFolders(c.getConfig().baseFolder);
+    }
+    else {
+      LogError << "nsInitialize Failed: 0x" << std::hex << nsRc << std::dec << std::endl;
+    }
     consoleInit(nullptr);
     ConsoleHandler::run();
     consoleExit(nullptr);
+    if( R_SUCCEEDED(nsRc) ) {
+      nsExit();
+    }
   }
 
   // Exit
@@ -50,9 +65,10 @@ int main(int argc, char* argv[]){
 }
 
 
-void runGui(){
+void runGui(const std::string& modsRootFolder_){
   LogInfo << "Starting GUI..." << std::endl;
   LogThrowIf(R_FAILED(nsInitialize()), "nsInitialize Failed");
+  Toolbox::ensureInstalledGameModFolders(modsRootFolder_);
 
   brls::Logger::setLogLevel(brls::LogLevel::ERROR);
 
@@ -69,5 +85,7 @@ void runGui(){
 
   while( brls::Application::mainLoop() ){  }
 
+  SystemStatusOverlay::shutdown();
+  ModsMtpServer::shutdownForAppExit();
   nsExit();
 }

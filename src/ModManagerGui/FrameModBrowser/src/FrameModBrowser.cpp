@@ -9,6 +9,8 @@
 #include <TabModPresets.h>
 #include <TabModOptions.h>
 
+#include "SystemStatusOverlay.h"
+
 #include "GenericToolbox.Switch.h"
 #include "Logger.h"
 
@@ -54,16 +56,30 @@ FrameModBrowser::FrameModBrowser(GuiModManager* guiModManagerPtr_) : _guiModMana
     this->addTab("Options", _tabModOptions_);
     this->addTab("Plugins", _tabModPlugins_);
 
+    // Auto-recheck disabled to prevent freeze - use cache-based verification only
+    // User can manually trigger verification if needed
+    // if( not getGuiModManager().isBackgroundTaskRunning() ){
+    //   getGuiModManager().startCheckAllModsThread();
+    // }
+
   }
   else{
     auto* list = new brls::List();
-    LogError("Can't open: %s", gamePath.c_str());
-    auto* item = new brls::ListItem("Error: Can't open " + gamePath , "", "");
+    LogInfo("No mods found for: %s", gamePath.c_str());
+    auto* item = new brls::ListItem(
+        "No mods for this game are on your SD card.",
+        "Put mods in: " + gamePath,
+        "");
     list->addView(item);
     this->addTab("Mod Browser", list);
   }
 
 }
+void FrameModBrowser::draw(NVGcontext* vg, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* ctx) {
+  brls::TabFrame::draw(vg, x, y, width, height, style, ctx);
+  SystemStatusOverlay::draw(vg, x, y, width, style, ctx);
+}
+
 bool FrameModBrowser::onCancel() {
 
   // Go back to sidebar

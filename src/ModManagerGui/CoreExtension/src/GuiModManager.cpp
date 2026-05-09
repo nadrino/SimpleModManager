@@ -12,19 +12,172 @@
 #include <string>
 #include <vector>
 #include <future>
+#include <chrono>
+#include <algorithm>
+#include <switch.h>
 
 
 LoggerInit([]{
   Logger::setUserHeaderStr("[GuiModManager]");
 });
 
+namespace {
+
+constexpr long long kDeleteModFolderCooldownMs = 750;
+constexpr long long kDeleteModFolderFsSettleNs = 250000000; // 250ms
+
+long long monotonicMs() {
+  const auto now = std::chrono::steady_clock::now();
+  return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+}
+
+bool safeIsDir(const std::string& path_) {
+  try { return GenericToolbox::isDir(path_); }
+  catch(...) { return false; }
+}
+
+bool safeIsFile(const std::string& path_) {
+  try { return GenericToolbox::isFile(path_); }
+  catch(...) { return false; }
+}
+
+bool safeIsDirEmpty(const std::string& path_) {
+  try { return GenericToolbox::isDirEmpty(path_); }
+  catch(...) { return false; }
+}
+
+bool safeRmFile(const std::string& path_) {
+  for( int attempt = 0; attempt < 10; ++attempt ) {
+    if( !safeIsFile(path_) ) {
+      return true;
+    }
+    try {
+      if( GenericToolbox::rm(path_) ) {
+        return true;
+      }
+    }
+    catch(...) {}
+    svcSleepThread(50000000); // 50ms
+  }
+  return !safeIsFile(path_);
+}
+
+bool safeRmDir(const std::string& path_) {
+  for( int attempt = 0; attempt < 10; ++attempt ) {
+    if( !safeIsDir(path_) ) {
+      return true;
+    }
+    try {
+      if( GenericToolbox::rmDir(path_) ) {
+        return true;
+      }
+    }
+    catch(...) {}
+    svcSleepThread(60000000); // 60ms
+  }
+  return !safeIsDir(path_);
+}
+
+void bumpDeleteProgress(double& progress_, size_t processedEntries_) {
+  const double p = 1.0 - (1.0 / double(processedEntries_ + 3));
+  progress_ = std::min(0.97, p);
+}
+
+bool deleteDirectoryTreeForSd(
+    const std::string& rootPath_,
+    bool& cancelRequested_,
+    std::string& currentEntry_,
+    double& progress_ ) {
+  if( !safeIsDir(rootPath_) ) {
+    progress_ = 1;
+    return true;
+  }
+
+  bool success = true;
+  size_t processedEntries = 0;
+  std::vector<std::string> dirsToRemove;
+  std::vector<std::string> dirsToVisit{ rootPath_ };
+
+  while( !dirsToVisit.empty() ) {
+    if( cancelRequested_ ) {
+      return false;
+    }
+
+    const std::string dir = dirsToVisit.back();
+    dirsToVisit.pop_back();
+    dirsToRemove.push_back(dir);
+
+    std::vector<std::string> entries;
+    try {
+      entries = GenericToolbox::ls(dir);
+    }
+    catch(...) {
+      success = false;
+      continue;
+    }
+
+    for( const auto& entry : entries ) {
+      if( cancelRequested_ ) {
+        return false;
+      }
+      if( entry == "." || entry == ".." ) {
+        continue;
+      }
+
+      const std::string childPath = GenericToolbox::joinPath(dir, entry);
+      currentEntry_ = entry;
+
+      if( safeIsDir(childPath) ) {
+        dirsToVisit.push_back(childPath);
+      }
+      else if( safeIsFile(childPath) ) {
+        if( !safeRmFile(childPath) ) {
+          success = false;
+        }
+        processedEntries++;
+        bumpDeleteProgress(progress_, processedEntries);
+      }
+    }
+  }
+
+  for( auto it = dirsToRemove.rbegin(); it != dirsToRemove.rend(); ++it ) {
+    if( cancelRequested_ ) {
+      return false;
+    }
+    currentEntry_ = GenericToolbox::getFileName(*it);
+    if( !safeRmDir(*it) ) {
+      success = false;
+    }
+    processedEntries++;
+    bumpDeleteProgress(progress_, processedEntries);
+  }
+
+  progress_ = success ? 1 : progress_;
+  return success && !safeIsDir(rootPath_);
+}
+
+} // namespace
+
 
 void GuiModManager::setTriggerUpdateModsDisplayedStatus(bool triggerUpdateModsDisplayedStatus) {
   _triggerUpdateModsDisplayedStatus_ = triggerUpdateModsDisplayedStatus;
 }
 
+void GuiModManager::setTriggerRebuildModBrowser(bool triggerRebuildModBrowser) {
+  _triggerRebuildModBrowser_ = triggerRebuildModBrowser;
+}
+
 bool GuiModManager::isTriggerUpdateModsDisplayedStatus() const {
   return _triggerUpdateModsDisplayedStatus_;
+}
+bool GuiModManager::isTriggerRebuildModBrowser() const {
+  return _triggerRebuildModBrowser_;
+}
+bool GuiModManager::isBackgroundTaskRunning() const {
+  if( not _asyncResponse_.valid() ){
+    return false;
+  }
+  return _asyncResponse_.wait_for(std::chrono::seconds(0)) != std::future_status::ready;
 }
 const GameBrowser &GuiModManager::getGameBrowser() const { return _gameBrowser_; }
 GameBrowser &GuiModManager::getGameBrowser(){ return _gameBrowser_; }
@@ -130,44 +283,150 @@ void GuiModManager::getModStatus(const std::string &modName_, bool useCache_) {
   modManager.dumpModStatusCache();
 }
 void GuiModManager::removeMod(const std::string &modName_){
+  this->removeModInstalledFiles(modName_, false);
+}
+void GuiModManager::removeModInstalledFiles(const std::string &modName_, bool forceUnknownInstalledFiles_){
   LogWarning << __METHOD_NAME__ << ": " << modName_ << std::endl;
   modRemoveMonitor = ModRemoveMonitor();
 
-  std::string modPath = GenericToolbox::joinPath( _gameBrowser_.getModManager().getGameFolderPath(), modName_ );
+  auto& modManager = _gameBrowser_.getModManager();
+  std::string modPath = GenericToolbox::joinPath( modManager.getGameFolderPath(), modName_ );
   auto modFileList = GenericToolbox::lsFilesRecursive(modPath);
 
   int iFile{0};
   for(auto &modFile : modFileList){
     LogReturnIf( _triggeredOnCancel_, "Cancel detected. Leaving " << __METHOD_NAME__ );
 
-    modRemoveMonitor.currentFile = GenericToolbox::getFileName(modFile);
+    const auto modFileName = GenericToolbox::getFileName(modFile);
+    if( modFileName.empty() || modFileName[0] == '.' ){
+      continue;
+    }
+
+    modRemoveMonitor.currentFile = modFileName;
     modRemoveMonitor.currentFile += " (" + GenericToolbox::joinAsString("/", iFile+1, modFileList.size()) + ")";
     modRemoveMonitor.progress = (iFile++ + 1.) / double(modFileList.size());
 
     std::string srcFilePath = GenericToolbox::joinPath( modPath, modFile );
-    std::string dstFilePath = GenericToolbox::joinPath(_gameBrowser_.getModManager().fetchCurrentPreset().installBaseFolder, modFile );
-    // Check if the installed mod belongs to the selected mod
-    if( GenericToolbox::Switch::IO::doFilesAreIdentical(srcFilePath, dstFilePath ) ){
+    std::string dstFilePath = GenericToolbox::joinPath(modManager.fetchCurrentPreset().installBaseFolder, modFile );
 
-      // Remove the mod file
-      GenericToolbox::rm( dstFilePath );
+    // Check if the installed mod belongs to the selected mod
+    bool shouldRemoveInstalledFile = false;
+    try {
+      shouldRemoveInstalledFile = GenericToolbox::Switch::IO::doFilesAreIdentical(srcFilePath, dstFilePath);
+    }
+    catch(...) {}
+
+    if( !shouldRemoveInstalledFile && forceUnknownInstalledFiles_ && safeIsFile(dstFilePath) ){
+      bool installedFileBelongsToAnotherMod = false;
+      const auto& modList = modManager.getModList();
+      for( const auto& otherMod : modList ){
+        if( otherMod.modName == modName_ ){
+          continue;
+        }
+
+        const std::string otherModFilePath = GenericToolbox::joinPath(
+            GenericToolbox::joinPath(modManager.getGameFolderPath(), otherMod.modName),
+            modFile);
+
+        if( !safeIsFile(otherModFilePath) ){
+          continue;
+        }
+
+        try {
+          if( GenericToolbox::Switch::IO::doFilesAreIdentical(otherModFilePath, dstFilePath) ){
+            installedFileBelongsToAnotherMod = true;
+            break;
+          }
+        }
+        catch(...) {}
+      }
+
+      shouldRemoveInstalledFile = !installedFileBelongsToAnotherMod;
+    }
+
+    if( shouldRemoveInstalledFile ){
+
+      // Remove the mod file with multiple retries
+      if( !safeRmFile(dstFilePath) ){
+        LogError << "Could not remove installed mod file: " << dstFilePath << std::endl;
+        continue;
+      }
 
       // Delete the folder if no other files is present
       std::string emptyFolderCandidate = GenericToolbox::getFolderPath( dstFilePath );
-      while( GenericToolbox::isDirEmpty( emptyFolderCandidate ) ) {
+      int safetyCounter = 0;
+      while( safeIsDirEmpty( emptyFolderCandidate ) ) {
 
-        GenericToolbox::rmDir( emptyFolderCandidate );
+        // Safety check to prevent deleting system folders
+        std::string installBase = modManager.fetchCurrentPreset().installBaseFolder;
+        if( emptyFolderCandidate.find(installBase) != 0 ) break;
+        if( emptyFolderCandidate == installBase ) break;
 
-        auto subFolderList = GenericToolbox::splitString(emptyFolderCandidate, "/");
-        if( subFolderList.empty() ){ break; }
-        // decrement folder depth
-        emptyFolderCandidate = "/" + GenericToolbox::joinVectorString( subFolderList, "/", 0, int(subFolderList.size()) - 1 );
+        // Safety counter to prevent infinite loops
+        if( safetyCounter++ > 50 ) break;
+
+        // Delete directory with retries
+        if( !safeRmDir(emptyFolderCandidate) ){
+          goto folder_cleanup_done;
+        }
+
+        // Longer delay to prevent filesystem issues
+        svcSleepThread(20000000); // 20ms delay
+
+        emptyFolderCandidate = GenericToolbox::getFolderPath(emptyFolderCandidate);
       }
+      folder_cleanup_done:;
     }
+
+    // Small delay between file deletions to prevent filesystem overload
+    svcSleepThread(10000000); // 10ms delay
   }
 
   _gameBrowser_.getModManager().resetModCache(modName_);
 
+}
+bool GuiModManager::deleteModFolderFromSd(const std::string &modName_) {
+  LogWarning << __METHOD_NAME__ << ": " << modName_ << std::endl;
+  modDeleteFolderMonitor = ModDeleteFolderMonitor();
+  modDeleteFolderMonitor.currentEntry = "Preparing delete...";
+
+  auto& modManager = _gameBrowser_.getModManager();
+  const std::string modFolderPath = GenericToolbox::joinPath(modManager.getGameFolderPath(), modName_);
+
+  const bool deleted = deleteDirectoryTreeForSd(
+      modFolderPath,
+      _triggeredOnCancel_,
+      modDeleteFolderMonitor.currentEntry,
+      modDeleteFolderMonitor.progress );
+
+  bool stillPresentInModList = true;
+  for( int attempt = 0; attempt < 10; ++attempt ) {
+    try {
+      modManager.updateModList();
+      const auto& mods = modManager.getModList();
+      stillPresentInModList = std::any_of(mods.begin(), mods.end(),
+          [&](const auto& entry){ return entry.modName == modName_; });
+      if( !stillPresentInModList ) {
+        break;
+      }
+    }
+    catch(...) {
+      stillPresentInModList = safeIsDir(modFolderPath);
+    }
+    svcSleepThread(120000000); // 120ms
+  }
+
+  if( deleted && !stillPresentInModList ) {
+    modDeleteFolderMonitor.currentEntry = "Deleted.";
+    modDeleteFolderMonitor.progress = 1;
+    LogInfo << "Deleted mod folder: " << modFolderPath << std::endl;
+    return true;
+  }
+
+  modDeleteFolderMonitor.currentEntry = "Delete failed.";
+  LogError << "Failed to delete mod folder: " << modFolderPath << " -> "
+           << (deleted ? "folder still exists" : "recursive delete failed") << std::endl;
+  return false;
 }
 void GuiModManager::removeAllMods() {
   LogWarning << __METHOD_NAME__ << std::endl;
@@ -261,7 +520,37 @@ void GuiModManager::startRemoveModThread(const std::string& modName_){
   // start the parallel thread
   _asyncResponse_ = std::async(&GuiModManager::removeModFunction, this, modName_);
 }
+void GuiModManager::startDeleteModFolderThread(const std::string& modName_){
+  LogReturnIf(modName_.empty(), "No mod name provided. Can't delete mod folder.");
+  if( _triggerRebuildModBrowser_ ){
+    brls::Application::notify("Refreshing mod list. Please wait.");
+    return;
+  }
+  if( this->isBackgroundTaskRunning() ){
+    brls::Application::notify("A mod task is already running.");
+    return;
+  }
+  if( _deleteModFolderRunning_.load() ){
+    brls::Application::notify("A mod delete is already finishing.");
+    return;
+  }
+
+  const long long lastDeleteFinished = _lastDeleteModFolderFinishedMs_.load();
+  if( lastDeleteFinished > 0 && monotonicMs() - lastDeleteFinished < kDeleteModFolderCooldownMs ){
+    brls::Application::notify("Please wait before deleting another mod.");
+    return;
+  }
+
+  this->_triggeredOnCancel_ = false;
+  this->_triggerRebuildModBrowser_ = false;
+  _deleteModFolderRunning_.store(true);
+
+  _asyncResponse_ = std::async(std::launch::async, &GuiModManager::deleteModFolderFunction, this, modName_);
+}
 void GuiModManager::startCheckAllModsThread(){
+  if( this->isBackgroundTaskRunning() ){
+    return;
+  }
   this->_triggeredOnCancel_ = false;
 
   // start the parallel thread
@@ -330,7 +619,7 @@ bool GuiModManager::applyModPresetFunction(const std::string& presetName_){
   _loadingPopup_.getMonitorView()->resetMonitorAddresses();
   _loadingPopup_.getMonitorView()->setTitlePtr( &modApplyListMonitor.currentMod );
   _loadingPopup_.getMonitorView()->setSubTitlePtr( &modApplyMonitor.currentFile );
-  _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modApplyMonitor.progress );
+  _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modApplyListMonitor.progress );
   _loadingPopup_.getMonitorView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["copyFile"]);
 
   std::vector<std::string> modsList;
@@ -347,7 +636,7 @@ bool GuiModManager::applyModPresetFunction(const std::string& presetName_){
   _loadingPopup_.getMonitorView()->resetMonitorAddresses();
   _loadingPopup_.getMonitorView()->setTitlePtr( &modCheckAllMonitor.currentMod );
   _loadingPopup_.getMonitorView()->setSubTitlePtr( &modCheckMonitor.currentFile );
-  _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modCheckMonitor.progress );
+  _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modCheckAllMonitor.progress );
   _loadingPopup_.getMonitorView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
   this->checkAllMods();
   if( _triggeredOnCancel_ ){ return this->leaveModAction(false); }
@@ -366,6 +655,7 @@ bool GuiModManager::removeModFunction(const std::string& modName_){
   _loadingPopup_.getMonitorView()->setTitlePtr(&modName_);
   _loadingPopup_.getMonitorView()->setSubTitlePtr( &modRemoveMonitor.currentFile );
   _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modRemoveMonitor.progress );
+  _loadingPopup_.getMonitorView()->setSubProgressFractionPtr( &GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"] );
   this->removeMod( modName_ );
   if( _triggeredOnCancel_ ){ return this->leaveModAction(false); }
 
@@ -381,14 +671,69 @@ bool GuiModManager::removeModFunction(const std::string& modName_){
 
   return this->leaveModAction(true);
 }
+bool GuiModManager::deleteModFolderFunction(const std::string& modName_){
+  _loadingPopup_.pushView();
+  _loadingPopup_.getMonitorView()->setExecOnDelete([this]{ this->_triggeredOnCancel_ = true; });
+
+  bool success = false;
+  try {
+    LogWarning << "Removing installed files before deleting mod folder: " << modName_ << std::endl;
+    _loadingPopup_.getMonitorView()->setHeaderTitle("Removing installed mod...");
+    _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Borealis::redNvgColor);
+    _loadingPopup_.getMonitorView()->resetMonitorAddresses();
+    _loadingPopup_.getMonitorView()->setTitlePtr(&modName_);
+    _loadingPopup_.getMonitorView()->setSubTitlePtr(&modRemoveMonitor.currentFile);
+    _loadingPopup_.getMonitorView()->setProgressFractionPtr(&modRemoveMonitor.progress);
+    _loadingPopup_.getMonitorView()->setSubProgressFractionPtr(&GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"]);
+
+    this->removeModInstalledFiles(modName_, true);
+    if( _triggeredOnCancel_ ){
+      _triggerRebuildModBrowser_ = true;
+      this->finishDeleteModFolderTask();
+      return this->leaveModAction(false);
+    }
+
+    svcSleepThread(kDeleteModFolderFsSettleNs);
+
+    LogWarning << "Deleting mod folder: " << modName_ << std::endl;
+    _loadingPopup_.getMonitorView()->setHeaderTitle("Deleting mod folder...");
+    _loadingPopup_.getMonitorView()->resetMonitorAddresses();
+    _loadingPopup_.getMonitorView()->setTitlePtr(&modName_);
+    _loadingPopup_.getMonitorView()->setSubTitlePtr(&modDeleteFolderMonitor.currentEntry);
+    _loadingPopup_.getMonitorView()->setProgressFractionPtr(&modDeleteFolderMonitor.progress);
+
+    success = this->deleteModFolderFromSd(modName_);
+  }
+  catch(...) {
+    LogError << "Unexpected exception while deleting mod folder: " << modName_ << std::endl;
+    modDeleteFolderMonitor.currentEntry = "Delete failed.";
+    modDeleteFolderMonitor.progress = 0;
+    success = false;
+  }
+
+  svcSleepThread(kDeleteModFolderFsSettleNs);
+  _triggerRebuildModBrowser_ = true;
+  this->finishDeleteModFolderTask();
+
+  return this->leaveModAction(success);
+}
+
+void GuiModManager::finishDeleteModFolderTask(){
+  _lastDeleteModFolderFinishedMs_.store(monotonicMs());
+  _deleteModFolderRunning_.store(false);
+}
+
 bool GuiModManager::checkAllModsFunction(){
   // push the progress bar to the view
   _loadingPopup_.pushView();
   _loadingPopup_.getMonitorView()->setExecOnDelete([this]{ this->_triggeredOnCancel_ = true; });
 
+  LogInfo("Resetting mods cache before recheck...");
+  _gameBrowser_.getModManager().resetAllModsCacheAndFile();
+
   LogInfo("Checking all mods status...");
   _loadingPopup_.getMonitorView()->setProgressColor(GenericToolbox::Borealis::blueNvgColor);
-  _loadingPopup_.getMonitorView()->setHeaderTitle("Checking all mods status...");
+  _loadingPopup_.getMonitorView()->setHeaderTitle("Rechecking all mods status...");
   _loadingPopup_.getMonitorView()->resetMonitorAddresses();
   _loadingPopup_.getMonitorView()->setTitlePtr( &modCheckAllMonitor.currentMod );
   _loadingPopup_.getMonitorView()->setSubTitlePtr( &modCheckMonitor.currentFile );
@@ -422,7 +767,7 @@ bool GuiModManager::removeAllModsFunction(){
   _loadingPopup_.getMonitorView()->resetMonitorAddresses();
   _loadingPopup_.getMonitorView()->setTitlePtr( &modCheckAllMonitor.currentMod );
   _loadingPopup_.getMonitorView()->setSubTitlePtr( &modCheckMonitor.currentFile );
-  _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modCheckMonitor.progress );
+  _loadingPopup_.getMonitorView()->setProgressFractionPtr( &modCheckAllMonitor.progress );
   _loadingPopup_.getMonitorView()->setSubProgressFractionPtr( &GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"] );
   this->checkAllMods();
   if( _triggeredOnCancel_ ){ return this->leaveModAction(false); }
@@ -438,4 +783,3 @@ bool GuiModManager::leaveModAction(bool isSuccess_){
   LogInfo << "Leaving mod action with success? " << isSuccess_ << std::endl;
   return isSuccess_;
 }
-
