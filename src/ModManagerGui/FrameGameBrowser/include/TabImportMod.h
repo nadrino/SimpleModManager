@@ -16,13 +16,14 @@ public:
   ~TabImportMod() override = default;
 
   void draw( NVGcontext* vg, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* ctx ) override;
+  void customSpacing(brls::View* current, brls::View* next, int* spacing) override;
 
   View* getDefaultFocus() override;
 
 private:
   void refreshStatusLine();
 
-  brls::Label* _bodyLabel_{ nullptr };
+  brls::View* _bodyLabel_{ nullptr };
   brls::Label* _statusLabel_{ nullptr };
   brls::ListItem* _actionRow_{ nullptr };
 

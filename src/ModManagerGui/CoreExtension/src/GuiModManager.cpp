@@ -25,11 +25,17 @@ LoggerInit([]{
 namespace {
 
 constexpr long long kDeleteModFolderCooldownMs = 750;
-constexpr long long kDeleteModFolderFsSettleNs = 250000000; // 250ms
+constexpr long long kDeleteModFolderFsSettleNs = 1000000000; // 1s
+constexpr long long kSdmcCommitSettleNs = 500000000; // 500ms
 
 long long monotonicMs() {
   const auto now = std::chrono::steady_clock::now();
   return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+}
+
+void settleSdmcWrites(long long settleNs_ = kSdmcCommitSettleNs) {
+  (void) fsdevCommitDevice("sdmc");
+  svcSleepThread(settleNs_);
 }
 
 bool safeIsDir(const std::string& path_) {
@@ -376,6 +382,7 @@ void GuiModManager::applyMod(const std::string &modName_) {
     std::string installPath = GenericToolbox::joinPath(_gameBrowser_.getModManager().fetchCurrentPreset().installBaseFolder, modFilesList[iFile] );
     GenericToolbox::Switch::IO::copyFile(filePath, installPath);
   }
+  settleSdmcWrites();
   _gameBrowser_.getModManager().claimOrphanInstalledFilesForMod(modName_);
   _gameBrowser_.getModManager().resetModCache(modName_);
 
@@ -481,6 +488,7 @@ void GuiModManager::removeModInstalledFiles(const std::string &modName_, bool fo
     svcSleepThread(10000000); // 10ms delay
   }
 
+  settleSdmcWrites();
   _gameBrowser_.getModManager().resetModCache(modName_);
 
 }
@@ -547,6 +555,7 @@ bool GuiModManager::cleanupInstalledFilesByRelativePaths(
     svcSleepThread(10000000); // 10ms
   }
 
+  settleSdmcWrites();
   return success;
 }
 bool GuiModManager::deleteModFolderFromSd(const std::string &modName_) {
@@ -562,6 +571,8 @@ bool GuiModManager::deleteModFolderFromSd(const std::string &modName_) {
       _triggeredOnCancel_,
       modDeleteFolderMonitor.currentEntry,
       modDeleteFolderMonitor.progress );
+
+  settleSdmcWrites();
 
   bool stillPresentOnSd = true;
   for( int attempt = 0; attempt < 10; ++attempt ) {
@@ -700,6 +711,7 @@ bool GuiModManager::deleteOrphanInstalledModsPass(const std::vector<std::string>
     }
   }
 
+  settleSdmcWrites();
   return success;
 }
 
@@ -716,6 +728,7 @@ bool GuiModManager::deleteOrphanInstalledMods(const std::vector<std::string>& mo
 
   modDeleteFolderMonitor.currentEntry = "Checking cleanup...";
   modDeleteFolderMonitor.progress = 0;
+  settleSdmcWrites();
   modManager.refreshOrphanInstalledModList();
 
   std::vector<std::string> remainingOrphanList;
@@ -730,6 +743,7 @@ bool GuiModManager::deleteOrphanInstalledMods(const std::vector<std::string>& mo
     if( !_triggeredOnCancel_ ){
       modDeleteFolderMonitor.currentEntry = "Checking cleanup...";
       modDeleteFolderMonitor.progress = 0;
+      settleSdmcWrites();
       modManager.refreshOrphanInstalledModList();
       success = modManager.getOrphanInstalledModList().empty() && success;
     }

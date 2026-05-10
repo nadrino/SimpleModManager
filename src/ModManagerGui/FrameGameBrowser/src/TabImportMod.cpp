@@ -10,6 +10,8 @@
 
 #include <borealis.hpp>
 
+#include <utility>
+
 LoggerInit( [] {
   Logger::setUserHeaderStr( "[TabImportMod]" );
 } );
@@ -24,6 +26,43 @@ const char* kInstructionsEn =
     "3. Open the device, then copy files/folders into the mods storage.\n\n"
     "Press A to start/stop MTP.";
 
+class CompactMultilineLabel : public brls::View {
+public:
+  explicit CompactMultilineLabel(std::string text_) : _text_(std::move(text_)) {}
+
+  void layout(NVGcontext* vg, brls::Style* style, brls::FontStash* stash) override {
+    float bounds[4]{};
+    nvgSave(vg);
+    nvgReset(vg);
+    nvgFontSize(vg, style->Label.regularFontSize);
+    nvgFontFaceId(vg, stash->regular);
+    nvgTextLineHeight(vg, 1.42F);
+    nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+    nvgTextBoxBounds(vg, this->x, this->y, this->width, _text_.c_str(), nullptr, bounds);
+    this->height = static_cast<unsigned>(bounds[3] - bounds[1]);
+    nvgRestore(vg);
+  }
+
+  void draw(
+      NVGcontext* vg,
+      int x,
+      int y,
+      unsigned width,
+      unsigned,
+      brls::Style* style,
+      brls::FrameContext* ctx ) override {
+    nvgFillColor(vg, this->a(ctx->theme->textColor));
+    nvgFontSize(vg, style->Label.regularFontSize);
+    nvgFontFaceId(vg, ctx->fontStash->regular);
+    nvgTextLineHeight(vg, 1.42F);
+    nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+    nvgTextBox(vg, x, y, width, _text_.c_str(), nullptr);
+  }
+
+private:
+  std::string _text_{};
+};
+
 } // namespace
 
 TabImportMod::TabImportMod() {
@@ -31,8 +70,7 @@ TabImportMod::TabImportMod() {
 
   this->addView( new brls::Header( "Import mod from PC" ) );
 
-  _bodyLabel_ = new brls::Label( brls::LabelStyle::REGULAR, kInstructionsEn, true );
-  _bodyLabel_->setHorizontalAlign( NVG_ALIGN_LEFT );
+  _bodyLabel_ = new CompactMultilineLabel( kInstructionsEn );
   this->addView( _bodyLabel_ );
 
   _statusLabel_ = new brls::Label( brls::LabelStyle::REGULAR, "", true );
@@ -60,6 +98,15 @@ TabImportMod::TabImportMod() {
 
 brls::View* TabImportMod::getDefaultFocus() {
   return _actionRow_;
+}
+
+void TabImportMod::customSpacing(brls::View* current, brls::View* next, int* spacing) {
+  if( current == _bodyLabel_ && next == _statusLabel_ ){
+    *spacing = 24;
+  }
+  else if( current == _statusLabel_ && next == _actionRow_ ){
+    *spacing = 24;
+  }
 }
 
 void TabImportMod::refreshStatusLine() {
