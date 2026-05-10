@@ -6,6 +6,9 @@
 #include "SimpleModManager.h"
 
 #include <FrameRoot.h>
+#include <TabGames.h>
+#include <TabGeneralSettings.h>
+#include <TabImportMod.h>
 #include <ModsMtpServer.h>
 #include <SystemStatusOverlay.h>
 #include "ConsoleHandler.h"
@@ -38,6 +41,7 @@ constexpr int kTouchScreenWidth = 1280;
 constexpr int kTouchScreenHeight = 720;
 constexpr int kTouchTapSlopPx = 24;
 constexpr int kTouchNavigationStepPx = 56;
+constexpr int kSettingsTouchNavigationStepPx = 104;
 
 struct TouchState {
   bool touching{false};
@@ -113,6 +117,17 @@ brls::View* findActiveTabView(brls::TabFrame* tabFrame_) {
   }
 
   return nullptr;
+}
+
+bool shouldFocusTabContentOnTouch(brls::View* view_) {
+  return dynamic_cast<TabGames*>(view_) != nullptr
+      || dynamic_cast<TabGeneralSettings*>(view_) != nullptr
+      || dynamic_cast<TabImportMod*>(view_) != nullptr;
+}
+
+bool isSettingsTabActive() {
+  auto* tabFrame = dynamic_cast<brls::TabFrame*>(brls::Application::getTopStackView());
+  return dynamic_cast<TabGeneralSettings*>(findActiveTabView(tabFrame)) != nullptr;
 }
 
 brls::View* findTouchableView(brls::View* view_, int x_, int y_) {
@@ -326,6 +341,12 @@ bool handleContentTouch(int x_, int y_) {
   if( dynamic_cast<brls::SidebarItem*>(focusTarget) != nullptr ){
     clearPendingTouchSelection();
     brls::Application::giveFocus(focusTarget);
+    auto* sidebarItem = dynamic_cast<brls::SidebarItem*>(focusTarget);
+    auto* associatedView = sidebarItem != nullptr ? sidebarItem->getAssociatedView() : nullptr;
+    auto* tabContentFocus = associatedView != nullptr ? associatedView->getDefaultFocus() : nullptr;
+    if( shouldFocusTabContentOnTouch(associatedView) && tabContentFocus != nullptr ){
+      brls::Application::giveFocus(tabContentFocus);
+    }
     return true;
   }
 
@@ -376,9 +397,10 @@ void processTouchInput() {
 
     if( touchState.dragging ){
       touchState.dragAccumulatorY += y - touchState.lastY;
-      while( std::abs(touchState.dragAccumulatorY) >= kTouchNavigationStepPx ){
+      const int navigationStep = isSettingsTabActive() ? kSettingsTouchNavigationStepPx : kTouchNavigationStepPx;
+      while( std::abs(touchState.dragAccumulatorY) >= navigationStep ){
         dispatchTouchButton(touchState.dragAccumulatorY < 0 ? GLFW_GAMEPAD_BUTTON_DPAD_DOWN : GLFW_GAMEPAD_BUTTON_DPAD_UP);
-        touchState.dragAccumulatorY += touchState.dragAccumulatorY < 0 ? kTouchNavigationStepPx : -kTouchNavigationStepPx;
+        touchState.dragAccumulatorY += touchState.dragAccumulatorY < 0 ? navigationStep : -navigationStep;
       }
     }
 
