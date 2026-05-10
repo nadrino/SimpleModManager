@@ -38,6 +38,8 @@ public:
   void scanInputs(u64 kDown, u64 kHeld);
   void printTerminal();
   void rebuildSelectorMenu();
+  bool refreshGameList(bool force_ = false);
+  std::string refreshGameListTag(const std::string& gameName_);
 
   // utils -> move to gui lib??
   uint8_t* getFolderIcon(const std::string& gameFolder_);
@@ -46,7 +48,11 @@ protected:
   void init();
 
 private:
+  [[nodiscard]] std::string buildGameListSignature() const;
+
   bool _isGameSelected_{false};
+  bool _gameListReady_{false};
+  std::string _gameListSignature_{};
 
   Selector _selector_;
   ModManager _modManager_{this};

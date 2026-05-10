@@ -5,7 +5,9 @@
 #ifndef SIMPLEMODMANAGER_SIMPLEMODMANAGER_H
 #define SIMPLEMODMANAGER_SIMPLEMODMANAGER_H
 
-void runGui();
+#include <string>
+
+void runGui(const std::string& modsRootFolder_);
 
 
 #endif //SIMPLEMODMANAGER_SIMPLEMODMANAGER_H

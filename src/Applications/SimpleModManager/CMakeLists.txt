@@ -30,7 +30,7 @@ target_link_libraries(
     -L/opt/devkitpro/libnx/lib
     ${ZLIB_LIBRARIES}
     ${FREETYPE_LIBRARIES}
-    -lglfw3 -lEGL -lglad -lglapi -ldrm_nouveau -lm -lnx
+    -lminizip -lz -lbz2 -lglfw3 -lEGL -lglad -lglapi -ldrm_nouveau -lm -lnx
 )
 
 set_target_properties(${GUI_APP}.elf PROPERTIES
@@ -58,7 +58,6 @@ build_switch_binaries(
     ${GUI_APP}.elf
     ${GUI_TITLE} ${GUI_AUTHOR} ${GUI_ICON} ${APP_VERSION} ${BUILD_ROMFS}
 )
-
 
 
 

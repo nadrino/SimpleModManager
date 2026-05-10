@@ -27,11 +27,24 @@ struct ConfigHolder{
 #define ENUM_FIELDS \
   ENUM_FIELD( NbMods, 0 ) \
   ENUM_FIELD( Alphabetical ) \
+  ENUM_FIELD( GameLaunched ) \
+  ENUM_FIELD( ModAdded ) \
+  ENUM_FIELD( PlayTime ) \
+  ENUM_FIELD( LaunchCount ) \
   ENUM_FIELD( NoSort )
 #include "GenericToolbox.MakeEnum.h"
 
+#define ENUM_NAME SortGameListDirection
+#define ENUM_FIELDS \
+  ENUM_FIELD( Ascending, 0 ) \
+  ENUM_FIELD( Descending )
+#include "GenericToolbox.MakeEnum.h"
+
   bool useGui{true};
+  bool showDebugMtpFiles{false};
+  bool offerOrphanInstalledModCleanup{true};
   SortGameList sortGameList{SortGameList::NbMods};
+  SortGameListDirection sortGameListDirection{SortGameListDirection::Ascending};
   std::string baseFolder{"/mods"};
   int selectedPresetIndex{0};
   std::vector<PresetConfig> presetList{
@@ -48,11 +61,39 @@ struct ConfigHolder{
   void setSelectedPreset(const std::string& preset_);
   [[nodiscard]] std::string getCurrentPresetName() const;
   [[nodiscard]] const PresetConfig& getCurrentPreset() const { return presetList[selectedPresetIndex]; }
+  [[nodiscard]] std::string getSortGameListDisplayName() const {
+    switch( sortGameList.value ) {
+      case SortGameList::Alphabetical: return "Alphabetical";
+      case SortGameList::NbMods: return "Number of mods";
+      case SortGameList::GameLaunched: return "Game launched";
+      case SortGameList::ModAdded: return "Mod added";
+      case SortGameList::PlayTime: return "Play time";
+      case SortGameList::LaunchCount: return "Launch count";
+      case SortGameList::NoSort: return "No sort";
+      default: return sortGameList.toString();
+    }
+  }
+  [[nodiscard]] std::string getSortGameListDirectionDisplayName() const {
+    switch( sortGameListDirection.value ) {
+      case SortGameListDirection::Ascending: return "Ascending";
+      case SortGameListDirection::Descending: return "Descending";
+      default: return sortGameListDirection.toString();
+    }
+  }
+  [[nodiscard]] std::string getSortGameListSettingDisplayName() const {
+    if( sortGameList == SortGameList::NoSort ){
+      return getSortGameListDisplayName();
+    }
+    return getSortGameListDisplayName() + " (" + getSortGameListDirectionDisplayName() + ")";
+  }
 
   [[nodiscard]] std::string getSummary() const {
     std::stringstream ss;
     ss << GET_VAR_NAME_VALUE(useGui) << std::endl;
+    ss << GET_VAR_NAME_VALUE(showDebugMtpFiles) << std::endl;
+    ss << GET_VAR_NAME_VALUE(offerOrphanInstalledModCleanup) << std::endl;
     ss << GET_VAR_NAME_VALUE(sortGameList.toString()) << std::endl;
+    ss << GET_VAR_NAME_VALUE(sortGameListDirection.toString()) << std::endl;
     ss << GET_VAR_NAME_VALUE(baseFolder) << std::endl;
     ss << GET_VAR_NAME_VALUE(selectedPresetIndex) << std::endl;
     ss << GET_VAR_NAME_VALUE(lastSmmVersion) << std::endl;

@@ -15,9 +15,23 @@
 #include <string>
 #include <utility>
 
+struct ModFileStatusCache{
+  std::string state{"MISSING"};
+  long long sourceSize{-1};
+  long long sourceMtime{0};
+  bool destinationExists{false};
+  long long destinationSize{-1};
+  long long destinationMtime{0};
+};
+
 struct ApplyCache{
   std::string statusStr{"UNCHECKED"};
   double applyFraction{0};
+  size_t totalFiles{0};
+  size_t matchingFiles{0};
+  size_t differentFiles{0};
+  size_t missingFiles{0};
+  std::map<std::string, ModFileStatusCache> fileStatusCache;
 };
 
 struct ModEntry{
@@ -43,6 +57,20 @@ struct ModEntry{
     if( cache == nullptr ){ return 0; }
     return cache->applyFraction;
   }
+};
+
+struct ModStatusSummary{
+  size_t totalMods{0};
+  size_t activeMods{0};
+  size_t partialMods{0};
+  size_t inactiveMods{0};
+  size_t noFileMods{0};
+  size_t uncheckedMods{0};
+};
+
+struct OrphanInstalledMod{
+  std::string modName;
+  std::map<std::string, ApplyCache> applyCache;
 };
 
 ENUM_EXPANDER(
@@ -72,6 +100,7 @@ public:
   const Selector &getSelector() const;
   [[nodiscard]] const std::vector<std::string> & getIgnoredFileList() const;
   const std::vector<ModEntry> &getModList() const;
+  [[nodiscard]] const std::vector<OrphanInstalledMod>& getOrphanInstalledModList() const;
 
   std::vector<ModEntry> &getModList();
   std::vector<std::string> & getIgnoredFileList();
@@ -85,11 +114,18 @@ public:
   void dumpModStatusCache();
   void reloadModStatusCache();
   void resetAllModsCacheAndFile();
+  void refreshAllModStatusCache(bool forceRecheck_ = false);
+  void refreshOrphanInstalledModList();
+  void removeOrphanInstalledModCache(const std::string& modName_);
+  void claimOrphanInstalledFilesForMod(const std::string& modName_);
+  int getOrphanInstalledModIndex(const std::string& modName_) const;
 
   // mod management
   void resetModCache(int modIndex_);
   void resetModCache(const std::string &modName_);
 
+  ResultModAction refreshModStatus(int modIndex_, bool forceRecheck_ = false);
+  ResultModAction refreshModStatus(const std::string& modName_, bool forceRecheck_ = false);
   ResultModAction updateModStatus(int modIndex_);
   ResultModAction updateModStatus(const std::string& modName_);
   ResultModAction updateAllModStatus();
@@ -119,10 +155,18 @@ public:
 
   const std::string &getCurrentPresetName() const;
 
+  static ModStatusSummary readGameStatusSummary(
+      const std::string& gameFolderPath_,
+      const std::string& presetName_
+  );
+  static std::string formatGameStatusSummary(const ModStatusSummary& summary_);
+
 protected:
   void displayConflictsWithOtherMods(size_t modIndex_);
 
 private:
+  ResultModAction updateModStatusInternal(int modIndex_, bool forceRecheck_, bool showTerminalProgress_, bool dumpCache_);
+
   GameBrowser* _owner_{nullptr};
 
   bool _ignoreCacheFiles_{true};
@@ -133,6 +177,7 @@ private:
 
   Selector _selector_;
   std::vector<ModEntry> _modList_{};
+  std::vector<OrphanInstalledMod> _orphanInstalledModList_{};
 
   std::string _currentPresetName_{};
 };

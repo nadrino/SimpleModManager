@@ -5,11 +5,13 @@
 #include "TabGames.h"
 #include "FrameModBrowser.h"
 #include "FrameRoot.h"
+#include "Toolbox.h"
 
 #include "GenericToolbox.Switch.h"
 #include "GenericToolbox.Vector.h"
 #include "Logger.h"
 
+#include <cstdlib>
 #include <sstream>
 
 LoggerInit([]{
@@ -18,10 +20,39 @@ LoggerInit([]{
 
 TabGames::TabGames(FrameRoot* owner_) : _owner_(owner_) {
   LogWarning << "Building game tab..." << std::endl;
+  this->rebuildLayout(false);
+  LogInfo << "Game tab build." << std::endl;
+}
+
+void TabGames::willAppear(bool resetState) {
+  brls::List::willAppear(resetState);
+
+  if( _hasAppearedOnce_ ){
+    if( _restoreFocusAfterModBrowser_ ){
+      _refreshGameStatusOnNextDraw_ = true;
+      _restoreFocusOnNextDraw_ = true;
+    }
+    else{
+      _refreshOnNextDraw_ = true;
+    }
+    _restoreFocusAfterModBrowser_ = false;
+    this->invalidate();
+  }
+  _hasAppearedOnce_ = true;
+}
+
+void TabGames::rebuildLayout(bool force_) {
+  if( _layoutBuilt_ and not getGameBrowser().refreshGameList(force_) ){
+    this->resyncListItemFocusIndices();
+    return;
+  }
+
+  this->clear(true);
+  _gameList_.clear();
 
   auto gameList = this->getGameBrowser().getSelector().getEntryList();
 
-  if( gameList.empty() ){
+  auto addNoGamesItem = [this]() {
     LogInfo << "No game found." << std::endl;
 
     std::stringstream ssTitle;
@@ -38,6 +69,10 @@ TabGames::TabGames(FrameRoot* owner_) : _owner_(owner_) {
     _gameList_.emplace_back();
     _gameList_.back().item = new brls::ListItem( ssTitle.str(), ssSubTitle.str() );
     _gameList_.back().item->show([](){}, false);
+  };
+
+  if( gameList.empty() ){
+    addNoGamesItem();
   }
   else{
     LogInfo << "Adding " << gameList.size() << " game folders..." << std::endl;
@@ -45,20 +80,26 @@ TabGames::TabGames(FrameRoot* owner_) : _owner_(owner_) {
     _gameList_.reserve( gameList.size() );
     for( auto& gameEntry : gameList ){
       LogScopeIndent;
-      LogInfo << "Adding game folder: \"" << gameEntry.title << "\"" << std::endl;
+      LogDebug << "Adding game folder: \"" << gameEntry.title << "\"" << std::endl;
 
       std::string gamePath{GenericToolbox::joinPath(this->getConfig().baseFolder, gameEntry.title)};
-      int nMods = int( GenericToolbox::lsDirs(gamePath).size() );
+
+      auto* icon = Toolbox::getGameFolderIcon(gamePath);
+      if( icon == nullptr ){
+        LogInfo << "Skipping game folder without icon: \"" << gameEntry.title << "\"" << std::endl;
+        continue;
+      }
 
       // memory allocation
-      auto* item = new brls::ListItem(gameEntry.title, "", std::to_string(nMods) + " mod(s) available.");
+      const std::string tag = gameEntry.tag.empty() ? "" : gameEntry.tag;
+      auto* item = new brls::ListItem(gameEntry.title, "", tag);
+      item->setThumbnail(icon, 0x20000);
+      delete[] icon;
 
-      // looking for tid is quite slow... Slows down the boot up
-      std::string _titleId_{ GenericToolbox::Switch::Utils::lookForTidInSubFolders(gamePath) };
-      auto* icon = GenericToolbox::Switch::Utils::getIconFromTitleId(_titleId_);
-      if(icon != nullptr){ item->setThumbnail(icon, 0x20000); }
       item->getClickEvent()->subscribe([&, gameEntry](View* view) {
         LogWarning << "Opening \"" << gameEntry.title << "\"" << std::endl;
+        _focusGameNameAfterReturn_ = gameEntry.title;
+        _restoreFocusAfterModBrowser_ = true;
         getGameBrowser().selectGame( gameEntry.title );
         auto* modsBrowser = new FrameModBrowser( &_owner_->getGuiModManager() );
         brls::Application::pushView(modsBrowser, brls::ViewAnimation::SLIDE_LEFT);
@@ -71,45 +112,122 @@ TabGames::TabGames(FrameRoot* owner_) : _owner_(owner_) {
       _gameList_.emplace_back();
       _gameList_.back().title = gameEntry.title;
       _gameList_.back().item = item;
-      _gameList_.back().nMods = nMods;
 
     }
-  }
 
-  switch( this->getConfig().sortGameList.value ){
-    case ConfigHolder::SortGameList::Alphabetical:
-    {
-      LogInfo << "Sorting games wrt nb of mods..." << std::endl;
-      GenericToolbox::sortVector(_gameList_, [](const GameItem& a_, const GameItem& b_){
-        return GenericToolbox::toLowerCase(a_.title) < GenericToolbox::toLowerCase(b_.title); // if true, then a_ goes first
-      });
-      break;
-    }
-    case ConfigHolder::SortGameList::NbMods:
-    {
-      // "nb-mods" or default
-      LogInfo << "Sorting games wrt nb of mods..." << std::endl;
-      GenericToolbox::sortVector(_gameList_, [](const GameItem& a_, const GameItem& b_){
-        return a_.nMods > b_.nMods; // if true, then a_ goes first
-      });
-      break;
-    }
-    case ConfigHolder::SortGameList::NoSort:
-    {
-      LogInfo << "No sort selected." << std::endl;
-      break;
-    }
-    default:
-    {
-      LogError << "Invalid sort preset: " << this->getConfig().sortGameList << " / " << this->getConfig().sortGameList.toString() << std::endl;
+    if( _gameList_.empty() ){
+      addNoGamesItem();
     }
   }
-  LogDebug << "Sort done." << std::endl;
 
   // add to the view
   for( auto& game : _gameList_ ){ this->addView( game.item ); }
+  this->resyncListItemFocusIndices();
+  _layoutBuilt_ = true;
 
-  LogInfo << "Game tab build." << std::endl;
+}
+
+void TabGames::draw(NVGcontext* vg, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* ctx) {
+  const bool viewTransitionRunning = brls::Application::hasViewDisappearing();
+
+  if( _refreshOnNextDraw_ ){
+    if( not viewTransitionRunning ){
+      _refreshOnNextDraw_ = false;
+      this->rebuildLayout(false);
+    }
+  }
+
+  if( _refreshGameStatusOnNextDraw_ ){
+    if( not viewTransitionRunning ){
+      _refreshGameStatusOnNextDraw_ = false;
+      this->refreshDisplayedGameStatus(_focusGameNameAfterReturn_);
+    }
+  }
+
+  if( _restoreFocusOnNextDraw_ ){
+    if( not viewTransitionRunning ){
+      _restoreFocusOnNextDraw_ = false;
+      this->restoreFocusAfterRebuild();
+    }
+  }
+
+  brls::ScrollView::draw(vg, x, y, width, height, style, ctx);
+}
+
+brls::View* TabGames::getDefaultFocus() {
+  if( _gameList_.empty() ){
+    return nullptr;
+  }
+  return _gameList_.front().item;
+}
+
+void TabGames::resyncListItemFocusIndices() {
+  // Borealis navigation uses parentUserData as the child index. After a full
+  // clear/rebuild the old focused item can be gone, so refresh every child index.
+  for( size_t i = 0; i < this->getViewsCount(); ++i ) {
+    auto* child = this->getChild( i );
+    if( child == nullptr ) {
+      continue;
+    }
+    auto* parent = child->getParent();
+    if( parent == nullptr ) {
+      continue;
+    }
+
+    auto* userdata = static_cast<size_t*>( malloc( sizeof(size_t) ) );
+    *userdata = i;
+    child->setParent( parent, userdata );
+  }
+}
+
+brls::ListItem* TabGames::findGameItem(const std::string& gameTitle_) const {
+  if( gameTitle_.empty() ){
+    return nullptr;
+  }
+
+  for( const auto& game : _gameList_ ){
+    if( game.item != nullptr && game.item->getLabel() == gameTitle_ ){
+      return game.item;
+    }
+  }
+  return nullptr;
+}
+
+void TabGames::refreshDisplayedGameStatus(const std::string& gameTitle_) {
+  auto* item = this->findGameItem(gameTitle_);
+  if( item == nullptr ){
+    return;
+  }
+
+  const std::string tag = this->getGameBrowser().refreshGameListTag(gameTitle_);
+  item->setSubLabel(tag);
+  item->invalidate(true);
+  this->invalidate(true);
+  if( this->getParent() != nullptr ){
+    this->getParent()->invalidate(true);
+  }
+}
+
+void TabGames::restoreFocusAfterRebuild() {
+  if( _gameList_.empty() ){
+    return;
+  }
+  if( this->getParent() == nullptr and not _hasAppearedOnce_ ){
+    return;
+  }
+
+  auto* focusItem = this->findGameItem(_focusGameNameAfterReturn_);
+  if( focusItem == nullptr ){
+    focusItem = _gameList_.front().item;
+  }
+
+  if( focusItem != nullptr ){
+    brls::Application::giveFocus(focusItem);
+    this->invalidate(true);
+    if( this->getParent() != nullptr ){
+      this->getParent()->invalidate(true);
+    }
+  }
 }
 
 const GameBrowser& TabGames::getGameBrowser() const{

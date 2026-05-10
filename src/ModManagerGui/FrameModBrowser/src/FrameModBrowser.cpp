@@ -9,9 +9,13 @@
 #include <TabModPresets.h>
 #include <TabModOptions.h>
 
+#include "SystemStatusOverlay.h"
+
 #include "GenericToolbox.Switch.h"
 #include "Logger.h"
 
+#include <sstream>
+#include <vector>
 
 LoggerInit([]{
   Logger::setUserHeaderStr("[FrameModBrowser]");
@@ -54,16 +58,31 @@ FrameModBrowser::FrameModBrowser(GuiModManager* guiModManagerPtr_) : _guiModMana
     this->addTab("Options", _tabModOptions_);
     this->addTab("Plugins", _tabModPlugins_);
 
+    // Auto-recheck disabled to prevent freeze - use cache-based verification only
+    // User can manually trigger verification if needed
+    // if( not getGuiModManager().isBackgroundTaskRunning() ){
+    //   getGuiModManager().startCheckAllModsThread();
+    // }
+
   }
   else{
     auto* list = new brls::List();
-    LogError("Can't open: %s", gamePath.c_str());
-    auto* item = new brls::ListItem("Error: Can't open " + gamePath , "", "");
+    LogInfo("No mods found for: %s", gamePath.c_str());
+    auto* item = new brls::ListItem(
+        "No mods for this game are on your SD card.",
+        "Put mods in: " + gamePath,
+        "");
     list->addView(item);
     this->addTab("Mod Browser", list);
   }
 
 }
+void FrameModBrowser::draw(NVGcontext* vg, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* ctx) {
+  brls::TabFrame::draw(vg, x, y, width, height, style, ctx);
+  SystemStatusOverlay::draw(vg, x, y, width, style, ctx);
+  this->promptOrphanInstalledModsCleanup();
+}
+
 bool FrameModBrowser::onCancel() {
 
   // Go back to sidebar
@@ -84,4 +103,68 @@ uint8_t *FrameModBrowser::getIcon() {
 }
 std::string FrameModBrowser::getTitleId() {
   return _titleId_;
+}
+
+void FrameModBrowser::promptOrphanInstalledModsCleanup() {
+  if( _orphanCleanupPromptShown_ ){
+    return;
+  }
+  if( !this->getConfig().offerOrphanInstalledModCleanup ){
+    return;
+  }
+  if( brls::Application::hasViewDisappearing() ){
+    return;
+  }
+  if( brls::Application::getTopStackView() != this ){
+    return;
+  }
+  if( this->getGuiModManager().isBackgroundTaskRunning() ){
+    return;
+  }
+
+  auto& modManager = this->getGameBrowser().getModManager();
+  if( !_orphanCleanupScanDone_ ){
+    modManager.refreshOrphanInstalledModList();
+    _orphanCleanupScanDone_ = true;
+  }
+
+  const auto& orphanMods = modManager.getOrphanInstalledModList();
+  if( orphanMods.empty() ){
+    return;
+  }
+
+  _orphanCleanupPromptShown_ = true;
+
+  std::vector<std::string> modNameList;
+  modNameList.reserve(orphanMods.size());
+  for( const auto& orphanMod : orphanMods ){
+    modNameList.emplace_back(orphanMod.modName);
+  }
+
+  std::stringstream ss;
+  if( modNameList.size() == 1 ){
+    if( modNameList.front() == "Unknown installed files" ){
+      ss << "Installed files were found for this game, but they do not match any mod currently on your SD card. Delete these installed files?";
+    }
+    else{
+      ss << "Installed files were found for \"" << modNameList.front()
+         << "\", but this mod is no longer on your SD card. Delete these installed files?";
+    }
+  }
+  else{
+    ss << "Installed files were found for " << modNameList.size()
+       << " cleanup entries that no longer match mods on your SD card. Delete these installed files?";
+  }
+
+  auto* dialog = new brls::Dialog(ss.str());
+  dialog->addButton("Yes", [this, dialog, modNameList](brls::View* view) {
+    dialog->close([this, modNameList]{
+      this->getGuiModManager().startDeleteOrphanInstalledModsThread(modNameList);
+    });
+  });
+  dialog->addButton("No", [dialog](brls::View* view) {
+    dialog->close();
+  });
+  dialog->setCancelable(true);
+  dialog->open();
 }

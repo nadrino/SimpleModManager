@@ -23,6 +23,11 @@ class TabGames : public brls::List {
 public:
   explicit TabGames(FrameRoot* owner_);
 
+  void rebuildLayout(bool force_ = false);
+  void willAppear(bool resetState = false) override;
+  void draw(NVGcontext* vg, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* ctx) override;
+  brls::View* getDefaultFocus() override;
+
   // non native getters
   [[nodiscard]] const GameBrowser& getGameBrowser() const;
   [[nodiscard]] const ConfigHolder& getConfig() const;
@@ -31,8 +36,20 @@ public:
   ConfigHolder& getConfig();
 
 private:
+  void resyncListItemFocusIndices();
+  brls::ListItem* findGameItem(const std::string& gameTitle_) const;
+  void refreshDisplayedGameStatus(const std::string& gameTitle_);
+  void restoreFocusAfterRebuild();
+
   FrameRoot* _owner_{};
   std::vector<GameItem> _gameList_;
+  std::string _focusGameNameAfterReturn_{};
+  bool _restoreFocusAfterModBrowser_{false};
+  bool _refreshOnNextDraw_{false};
+  bool _refreshGameStatusOnNextDraw_{false};
+  bool _restoreFocusOnNextDraw_{false};
+  bool _hasAppearedOnce_{false};
+  bool _layoutBuilt_{false};
 
 };
 
